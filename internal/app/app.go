@@ -175,7 +175,7 @@ func (a *App) Execute(ctx context.Context, call Call) (*Result, error) {
 
 	if upload != nil {
 		// Multipart sends the file straight to storage, which avoids the
-		// web server's request size limit (about 1 MB today). A single
+		// 100 MB per-request cap of the CDN in front of the API. A single
 		// request is only the fallback for storage without multipart.
 		site, err := a.site(call)
 		if err != nil {
