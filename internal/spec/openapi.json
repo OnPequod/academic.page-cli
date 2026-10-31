@@ -3329,7 +3329,7 @@
           },
           "code": {
             "type": "string",
-            "description": "One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, section_not_enabled, not_found, invalid_parameter, and the management codes."
+            "description": "One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, section_not_enabled, not_found, invalid_parameter, and the management codes."
           }
         }
       },
