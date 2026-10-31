@@ -70,8 +70,10 @@ type Command struct {
 	Text bool
 	// Publishable writes accept --publish and default to drafts.
 	Publishable bool
-	// Rich lists body fields that hold a Tiptap document. Each accepts
-	// --<prefix>-markdown and --<prefix>-file; see RichPrefix.
+	// Rich lists body fields that hold rich text. Markdown is the normal way
+	// to write them, through --<prefix>-markdown and --<prefix>-file (see
+	// RichPrefix); the CLI converts it. The API's Tiptap form stays
+	// available through --data for callers that want it.
 	Rich []string
 	// TextFiles lists string body fields that can be read from a file with
 	// --<field>-file, such as the BibTeX of an import.

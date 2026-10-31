@@ -2,6 +2,7 @@ package registry
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -145,6 +146,11 @@ func TestInputSchema(t *testing.T) {
 	}
 	if items := props["tag_ids"].(map[string]any)["items"].(map[string]any)["type"]; items != "integer" {
 		t.Errorf("tag_ids items = %v", items)
+	}
+
+	props = load(t).Find("posts", "create").InputSchema()["properties"].(map[string]any)
+	if desc, _ := props["content_structured"].(map[string]any)["description"].(string); !strings.Contains(desc, "content_markdown") {
+		t.Errorf("content_structured should point to content_markdown: %q", desc)
 	}
 
 	props = load(t).Find("publications", "import").InputSchema()["properties"].(map[string]any)

@@ -91,7 +91,7 @@ With command words, describe one command:
 				"notes": []string{
 					"Reads return published content; --drafts on posts, pages, projects and media reads includes drafts (management key).",
 					"Writes exist for posts, pages, projects and media. Creates are drafts unless --publish.",
-					"Body content is given with --content-markdown or --content-file (Markdown or Tiptap JSON).",
+					"Rich text (content, abstract, bio, and so on) is written in Markdown with --<field>-markdown or --<field>-file. The editor's Tiptap JSON is accepted through --data for exact control.",
 					"Every command accepts --dry-run, which prints the request without sending it.",
 					"Other commands: auth login|logout|status|profiles|use, sites use, mcp, version.",
 				},

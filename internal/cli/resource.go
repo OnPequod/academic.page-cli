@@ -84,8 +84,8 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 	}
 	for _, name := range rc.Rich {
 		prefix := strings.ReplaceAll(registry.RichPrefix(name), "_", "-")
-		markdown[name] = flags.String(prefix+"-markdown", "", name+" as Markdown")
-		files[name] = flags.String(prefix+"-file", "", name+" from a Markdown (.md) or Tiptap JSON (.json) file, or - for Markdown on stdin")
+		markdown[name] = flags.String(prefix+"-markdown", "", strings.ReplaceAll(registry.RichPrefix(name), "_", " ")+" as Markdown")
+		files[name] = flags.String(prefix+"-file", "", strings.ReplaceAll(registry.RichPrefix(name), "_", " ")+" from a Markdown file, or - for stdin")
 	}
 	for _, name := range rc.TextFiles {
 		files[name] = flags.String(strings.ReplaceAll(name, "_", "-")+"-file", "", name+" from a file, or - for stdin")

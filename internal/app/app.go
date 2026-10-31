@@ -62,10 +62,10 @@ type Call struct {
 	// Body holds body fields by API name.
 	Body map[string]any
 
-	// Markdown holds Markdown for Tiptap fields, by API name.
+	// Markdown holds Markdown for rich-text fields, by API name.
 	Markdown map[string]string
-	// Files holds file paths for Tiptap fields (.md, .markdown or .json) and
-	// text fields, by API name; "-" reads standard input.
+	// Files holds file paths for rich-text fields (Markdown) and text
+	// fields, by API name; "-" reads standard input.
 	Files map[string]string
 	Stdin io.Reader
 
@@ -329,10 +329,9 @@ func (a *App) body(call Call) (map[string]any, error) {
 		if md == "" && file == "" {
 			continue
 		}
-		prefix := registry.RichPrefix(name)
-		_, inBody := body[name]
-		if (md != "" && file != "") || inBody {
-			return nil, Usagef("give one of --%s-markdown, --%s-file, or %s", prefix, prefix, name)
+		if _, inBody := body[name]; (md != "" && file != "") || inBody {
+			prefix := strings.ReplaceAll(registry.RichPrefix(name), "_", "-")
+			return nil, Usagef("give one of --%s-markdown, --%s-file, or %s in --data", prefix, prefix, name)
 		}
 		doc, err := richDoc(md, file, call.Stdin)
 		if err != nil {
@@ -376,24 +375,14 @@ func richDoc(markdown, file string, stdin io.Reader) (any, error) {
 	if markdown != "" {
 		return content.FromMarkdown([]byte(markdown)), nil
 	}
+	if ext := strings.ToLower(filepath.Ext(file)); ext == ".json" || ext == ".html" || ext == ".htm" {
+		return nil, Usagef("%s: this option takes Markdown; to send the editor's JSON, put it in --data", file)
+	}
 	data, err := readInput(file, stdin)
 	if err != nil {
 		return nil, err
 	}
-	switch strings.ToLower(filepath.Ext(file)) {
-	case ".json":
-		var doc map[string]any
-		if err := json.Unmarshal(data, &doc); err != nil {
-			return nil, Usagef("%s is not valid JSON: %v", file, err)
-		}
-		if doc["type"] != "doc" {
-			return nil, Usagef(`%s must be a Tiptap document: {"type": "doc", "content": [...]}`, file)
-		}
-		return doc, nil
-	case ".md", ".markdown", ".txt", "":
-		return content.FromMarkdown(data), nil
-	}
-	return nil, Usagef("give Markdown (.md) or Tiptap JSON (.json), got %s", file)
+	return content.FromMarkdown(data), nil
 }
 
 // readInput reads a file, or standard input for "-".

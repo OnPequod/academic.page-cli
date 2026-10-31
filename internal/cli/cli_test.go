@@ -412,3 +412,28 @@ func TestManageFlag(t *testing.T) {
 		t.Errorf("key show: code %d, stdout %q", r.code, r.stdout)
 	}
 }
+
+func TestRichTextIsMarkdownFirst(t *testing.T) {
+	setup(t)
+	r := run(t, "", "posts", "create", "--title", "T", "--data", `{"content_structured":{"type":"doc","content":[]}}`, "--dry-run")
+	if r.code != 0 || !strings.Contains(r.stdout, `"content_structured"`) {
+		t.Errorf("Tiptap through --data should still work: code %d, stderr %q", r.code, r.stderr)
+	}
+	r = run(t, "", "posts", "create", "--title", "T", "--data", `{"content_structured":{"type":"doc"}}`, "--content-markdown", "x")
+	if r.code != app.ExitUsage {
+		t.Errorf("Tiptap and Markdown together: code %d", r.code)
+	}
+	doc := filepath.Join(t.TempDir(), "post.json")
+	if err := os.WriteFile(doc, []byte(`{"type":"doc"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if r := run(t, "", "posts", "create", "--title", "T", "--content-file", doc); r.code != app.ExitUsage || !strings.Contains(r.stderr, "Markdown") {
+		t.Errorf(".json content file: code %d, stderr %q", r.code, r.stderr)
+	}
+	if r := run(t, "", "profile", "update", "--bio-markdown", "x"); r.code != app.ExitUsage {
+		t.Errorf("profile has summary and body, not bio: code %d", r.code)
+	}
+	if r := run(t, "", "profile", "update", "--summary-markdown", "I study *birds*.", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, `"summary"`) {
+		t.Errorf("profile summary: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+}
