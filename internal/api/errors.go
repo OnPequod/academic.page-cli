@@ -54,6 +54,8 @@ func (e *Error) Hint() string {
 		return "The site's storage is full. Delete unused media files, or move to a plan with more storage."
 	case "bucket_quota_exceeded":
 		return "The storage bucket is full. This is a server-side limit; contact Academic.page support."
+	case "edit_conflict":
+		return "The record was edited after you read it. Fetch it again, apply your change to the new version, and pass its edit_version."
 	case "section_not_enabled":
 		return "That section is turned off for this site. Turn it on in the site's settings."
 	}
@@ -62,6 +64,8 @@ func (e *Error) Hint() string {
 		return "The key was rejected. It may be revoked or mistyped; run `academic-page auth login` with a new key."
 	case e.Status == http.StatusNotFound:
 		return "Check the ID. List commands show the IDs that exist."
+	case e.Status == http.StatusConflict:
+		return "The request conflicts with the record's current state. Fetch it again and retry."
 	case e.Status == http.StatusUnprocessableEntity:
 		return "Fix the fields listed above and try again."
 	case e.Status == http.StatusRequestEntityTooLarge:
@@ -92,6 +96,8 @@ func parseError(r *Response) *Error {
 			e.Code = "rate_limited"
 		case http.StatusNotFound:
 			e.Code = "not_found"
+		case http.StatusConflict:
+			e.Code = "conflict"
 		case http.StatusRequestEntityTooLarge:
 			e.Code = "payload_too_large"
 		}

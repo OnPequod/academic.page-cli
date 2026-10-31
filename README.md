@@ -76,6 +76,7 @@ Each command is a tool (`posts_list`, `posts_create`, …) with the same argumen
 | 7 | Rate limited (429) |
 | 8 | Server error (5xx) |
 | 9 | Network error |
+| 10 | Conflict: the record changed since it was read (409); read it again and retry |
 
 With `--json`, errors go to stderr as `{"error": {"code", "message", "status", "fields", "hint", "exit_code"}}`.
 

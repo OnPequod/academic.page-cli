@@ -326,7 +326,7 @@ func TestSchema(t *testing.T) {
 	if err := json.Unmarshal([]byte(r.stdout), &out); err != nil {
 		t.Fatalf("schema is not JSON: %v", err)
 	}
-	if len(out.Commands) < 30 || len(out.ExitCodes) != 10 {
+	if len(out.Commands) < 30 || len(out.ExitCodes) != 11 {
 		t.Errorf("commands %d, exit codes %d", len(out.Commands), len(out.ExitCodes))
 	}
 	if r := run(t, "", "schema", "posts", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--content-markdown"`) {

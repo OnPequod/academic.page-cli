@@ -22,6 +22,7 @@ const (
 	ExitRateLimit  = 7
 	ExitServer     = 8
 	ExitNetwork    = 9
+	ExitConflict   = 10
 )
 
 // ExitCodes describes each exit code, for the schema command.
@@ -40,6 +41,7 @@ var ExitCodes = []struct {
 	{ExitRateLimit, "rate_limited", "Too many requests (429), even after retrying."},
 	{ExitServer, "server", "The API had a server error (5xx)."},
 	{ExitNetwork, "network", "The API could not be reached."},
+	{ExitConflict, "conflict", "The record changed since it was read (409). Read it again, then retry with the new edit_version."},
 }
 
 // UsageError is a mistake in how a command was called.
@@ -73,6 +75,8 @@ func ExitCode(err error) int {
 			return ExitNotFound
 		case apiErr.Status == http.StatusUnprocessableEntity, apiErr.Status == http.StatusRequestEntityTooLarge:
 			return ExitValidation
+		case apiErr.Status == http.StatusConflict:
+			return ExitConflict
 		case apiErr.Status == http.StatusTooManyRequests:
 			return ExitRateLimit
 		case apiErr.Status >= 500:
