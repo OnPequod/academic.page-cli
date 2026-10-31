@@ -31,7 +31,7 @@ func (c *Command) InputSchema() map[string]any {
 	if c.NeedsSite() {
 		props[OptSite] = map[string]any{"type": "integer", "minimum": 1, "description": "Site ID. Defaults to the profile's site."}
 	}
-	for _, f := range []*Field{c.Parent, c.Arg, c.FileArg} {
+	for _, f := range append(append([]*Field{}, c.Parents...), c.Arg, c.FileArg) {
 		if f == nil {
 			continue
 		}

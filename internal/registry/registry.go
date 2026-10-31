@@ -79,9 +79,9 @@ type Command struct {
 	// --<field>-file, such as the BibTeX of an import.
 	TextFiles []string
 
-	// Parent is the positional ID of the record this one belongs to, such as
-	// the course of a lesson.
-	Parent *Field
+	// Parents are the positional IDs of the records this one belongs to,
+	// outermost first, such as the course and lesson of a material.
+	Parents []*Field
 	// Arg is the positional ID argument, if any.
 	Arg *Field
 	// FileArg is the positional file argument of an upload.
@@ -112,9 +112,9 @@ type entry struct {
 	kind               Kind
 	op, draftsOp       string
 	text               bool
-	// parent names the first path argument when it identifies a parent
-	// record, such as course_id for lessons.
-	parent string
+	// parents name the leading path arguments that identify parent
+	// records, such as course_id and lesson_id for lesson materials.
+	parents []string
 	// textFile is a string body field that --<field>-file can fill.
 	textFile string
 }
@@ -128,6 +128,7 @@ var Groups = []Group{
 	{"key", "The API key in use"},
 	{"sites", "Sites you can reach with this key"},
 	{"profile", "The site owner's profile"},
+	{"profile-cv", "The CV file on the profile"},
 	{"profile-degrees", "Degrees on the profile"},
 	{"profile-positions", "Positions on the profile"},
 	{"profile-links", "Links on the profile"},
@@ -138,11 +139,19 @@ var Groups = []Group{
 	{"talks", "Talks"},
 	{"courses", "Courses"},
 	{"course-lessons", "Lessons in a course"},
+	{"lesson-materials", "Materials in a lesson"},
+	{"course-assignments", "Assignments in a course"},
+	{"course-references", "References (readings) in a course"},
 	{"lab-members", "Lab members (the study team on study sites)"},
 	{"study", "Study details"},
 	{"tags", "Tags"},
 	{"media", "Media library files"},
 }
+
+var (
+	course = []string{"course_id"}
+	lesson = []string{"course_id", "lesson_id"}
+)
 
 var table = []entry{
 	{group: "key", name: "show", short: "Show this key's abilities, site scope, Pro status and expiry", op: "getMe"},
@@ -153,6 +162,10 @@ var table = []entry{
 
 	{group: "profile", name: "get", short: "Show the profile", op: "getProfile", draftsOp: "manageGetProfile"},
 	{group: "profile", name: "update", short: "Update the profile (saves like the Save button)", op: "manageUpdateProfile", kind: KindWrite},
+
+	{group: "profile-cv", name: "get", short: "Show the CV file attached to the profile", op: "manageGetProfileCv"},
+	{group: "profile-cv", name: "set", short: "Attach a media file as the profile's CV", op: "manageSetProfileCv", kind: KindWrite},
+	{group: "profile-cv", name: "delete", short: "Remove the profile's CV", op: "manageDeleteProfileCv", kind: KindDelete},
 
 	{group: "profile-degrees", name: "list", short: "List degrees", op: "manageListProfileDegrees"},
 	{group: "profile-degrees", name: "get", short: "Show a degree", op: "manageGetProfileDegree"},
@@ -215,12 +228,32 @@ var table = []entry{
 	{group: "courses", name: "update", short: "Update a course", op: "manageUpdateCourse", kind: KindWrite},
 	{group: "courses", name: "delete", short: "Delete a course", op: "manageDeleteCourse", kind: KindDelete},
 
-	{group: "course-lessons", name: "list", short: "List a course's lessons", op: "manageListCourseLessons", parent: "course_id"},
-	{group: "course-lessons", name: "get", short: "Show a lesson", op: "manageGetCourseLesson", parent: "course_id"},
-	{group: "course-lessons", name: "create", short: "Add a lesson to a course", op: "manageCreateCourseLesson", kind: KindWrite, parent: "course_id"},
-	{group: "course-lessons", name: "update", short: "Update a lesson", op: "manageUpdateCourseLesson", kind: KindWrite, parent: "course_id"},
-	{group: "course-lessons", name: "delete", short: "Delete a lesson", op: "manageDeleteCourseLesson", kind: KindDelete, parent: "course_id"},
-	{group: "course-lessons", name: "reorder", short: "Set the order of a course's lessons", op: "manageReorderCourseLessons", kind: KindWrite, parent: "course_id"},
+	{group: "course-lessons", name: "list", short: "List a course's lessons", op: "manageListCourseLessons", parents: course},
+	{group: "course-lessons", name: "get", short: "Show a lesson", op: "manageGetCourseLesson", parents: course},
+	{group: "course-lessons", name: "create", short: "Add a lesson to a course", op: "manageCreateCourseLesson", kind: KindWrite, parents: course},
+	{group: "course-lessons", name: "update", short: "Update a lesson", op: "manageUpdateCourseLesson", kind: KindWrite, parents: course},
+	{group: "course-lessons", name: "delete", short: "Delete a lesson", op: "manageDeleteCourseLesson", kind: KindDelete, parents: course},
+	{group: "course-lessons", name: "reorder", short: "Set the order of a course's lessons", op: "manageReorderCourseLessons", kind: KindWrite, parents: course},
+
+	{group: "lesson-materials", name: "list", short: "List a lesson's materials", op: "manageListCourseMaterials", parents: lesson},
+	{group: "lesson-materials", name: "get", short: "Show a material", op: "manageGetCourseMaterial", parents: lesson},
+	{group: "lesson-materials", name: "create", short: "Add a material to a lesson", op: "manageCreateCourseMaterial", kind: KindWrite, parents: lesson},
+	{group: "lesson-materials", name: "update", short: "Update a material", op: "manageUpdateCourseMaterial", kind: KindWrite, parents: lesson},
+	{group: "lesson-materials", name: "delete", short: "Delete a material", op: "manageDeleteCourseMaterial", kind: KindDelete, parents: lesson},
+	{group: "lesson-materials", name: "reorder", short: "Set the order of a lesson's materials", op: "manageReorderCourseMaterials", kind: KindWrite, parents: lesson},
+
+	{group: "course-assignments", name: "list", short: "List a course's assignments", op: "manageListCourseAssignments", parents: course},
+	{group: "course-assignments", name: "get", short: "Show an assignment", op: "manageGetCourseAssignment", parents: course},
+	{group: "course-assignments", name: "create", short: "Add an assignment to a course", op: "manageCreateCourseAssignment", kind: KindWrite, parents: course},
+	{group: "course-assignments", name: "update", short: "Update an assignment", op: "manageUpdateCourseAssignment", kind: KindWrite, parents: course},
+	{group: "course-assignments", name: "delete", short: "Delete an assignment", op: "manageDeleteCourseAssignment", kind: KindDelete, parents: course},
+
+	{group: "course-references", name: "list", short: "List a course's references (readings)", op: "manageListCourseReferences", parents: course},
+	{group: "course-references", name: "get", short: "Show a reference", op: "manageGetCourseReference", parents: course},
+	{group: "course-references", name: "create", short: "Add a reference to a course", op: "manageCreateCourseReference", kind: KindWrite, parents: course},
+	{group: "course-references", name: "update", short: "Update a reference", op: "manageUpdateCourseReference", kind: KindWrite, parents: course},
+	{group: "course-references", name: "delete", short: "Delete a reference", op: "manageDeleteCourseReference", kind: KindDelete, parents: course},
+	{group: "course-references", name: "reorder", short: "Set the order of a course's references", op: "manageReorderCourseReferences", kind: KindWrite, parents: course},
 
 	{group: "lab-members", name: "list", short: "List lab members", op: "listLabMembers", draftsOp: "manageListLabMembers"},
 	{group: "lab-members", name: "get", short: "Show a lab member", op: "getLabMember", draftsOp: "manageGetLabMember"},
@@ -352,13 +385,13 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 	}
 
 	args := pathArgs(op)
-	if e.parent != "" {
-		if len(args) == 0 {
-			return nil, fmt.Errorf("%s %s: %s has no parent path argument", e.group, e.name, op.ID)
-		}
-		args[0].Name = e.parent
-		c.Parent, args = args[0], args[1:]
+	if len(e.parents) > len(args) {
+		return nil, fmt.Errorf("%s %s: %s has fewer path arguments than parents", e.group, e.name, op.ID)
 	}
+	for i, name := range e.parents {
+		args[i].Name = name
+	}
+	c.Parents, args = args[:len(e.parents)], args[len(e.parents):]
 	if len(args) > 1 {
 		return nil, fmt.Errorf("%s %s: %s has more path arguments than the CLI maps", e.group, e.name, op.ID)
 	}

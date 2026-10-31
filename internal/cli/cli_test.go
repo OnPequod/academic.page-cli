@@ -350,6 +350,12 @@ func TestNewResources(t *testing.T) {
 	if r.code != 0 || f.last().Path != "/sites/7/courses/3/lessons/5" || f.last().Method != "PATCH" {
 		t.Fatalf("lesson update: code %d, %+v, stderr %q", r.code, f.last(), r.stderr)
 	}
+	if r := run(t, "", "lesson-materials", "update", "3", "5", "8", "--dry-run", "--json"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/courses/3/lessons/5/materials/8") {
+		t.Errorf("material update: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "profile-cv", "delete", "--yes", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "DELETE") {
+		t.Errorf("cv delete: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
 	if r := run(t, "", "course-lessons", "get", "3"); r.code != app.ExitUsage {
 		t.Errorf("lesson get with one argument: code %d", r.code)
 	}

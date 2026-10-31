@@ -72,7 +72,11 @@ func (c *CLI) printResult(rc *registry.Command, call app.Call, res *app.Result) 
 
 func (c *CLI) printWriteSummary(rc *registry.Command, call app.Call, raw, data json.RawMessage) error {
 	if rc.Kind == registry.KindDelete {
-		fmt.Fprintf(c.Stdout, "Deleted %s %s.\n", singular(rc.Group), call.Arg)
+		if call.Arg == "" {
+			fmt.Fprintf(c.Stdout, "Deleted the %s.\n", singular(rc.Group))
+		} else {
+			fmt.Fprintf(c.Stdout, "Deleted %s %s.\n", singular(rc.Group), call.Arg)
+		}
 		return nil
 	}
 	if len(data) == 0 {
@@ -202,6 +206,8 @@ func singular(group string) string {
 		return "media file"
 	case "study":
 		return "study"
+	case "profile-cv":
+		return "profile CV"
 	}
 	return strings.TrimSuffix(strings.ReplaceAll(group, "-", " "), "s")
 }

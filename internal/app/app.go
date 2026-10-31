@@ -51,8 +51,9 @@ type Call struct {
 	Command *registry.Command
 	// Site overrides the configured site when non-zero.
 	Site int64
-	// Parent is the parent record's ID, such as a lesson's course.
-	Parent string
+	// Parents are the parent records' IDs, outermost first, such as a
+	// material's course and lesson.
+	Parents []string
 	// Arg is the positional ID.
 	Arg string
 	// File is the path of the file to upload.
@@ -258,8 +259,13 @@ func (a *App) path(call Call, op *spec.Operation) (string, error) {
 			value = fmt.Sprint(site)
 		} else {
 			name, value = "id", call.Arg
-			if parent := call.Command.Parent; parent != nil && p.Name == parent.Param {
-				name, value = parent.Name, call.Parent
+			for i, parent := range call.Command.Parents {
+				if p.Name == parent.Param {
+					name, value = parent.Name, ""
+					if i < len(call.Parents) {
+						value = call.Parents[i]
+					}
+				}
 			}
 			if value == "" {
 				return "", Usagef("`%s` needs the %s: %s", call.Command.Path(), name, p.Description)

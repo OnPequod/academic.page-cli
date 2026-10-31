@@ -11,7 +11,7 @@ import (
 // CallFromArgs builds a Call from JSON arguments shaped by
 // Command.InputSchema, as MCP tools receive them.
 func CallFromArgs(cmd *registry.Command, raw json.RawMessage) (Call, error) {
-	call := Call{Command: cmd, Query: map[string]string{}, Body: map[string]any{}, Markdown: map[string]string{}, Files: map[string]string{}}
+	call := Call{Command: cmd, Query: map[string]string{}, Body: map[string]any{}, Markdown: map[string]string{}, Files: map[string]string{}, Parents: make([]string, len(cmd.Parents))}
 	args := map[string]any{}
 	if len(raw) > 0 && string(raw) != "null" {
 		if err := json.Unmarshal(raw, &args); err != nil {
@@ -36,8 +36,8 @@ func CallFromArgs(cmd *registry.Command, raw json.RawMessage) (Call, error) {
 		switch {
 		case name == registry.OptSite:
 			call.Site, err = toInt(name, v)
-		case cmd.Parent != nil && name == cmd.Parent.Name:
-			call.Parent, err = toArg(name, v)
+		case parentIndex(cmd, name) >= 0:
+			call.Parents[parentIndex(cmd, name)], err = toArg(name, v)
 		case cmd.Arg != nil && name == cmd.Arg.Name:
 			call.Arg, err = toArg(name, v)
 		case cmd.FileArg != nil && name == cmd.FileArg.Name:
@@ -111,4 +111,13 @@ func toArg(name string, v any) (string, error) {
 		return strconv.FormatInt(int64(v), 10), nil
 	}
 	return "", Usagef("%s must be an ID", name)
+}
+
+func parentIndex(cmd *registry.Command, name string) int {
+	for i, f := range cmd.Parents {
+		if f.Name == name {
+			return i
+		}
+	}
+	return -1
 }

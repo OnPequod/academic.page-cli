@@ -84,11 +84,15 @@ func TestCommandShapes(t *testing.T) {
 	}
 
 	lesson := r.Find("course-lessons", "update")
-	if lesson.Parent == nil || lesson.Parent.Name != "course_id" || lesson.Parent.Param != "courseId" || lesson.Arg == nil || lesson.Arg.Param != "lessonId" {
-		t.Errorf("course-lessons update: parent %+v, arg %+v", lesson.Parent, lesson.Arg)
+	if len(lesson.Parents) != 1 || lesson.Parents[0].Name != "course_id" || lesson.Parents[0].Param != "courseId" || lesson.Arg == nil || lesson.Arg.Param != "lessonId" {
+		t.Errorf("course-lessons update: parents %+v, arg %+v", lesson.Parents, lesson.Arg)
 	}
-	if lessons := r.Find("course-lessons", "list"); lessons.Parent == nil || lessons.Arg != nil {
-		t.Errorf("course-lessons list: parent %+v, arg %+v", lessons.Parent, lessons.Arg)
+	if lessons := r.Find("course-lessons", "list"); len(lessons.Parents) != 1 || lessons.Arg != nil {
+		t.Errorf("course-lessons list: parents %+v, arg %+v", lessons.Parents, lessons.Arg)
+	}
+	material := r.Find("lesson-materials", "get")
+	if len(material.Parents) != 2 || material.Parents[1].Name != "lesson_id" || material.Arg.Param != "materialId" {
+		t.Errorf("lesson-materials get: parents %+v, arg %+v", material.Parents, material.Arg)
 	}
 
 	imp := r.Find("publications", "import")

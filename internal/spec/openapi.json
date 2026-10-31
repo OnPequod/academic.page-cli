@@ -3342,7 +3342,7 @@
             "name": "dry_run",
             "in": "query",
             "required": false,
-            "description": "Preview without writing anything. May also be sent in the body.",
+            "description": "Preview without writing anything. May also be sent in a JSON or multipart body; when both are sent, the body's value wins.",
             "schema": {
               "type": "boolean",
               "default": false
@@ -3352,7 +3352,7 @@
             "name": "select",
             "in": "query",
             "required": false,
-            "description": "Entries to import, by index (from 0, in file order) or citation key, separated by commas. May also be sent in the body as a list.",
+            "description": "Entries to import, by index (from 0, in file order) or citation key, separated by commas. May also be sent in a JSON or multipart body as a list; when both are sent, the body's value wins.",
             "schema": {
               "type": "string"
             }
@@ -6241,6 +6241,1132 @@
           }
         }
       }
+    },
+    "/sites/{site}/profile/cv": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get the CV of a personal site",
+        "operationId": "manageGetProfileCv",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCv"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Make a library file the CV",
+        "operationId": "manageSetProfileCv",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCv"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Takes a PDF or Word file (doc, docx) of at most 10 MB, as the CV page does. The file leaves the media library: a PDF is moved into place, and a Word file is converted to PDF and the original deleted. The CV it replaces is deleted. The public site shows the CV at /cv.\n\nAnswers 422 validation_failed when the file is another type, too large, attached elsewhere, or cannot be converted. Personal sites only; other sites answer 404 section_not_enabled.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCvInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove the CV, and the menu links to /cv",
+        "operationId": "manageDeleteProfileCv",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "name": "edit_version",
+            "in": "query",
+            "required": false,
+            "description": "The profile's edit_version you read. A newer save answers 409 edit_conflict and removes nothing.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/lessons/{lessonId}/materials": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List a lesson's materials",
+        "operationId": "manageListCourseMaterials",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourseMaterial"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a material at the end of the lesson",
+        "operationId": "manageCreateCourseMaterial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseMaterial"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseMaterialInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/lessons/{lessonId}/materials/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every material of the lesson in the order given",
+        "operationId": "manageReorderCourseMaterials",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourseMaterial"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Texts attached to the lesson keep their places; the materials fill the places materials held.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/lessons/{lessonId}/materials/{materialId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a material",
+        "operationId": "manageGetCourseMaterial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          },
+          {
+            "$ref": "#/components/parameters/materialId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseMaterial"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a material",
+        "operationId": "manageUpdateCourseMaterial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          },
+          {
+            "$ref": "#/components/parameters/materialId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseMaterial"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseMaterialInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a material and its file",
+        "operationId": "manageDeleteCourseMaterial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          },
+          {
+            "$ref": "#/components/parameters/materialId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/assignments": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List a course's assignments in order, drafts included. Course sites only.",
+        "operationId": "manageListCourseAssignments",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourseAssignment"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add an assignment at the end of the list",
+        "operationId": "manageCreateCourseAssignment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseAssignment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseAssignmentInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/assignments/{assignmentId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get an assignment",
+        "operationId": "manageGetCourseAssignment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/assignmentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseAssignment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update an assignment",
+        "operationId": "manageUpdateCourseAssignment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/assignmentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseAssignment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseAssignmentInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete an assignment and number the rest again",
+        "operationId": "manageDeleteCourseAssignment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/assignmentId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/references": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List a course's texts and resources in order. Course sites only.",
+        "operationId": "manageListCourseReferences",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourseReference"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a text or resource at the end of the list",
+        "operationId": "manageCreateCourseReference",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseReference"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseReferenceInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/references/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every text and resource in the order given",
+        "operationId": "manageReorderCourseReferences",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourseReference"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/references/{referenceId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a text or resource",
+        "operationId": "manageGetCourseReference",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/referenceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseReference"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a text or resource",
+        "operationId": "manageUpdateCourseReference",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/referenceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseReference"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseReferenceInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a text or resource and number the rest again",
+        "operationId": "manageDeleteCourseReference",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/referenceId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6531,6 +7657,36 @@
           "type": "integer",
           "minimum": 1
         }
+      },
+      "materialId": {
+        "name": "materialId",
+        "in": "path",
+        "required": true,
+        "description": "A lesson material ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "assignmentId": {
+        "name": "assignmentId",
+        "in": "path",
+        "required": true,
+        "description": "An assignment ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "referenceId": {
+        "name": "referenceId",
+        "in": "path",
+        "required": true,
+        "description": "A text or resource ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
     "responses": {
@@ -6562,7 +7718,17 @@
           },
           "code": {
             "type": "string",
-            "description": "One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, section_not_enabled, not_found, invalid_parameter, and the management codes."
+            "description": "One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
+          },
+          "errors": {
+            "type": "object",
+            "description": "With validation_failed (and some invalid_parameter answers): the refused fields, each with a list of messages.",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         }
       },
@@ -7972,7 +9138,26 @@
           },
           "copresenters": {
             "type": "array",
-            "items": []
+            "description": "Co-presenters, in order.",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "name"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "string",
+                  "description": "A name, as older talks store it."
+                }
+              ]
+            }
           },
           "talk_type": {
             "type": [
@@ -8226,7 +9411,9 @@
           },
           "supplementary_links": {
             "type": "array",
-            "items": []
+            "items": {
+              "$ref": "#/components/schemas/PublicationLink"
+            }
           },
           "abstract": {
             "type": [
@@ -8389,7 +9576,9 @@
           },
           "offerings": {
             "type": "array",
-            "items": []
+            "items": {
+              "$ref": "#/components/schemas/CourseOffering"
+            }
           },
           "display_order": {
             "type": [
@@ -8470,11 +9659,15 @@
                 },
                 "materials": {
                   "type": "array",
-                  "items": []
+                  "items": {
+                    "$ref": "#/components/schemas/CourseMaterial"
+                  }
                 },
                 "references": {
                   "type": "array",
-                  "items": []
+                  "items": {
+                    "$ref": "#/components/schemas/CourseLessonReference"
+                  }
                 },
                 "assignment_ids": {
                   "type": "array",
@@ -8488,20 +9681,20 @@
           "materials": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/CourseMaterial"
             },
             "description": "Materials not attached to a lesson."
           },
           "references": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/CourseReference"
             }
           },
           "assignments": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/CourseAssignment"
             },
             "description": "Published assignments only."
           },
@@ -8548,6 +9741,289 @@
               "null"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "CourseMaterial": {
+        "type": "object",
+        "description": "A lesson material on the public course page.",
+        "required": [
+          "id",
+          "lesson_id",
+          "title",
+          "type",
+          "description",
+          "external_url",
+          "url",
+          "file",
+          "sort_order"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "lesson_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "reading, slides, data_set, code_file, external_link, resource, no_file, or other."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "external_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Where the material opens: its external URL, or the page for its file."
+          },
+          "file": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      },
+      "CourseLessonReference": {
+        "type": "object",
+        "description": "A course text or resource attached to a lesson.",
+        "required": [
+          "reference_id",
+          "required_note",
+          "sort_order"
+        ],
+        "properties": {
+          "reference_id": {
+            "type": "integer",
+            "description": "The ID of an entry in the course's references."
+          },
+          "required_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Which pages or parts to read."
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      },
+      "CourseReference": {
+        "type": "object",
+        "description": "A text or resource the course uses.",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "authors",
+          "details",
+          "info_url",
+          "purchase_url",
+          "file",
+          "sort_order"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "kind": {
+            "type": "string",
+            "description": "textbook, book, purchased_resource, reference_site, data_set, file_archive, or other."
+          },
+          "title": {
+            "type": "string"
+          },
+          "authors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "details": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "info_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "purchase_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "file": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      },
+      "CourseAssignment": {
+        "type": "object",
+        "description": "A published assignment.",
+        "required": [
+          "id",
+          "slug",
+          "lesson_id",
+          "title",
+          "excerpt",
+          "content",
+          "due_at",
+          "file",
+          "sort_order",
+          "published_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lesson_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "due_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "file": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "StudyResource": {
+        "type": "object",
+        "description": "A link the study offers, such as its protocol or a data dictionary.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "The kind of resource, such as document."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -8848,7 +10324,9 @@
           },
           "resources": {
             "type": "array",
-            "items": []
+            "items": {
+              "$ref": "#/components/schemas/StudyResource"
+            }
           },
           "featured_image": {
             "oneOf": [
@@ -9156,7 +10634,7 @@
               "null"
             ],
             "minimum": 0,
-            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
           },
           "tag_ids": {
             "type": [
@@ -9307,7 +10785,7 @@
               "null"
             ],
             "minimum": 0,
-            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
           }
         }
       },
@@ -9517,7 +10995,7 @@
               "null"
             ],
             "minimum": 0,
-            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
           },
           "tag_ids": {
             "type": [
@@ -9627,6 +11105,13 @@
               "integer",
               "null"
             ]
+          },
+          "tag_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The IDs of the publication's tags."
           },
           "import_source": {
             "type": [
@@ -9936,6 +11421,16 @@
               "null"
             ]
           },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "description": "Tag IDs from this site, replacing the publication's tags. Leave out to keep them; send [] to remove them all. Not applied when on_match=suggest merges the entry into an existing publication."
+          },
           "on_match": {
             "type": "string",
             "enum": [
@@ -10117,13 +11612,23 @@
               "null"
             ]
           },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "description": "Tag IDs from this site, replacing the publication's tags. Leave out to keep them; send [] to remove them all."
+          },
           "edit_version": {
             "type": [
               "integer",
               "null"
             ],
             "minimum": 0,
-            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
           }
         }
       },
@@ -10143,7 +11648,7 @@
               "null"
             ],
             "minimum": 0,
-            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
           }
         }
       },
@@ -10262,7 +11767,7 @@
           "dry_run": {
             "type": "boolean",
             "default": false,
-            "description": "Preview without writing anything."
+            "description": "Preview without writing anything. Wins over dry_run in the query string."
           },
           "select": {
             "type": "array",
@@ -10273,7 +11778,7 @@
               ]
             },
             "minItems": 1,
-            "description": "Entries to import, by index (from 0, in file order) or citation key. When sent, the entries left out are recorded as ignored."
+            "description": "Entries to import, by index (from 0, in file order) or citation key. When sent, the entries left out are recorded as ignored. Wins over select in the query string."
           }
         }
       },
@@ -10290,7 +11795,8 @@
           },
           "dry_run": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "Preview without writing anything. Wins over dry_run in the query string."
           },
           "select": {
             "type": "array",
@@ -10301,7 +11807,7 @@
               ]
             },
             "minItems": 1,
-            "description": "Entries to import, by index (from 0, in file order) or citation key. When sent, the entries left out are recorded as ignored."
+            "description": "Entries to import, by index (from 0, in file order) or citation key. When sent, the entries left out are recorded as ignored. Wins over select in the query string."
           }
         }
       },
@@ -10995,9 +12501,12 @@
             "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -11123,9 +12632,12 @@
             "type": "boolean"
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -11239,9 +12751,12 @@
             "type": "boolean"
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -11377,9 +12892,12 @@
             "type": "boolean"
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -11405,6 +12923,10 @@
           "slides_url",
           "paper_url",
           "recording_url",
+          "slides_media_id",
+          "slides_file_url",
+          "paper_media_id",
+          "paper_file_url",
           "is_featured",
           "featured_media_id",
           "featured_image_url",
@@ -11526,6 +13048,36 @@
               "null"
             ],
             "format": "uri"
+          },
+          "slides_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The slides file's site media ID."
+          },
+          "slides_file_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Where visitors download the slides file."
+          },
+          "paper_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The paper file's site media ID."
+          },
+          "paper_file_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Where visitors download the paper file."
           },
           "is_featured": {
             "type": "boolean"
@@ -11705,6 +13257,20 @@
             ],
             "format": "uri"
           },
+          "slides_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID, of any type up to 50 MB, to attach as the slides file. The file moves out of the library into the talk; the slides file it replaces is deleted. Null removes the slides file."
+          },
+          "paper_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID, of any type up to 50 MB, to attach as the paper file. The file moves out of the library into the talk; the paper file it replaces is deleted. Null removes the paper file."
+          },
           "is_featured": {
             "type": "boolean"
           },
@@ -11746,9 +13312,12 @@
             "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -11767,6 +13336,10 @@
           "instances",
           "featured_media_id",
           "featured_image_url",
+          "syllabus_media_id",
+          "syllabus_url",
+          "syllabus_download_url",
+          "syllabus_pdf_status",
           "tag_ids",
           "meta_title",
           "meta_description",
@@ -11840,6 +13413,43 @@
               "null"
             ],
             "format": "uri"
+          },
+          "syllabus_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The syllabus file's site media ID."
+          },
+          "syllabus_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The public syllabus page."
+          },
+          "syllabus_download_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Where visitors download the syllabus file."
+          },
+          "syllabus_pdf_status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "processing",
+              "ready",
+              "failed",
+              "skipped",
+              null
+            ],
+            "description": "For an HTML syllabus, its PDF version: skipped means the site's storage was full, and the HTML stays live. Null for other syllabi."
           },
           "tag_ids": {
             "type": "array",
@@ -11994,6 +13604,13 @@
             ],
             "description": "A library file's ID from the media endpoints. Null removes the file. Assigning moves the file into this place, as the admin's picker does."
           },
+          "syllabus_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID to attach as the syllabus: PDF, Word (doc, docx), or HTML, within the plan's per-file limit. The file moves out of the library into the course and is kept in its format; an HTML syllabus gets a PDF version. The syllabus it replaces is deleted, and the public syllabus link follows the new file. Null removes the syllabus and its public link."
+          },
           "tag_ids": {
             "type": [
               "array",
@@ -12025,9 +13642,12 @@
             "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -12125,9 +13745,12 @@
             ]
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -12376,9 +13999,12 @@
             "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -12438,9 +14064,12 @@
             "type": "string"
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       },
@@ -12685,9 +14314,660 @@
             ]
           },
           "edit_version": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "minimum": 0,
-            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        }
+      },
+      "ManagementCv": {
+        "type": "object",
+        "description": "A personal site's CV. The file fields are null when the site has no CV.",
+        "required": [
+          "site_id",
+          "file_media_id",
+          "file_name",
+          "mime_type",
+          "size",
+          "converted_from_filename",
+          "url",
+          "file_url",
+          "in_navigation",
+          "edit_version",
+          "updated_at"
+        ],
+        "properties": {
+          "site_id": {
+            "type": "integer"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The attached file's site media ID."
+          },
+          "file_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mime_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "size": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Bytes."
+          },
+          "converted_from_filename": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The Word file this PDF was made from, if it was converted."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The public /cv address, which keeps working when the file is replaced."
+          },
+          "file_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The stored file."
+          },
+          "in_navigation": {
+            "type": "boolean",
+            "description": "Whether the site menu links to /cv."
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "The profile's edit_version, which a CV change moves on."
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementCvInput": {
+        "type": "object",
+        "description": "A library file to make the CV.",
+        "required": [
+          "file_media_id"
+        ],
+        "properties": {
+          "file_media_id": {
+            "type": "integer",
+            "description": "A library file's site media ID: a PDF or Word file of at most 10 MB."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        }
+      },
+      "ManagementCourseMaterial": {
+        "type": "object",
+        "description": "A lesson material: a reading, slides, a data set, a link, and so on.",
+        "required": [
+          "id",
+          "course_id",
+          "lesson_id",
+          "title",
+          "type",
+          "description",
+          "external_url",
+          "file_media_id",
+          "file_name",
+          "converted_from_filename",
+          "url",
+          "file_url",
+          "sort_order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "course_id": {
+            "type": "integer"
+          },
+          "lesson_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "reading",
+              "slides",
+              "data_set",
+              "code_file",
+              "external_link",
+              "resource",
+              "no_file",
+              "other"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "external_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The attached file's site media ID."
+          },
+          "file_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "converted_from_filename": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The Word file this PDF was made from, if it was converted."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Where the material opens: its external URL, or the page for its file."
+          },
+          "file_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Where visitors download the file."
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementCourseMaterialInput": {
+        "type": "object",
+        "description": "A create needs a title, and a file or an external URL unless the type is external_link (a URL, no file) or no_file (neither). A PATCH changes only the fields sent; a file replaces the URL and a URL replaces the file.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "reading",
+              "slides",
+              "data_set",
+              "code_file",
+              "external_link",
+              "resource",
+              "no_file",
+              "other"
+            ],
+            "default": "reading"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "external_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID, of any type within the plan's per-file limit. The file moves out of the library into the material; a Word file (doc, docx) is converted to PDF and the original deleted. Null removes the file. Needs file uploads on the plan."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        }
+      },
+      "ManagementCourseAssignment": {
+        "type": "object",
+        "description": "An assignment, draft or published.",
+        "required": [
+          "id",
+          "course_id",
+          "lesson_id",
+          "title",
+          "slug",
+          "content_structured",
+          "content_html",
+          "due_date",
+          "due_at",
+          "file_media_id",
+          "file_name",
+          "file_url",
+          "sort_order",
+          "published_at",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "course_id": {
+            "type": "integer"
+          },
+          "lesson_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "content_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document rendered as the public site shows it."
+          },
+          "due_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "due_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "The end of the due date."
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The attached file's site media ID."
+          },
+          "file_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The public page for the assignment file."
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementCourseAssignmentInput": {
+        "type": "object",
+        "description": "A create needs a title. A PATCH changes only the fields sent. Each save records a revision.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "lesson_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A lesson of this course."
+          },
+          "due_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID to attach: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, csv, html, htm, within the plan's per-file limit. The file moves out of the library into the assignment; the file it replaces is deleted. Null removes the file. Needs file uploads on the plan."
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        }
+      },
+      "ManagementCourseReference": {
+        "type": "object",
+        "description": "A text or resource the course uses.",
+        "required": [
+          "id",
+          "course_id",
+          "kind",
+          "title",
+          "authors",
+          "details",
+          "info_url",
+          "purchase_url",
+          "file_media_id",
+          "file_name",
+          "file_url",
+          "sort_order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "course_id": {
+            "type": "integer"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "textbook",
+              "book",
+              "purchased_resource",
+              "reference_site",
+              "data_set",
+              "file_archive",
+              "other"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "authors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "details": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Edition, publisher, citation, or notes."
+          },
+          "info_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "purchase_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The library file the resource offers."
+          },
+          "file_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Where visitors download the file."
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementCourseReferenceInput": {
+        "type": "object",
+        "description": "A create needs a kind and a title. A PATCH changes only the fields sent.",
+        "required": [
+          "kind",
+          "title"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "textbook",
+              "book",
+              "purchased_resource",
+              "reference_site",
+              "data_set",
+              "file_archive",
+              "other"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "authors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "details": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "info_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "purchase_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID. Required for data_set and file_archive, and dropped for other kinds. The file stays in the library, as on the Texts and Resources page."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
       }

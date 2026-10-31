@@ -16,9 +16,9 @@ import (
 func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 	use := rc.Name
 	var positional []*registry.Field
-	if rc.Parent != nil {
-		use += " <" + rc.Parent.Name + ">"
-		positional = append(positional, rc.Parent)
+	for _, p := range rc.Parents {
+		use += " <" + p.Name + ">"
+		positional = append(positional, p)
 	}
 	if rc.Arg != nil {
 		use += " <" + rc.Arg.Name + ">"
@@ -120,10 +120,10 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 			switch f {
 			case rc.FileArg:
 				call.File = args[i]
-			case rc.Parent:
-				call.Parent = args[i]
-			default:
+			case rc.Arg:
 				call.Arg = args[i]
+			default:
+				call.Parents = append(call.Parents, args[i])
 			}
 		}
 		if rc.Kind == registry.KindDelete && !yes && !dryRun {
