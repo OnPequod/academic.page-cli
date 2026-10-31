@@ -1,0 +1,6472 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Academic.page API",
+    "version": "1.0.0",
+    "description": "Read the content of your Academic.page sites, and manage posts, pages, projects, and media.\n\nThe content endpoints (`/content/...`) return exactly what each public site shows: published records only, never drafts, scheduled items before their time, deleted records, autosaves, revisions, or private notes. They need a content key and Pro.\n\nThe management endpoints (`/sites/{site}/...`) show drafts and accept writes. They need a management key and Pro."
+  },
+  "servers": [
+    {
+      "url": "https://academic.page/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Content",
+      "description": "Published content, read-only."
+    },
+    {
+      "name": "Management",
+      "description": "Drafts and writes. Needs a management key and Pro."
+    },
+    {
+      "name": "Meta",
+      "description": "This description."
+    }
+  ],
+  "paths": {
+    "/openapi.json": {
+      "get": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "This OpenAPI description",
+        "operationId": "getOpenApi",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The OpenAPI 3.1 document.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/content/sites": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Sites this key can read",
+        "description": "Every site the key covers and its owner still belongs to.",
+        "operationId": "listSites",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SiteSummary"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "A site",
+        "description": "Name, type, domains, sections, navigation menus, and the content version.",
+        "operationId": "getSite",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Site"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/manifest": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Every public record's ID, path, and last change",
+        "description": "Compare with the previous build: changed records have a newer updated_at, and missing records were deleted or unpublished.",
+        "operationId": "getManifest",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Manifest"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/profile": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "The site's profile",
+        "description": "Bio, photo, CV, credentials, positions, and links, following the site's visibility switches.",
+        "operationId": "getProfile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Profile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/study": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "The study a study site describes",
+        "description": "Study sites only; other site types answer 404.",
+        "operationId": "getStudy",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Study"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/publications.bib": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "Every public publication as BibTeX",
+        "operationId": "exportPublicationsBibtex",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A BibTeX file.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/x-bibtex": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/posts": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List posts",
+        "description": "Posts, newest first.",
+        "operationId": "listPosts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Post"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/posts/{post}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One post",
+        "description": "",
+        "operationId": "getPost",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/post"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Post"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/pages": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List pages",
+        "description": "Pages, by depth and title.",
+        "operationId": "listPages",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Page"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/pages/{page}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One page",
+        "description": "",
+        "operationId": "getPage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/pagePath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Page"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/projects": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List projects",
+        "description": "Projects, in the order the site shows them.",
+        "operationId": "listProjects",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Project"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/projects/{project}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One project",
+        "description": "",
+        "operationId": "getProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/project"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Project"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/talks": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List talks",
+        "description": "Talks, most recent first.",
+        "operationId": "listTalks",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "required": false,
+            "description": "Only featured (true) or only not featured (false).",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Talk"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/talks/{talk}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One talk",
+        "description": "",
+        "operationId": "getTalk",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/talk"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Talk"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/publications": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List publications",
+        "description": "Publications, newest year first. Publications have no draft state, so every one appears.",
+        "operationId": "listPublications",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "required": false,
+            "description": "Only featured (true) or only not featured (false).",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Publication"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/publications/{publication}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One publication",
+        "description": "",
+        "operationId": "getPublication",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/publication"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Publication"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/courses": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List courses",
+        "description": "Courses, each with its lessons, materials, references, and published assignments.",
+        "operationId": "listCourses",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Course"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/courses/{course}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One course",
+        "description": "",
+        "operationId": "getCourse",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/course"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Course"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/lab-members": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List lab members",
+        "description": "Lab or study team members, in display order.",
+        "operationId": "listLabMembers",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Current members or alumni.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "current",
+                "alumni"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LabMember"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/lab-members/{member}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One lab member",
+        "description": "",
+        "operationId": "getLabMember",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/member"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/LabMember"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/tags": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List tags",
+        "description": "Tags that at least one public record uses.",
+        "operationId": "listTags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Tag"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/tags/{tag}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One tag",
+        "description": "",
+        "operationId": "getTag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/tag"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Tag"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/media": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "List media",
+        "description": "Library files that published rich text embeds.",
+        "operationId": "listMedia",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          },
+          {
+            "$ref": "#/components/parameters/slug"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "links",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MediaItem"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/media/{media}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One media item",
+        "description": "",
+        "operationId": "getMediaItem",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/media"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MediaItem"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/posts": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List posts, drafts included",
+        "operationId": "manageListPosts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementPost"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a post",
+        "operationId": "manageCreatePost",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPost"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPostInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/posts/{postId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a post",
+        "operationId": "manageGetPost",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/postId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPost"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a post",
+        "operationId": "manageUpdatePost",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/postId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPost"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPostInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a post",
+        "operationId": "manageDeletePost",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/postId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/pages": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List pages, drafts included",
+        "operationId": "manageListPages",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementPage"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a page",
+        "operationId": "manageCreatePage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPage"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPageInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/pages/{pageId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a page",
+        "operationId": "manageGetPage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/pageId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPage"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a page",
+        "operationId": "manageUpdatePage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/pageId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPage"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPageInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a page",
+        "operationId": "manageDeletePage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/pageId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/projects": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List projects, drafts included",
+        "operationId": "manageListProjects",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementProject"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a project",
+        "operationId": "manageCreateProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementProject"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementProjectInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/projects/{projectId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a project",
+        "operationId": "manageGetProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/projectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementProject"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a project",
+        "operationId": "manageUpdateProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/projectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementProject"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementProjectInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a project",
+        "operationId": "manageDeleteProject",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/projectId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/media": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List library files",
+        "operationId": "manageListMedia",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementMedia"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Upload a file (multipart/form-data: file, alt_text, caption, description)",
+        "operationId": "manageUploadMedia",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementMedia"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaUploadInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/media/{siteMediaId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a library file",
+        "operationId": "manageGetMedia",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/siteMediaId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementMedia"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a library file's text",
+        "operationId": "manageUpdateMedia",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/siteMediaId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementMedia"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaUpdateInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a library file",
+        "operationId": "manageDeleteMedia",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/siteMediaId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/media/multipart/init": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Start a multipart upload",
+        "operationId": "manageMultipartInit",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MultipartInitResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultipartInitInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/media/multipart/{uploadId}/sign": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a signed URL for one part; PUT the part's bytes to it and keep the ETag response header",
+        "operationId": "manageMultipartSign",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/uploadId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MultipartSignResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultipartSignInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/media/multipart/{uploadId}/complete": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Finish a multipart upload with every part's number and ETag",
+        "operationId": "manageMultipartComplete",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/uploadId"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementMedia"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultipartCompleteInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/media/multipart/{uploadId}/abort": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Abandon a multipart upload",
+        "operationId": "manageMultipartAbort",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/uploadId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "An API key from Account > API, sent as `Authorization: Bearer <key>`."
+      }
+    },
+    "parameters": {
+      "site": {
+        "name": "site",
+        "in": "path",
+        "required": true,
+        "description": "The site's ID: the number in its admin address, such as 42 in /sites/42/posts.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "post": {
+        "name": "post",
+        "in": "path",
+        "required": true,
+        "description": "A post ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "pagePath": {
+        "name": "page",
+        "in": "path",
+        "required": true,
+        "description": "A page ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "page": {
+        "name": "page",
+        "in": "query",
+        "required": false,
+        "description": "Page number, from 1.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "project": {
+        "name": "project",
+        "in": "path",
+        "required": true,
+        "description": "A project ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "talk": {
+        "name": "talk",
+        "in": "path",
+        "required": true,
+        "description": "A talk ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "publication": {
+        "name": "publication",
+        "in": "path",
+        "required": true,
+        "description": "A publication ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "course": {
+        "name": "course",
+        "in": "path",
+        "required": true,
+        "description": "A course ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "member": {
+        "name": "member",
+        "in": "path",
+        "required": true,
+        "description": "A lab member ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "tag": {
+        "name": "tag",
+        "in": "path",
+        "required": true,
+        "description": "A tag ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "media": {
+        "name": "media",
+        "in": "path",
+        "required": true,
+        "description": "A library file ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "postId": {
+        "name": "postId",
+        "in": "path",
+        "required": true,
+        "description": "A post ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "pageId": {
+        "name": "pageId",
+        "in": "path",
+        "required": true,
+        "description": "A page ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "projectId": {
+        "name": "projectId",
+        "in": "path",
+        "required": true,
+        "description": "A project ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "siteMediaId": {
+        "name": "siteMediaId",
+        "in": "path",
+        "required": true,
+        "description": "A library file ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "uploadId": {
+        "name": "uploadId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "per_page": {
+        "name": "per_page",
+        "in": "query",
+        "required": false,
+        "description": "Records per page.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        }
+      },
+      "updated_since": {
+        "name": "updated_since",
+        "in": "query",
+        "required": false,
+        "description": "Only records changed, or scheduled records that went live, at or after this ISO 8601 time.",
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "slug": {
+        "name": "slug",
+        "in": "query",
+        "required": false,
+        "description": "Only the record with this slug.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "NotModified": {
+        "description": "Nothing changed since the ETag or date you sent."
+      },
+      "Error": {
+        "description": "An error. `code` is stable; `message` is for people.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "description": "An error.",
+        "required": [
+          "message",
+          "code"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "description": "One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, section_not_enabled, not_found, invalid_parameter, and the management codes."
+          }
+        }
+      },
+      "PaginationLinks": {
+        "type": "object",
+        "properties": {
+          "first": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "last": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "prev": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The next page, or null on the last page."
+          }
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "current_page": {
+            "type": "integer"
+          },
+          "last_page": {
+            "type": "integer"
+          },
+          "per_page": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "from": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "to": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "path": {
+            "type": "string"
+          }
+        }
+      },
+      "RichText": {
+        "type": "object",
+        "description": "Rich text in two forms.",
+        "required": [
+          "html",
+          "json"
+        ],
+        "properties": {
+          "html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Rendered HTML, as the public site shows it."
+          },
+          "json": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The editor's ProseMirror (Tiptap) document."
+          }
+        }
+      },
+      "MediaFile": {
+        "type": "object",
+        "description": "A stored file with absolute URLs.",
+        "required": [
+          "id",
+          "file_name",
+          "mime_type",
+          "size",
+          "alt",
+          "url",
+          "conversions"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "mime_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "size": {
+            "type": "integer",
+            "description": "Bytes."
+          },
+          "alt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "conversions": {
+            "type": "object",
+            "description": "Resized versions by name, such as thumb, medium, and large.",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "width": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "height": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "TagRef": {
+        "type": "object",
+        "description": "A tag on a record.",
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        }
+      },
+      "SiteSummary": {
+        "type": "object",
+        "description": "A site.",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "site_type",
+          "domain",
+          "url",
+          "custom_domain",
+          "is_published",
+          "published_at",
+          "content_version",
+          "content_updated_at",
+          "api_url"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "site_type": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "lab",
+              "study",
+              "course"
+            ]
+          },
+          "domain": {
+            "type": "string",
+            "description": "The .page domain, such as biostatistician.page."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The site's public address: its custom domain once active, otherwise its .page subdomain."
+          },
+          "custom_domain": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_published": {
+            "type": "boolean",
+            "description": "Whether the public site is live. A key can read an unpublished site's published records."
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "content_version": {
+            "type": "string",
+            "description": "Opaque. Changes whenever public content may have changed; compare for equality."
+          },
+          "content_updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "api_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          }
+        }
+      },
+      "Site": {
+        "type": "object",
+        "description": "A site with its settings, menus, and collection links.",
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "site_type",
+          "domain",
+          "url",
+          "custom_domain",
+          "is_published",
+          "published_at",
+          "content_version",
+          "content_updated_at",
+          "api_url",
+          "timezone",
+          "locale",
+          "accent_color",
+          "theme",
+          "allow_search_indexing",
+          "footer_text",
+          "favicons",
+          "sections",
+          "homepage",
+          "navigation",
+          "links"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "site_type": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "lab",
+              "study",
+              "course"
+            ]
+          },
+          "domain": {
+            "type": "string",
+            "description": "The .page domain, such as biostatistician.page."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The site's public address: its custom domain once active, otherwise its .page subdomain."
+          },
+          "custom_domain": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_published": {
+            "type": "boolean",
+            "description": "Whether the public site is live. A key can read an unpublished site's published records."
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "content_version": {
+            "type": "string",
+            "description": "Opaque. Changes whenever public content may have changed; compare for equality."
+          },
+          "content_updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "api_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "locale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "accent_color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "theme": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The theme the public site uses. Informational."
+          },
+          "allow_search_indexing": {
+            "type": "boolean"
+          },
+          "footer_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "favicons": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uri"
+            }
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The collections this site uses, by path segment."
+          },
+          "homepage": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "image": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/MediaFile"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "navigation": {
+            "type": "object",
+            "properties": {
+              "header": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MenuItem"
+                }
+              },
+              "footer": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MenuItem"
+                }
+              }
+            }
+          },
+          "links": {
+            "type": "object",
+            "description": "API URLs for the site's profile, manifest, and collections.",
+            "additionalProperties": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        }
+      },
+      "MenuItem": {
+        "type": "object",
+        "description": "A navigation menu item.",
+        "required": [
+          "label",
+          "description",
+          "path",
+          "url",
+          "open_in_new_tab",
+          "children"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Path on the site for internal links."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "open_in_new_tab": {
+            "type": "boolean"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuItem"
+            }
+          }
+        }
+      },
+      "Manifest": {
+        "type": "object",
+        "description": "Every public record, briefly.",
+        "required": [
+          "site_id",
+          "content_version",
+          "content_updated_at",
+          "collections"
+        ],
+        "properties": {
+          "site_id": {
+            "type": "integer"
+          },
+          "content_version": {
+            "type": "string"
+          },
+          "content_updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "collections": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "slug": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "path": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "updated_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "published_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "description": "The site's profile. Hidden parts are null or empty.",
+        "required": [
+          "name",
+          "summary",
+          "body",
+          "about_page",
+          "headings",
+          "location",
+          "email",
+          "photo",
+          "cv",
+          "credentials",
+          "positions",
+          "links",
+          "updated_at"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "summary": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "body": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "about_page": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "path": {
+                "type": "string"
+              },
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              }
+            }
+          },
+          "headings": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "credentials": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "positions": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Only when the site shows an email."
+          },
+          "photo": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cv": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              },
+              "file": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/MediaFile"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "credentials": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "degree": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "field": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "honors": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "institution": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "start_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "end_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "in_progress": {
+                  "type": "boolean"
+                },
+                "display": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "title": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "employer": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "from": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "to": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "currently_held": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "service": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uri"
+                },
+                "open_in_new_tab": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Post": {
+        "type": "object",
+        "description": "A published post.",
+        "required": [
+          "id",
+          "type",
+          "slug",
+          "path",
+          "url",
+          "title",
+          "excerpt",
+          "content",
+          "author",
+          "featured_image",
+          "tags",
+          "seo",
+          "published_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "post"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Path on the public site, starting with /."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Absolute public URL."
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Null when the post hides its author.",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "featured_image": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagRef"
+            }
+          },
+          "seo": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Page": {
+        "type": "object",
+        "description": "A published page.",
+        "required": [
+          "id",
+          "type",
+          "slug",
+          "path",
+          "url",
+          "title",
+          "full_slug",
+          "parent_id",
+          "depth",
+          "sort_order",
+          "excerpt",
+          "content",
+          "featured_image",
+          "tags",
+          "seo",
+          "published_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "page"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Path on the public site, starting with /."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Absolute public URL."
+          },
+          "title": {
+            "type": "string"
+          },
+          "full_slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "parent_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "depth": {
+            "type": "integer"
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "featured_image": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagRef"
+            }
+          },
+          "seo": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Project": {
+        "type": "object",
+        "description": "A published project.",
+        "required": [
+          "id",
+          "type",
+          "slug",
+          "path",
+          "url",
+          "title",
+          "excerpt",
+          "content",
+          "status",
+          "project_url",
+          "repository_url",
+          "technologies",
+          "start_date",
+          "end_date",
+          "display_order",
+          "featured_image",
+          "gallery",
+          "tags",
+          "seo",
+          "published_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "project"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Path on the public site, starting with /."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Absolute public URL."
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "project_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "repository_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "technologies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "display_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "featured_image": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "gallery": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaFile"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagRef"
+            }
+          },
+          "seo": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Talk": {
+        "type": "object",
+        "description": "A published talk.",
+        "required": [
+          "id",
+          "type",
+          "slug",
+          "path",
+          "url",
+          "title",
+          "excerpt",
+          "abstract",
+          "speaker_name",
+          "copresenters",
+          "talk_type",
+          "talk_date",
+          "meeting_name",
+          "location",
+          "location_url",
+          "slides_url",
+          "paper_url",
+          "recording_url",
+          "slides_file",
+          "paper_file",
+          "is_featured",
+          "display_order",
+          "featured_image",
+          "tags",
+          "seo",
+          "published_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "talk"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Path on the public site, starting with /."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Absolute public URL."
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "abstract": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "speaker_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "copresenters": {
+            "type": "array",
+            "items": []
+          },
+          "talk_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "talk_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "meeting_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "slides_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "paper_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "recording_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "slides_file": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paper_file": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_featured": {
+            "type": "boolean"
+          },
+          "display_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "featured_image": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagRef"
+            }
+          },
+          "seo": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Publication": {
+        "type": "object",
+        "description": "A publication.",
+        "required": [
+          "id",
+          "type",
+          "slug",
+          "path",
+          "url",
+          "title",
+          "publication_type",
+          "authors",
+          "year",
+          "issued_date",
+          "container_title",
+          "doi",
+          "doi_url",
+          "official_url",
+          "supplementary_links",
+          "abstract",
+          "description",
+          "citation",
+          "csl",
+          "is_featured",
+          "featured_order",
+          "tags",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "publication"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "title": {
+            "type": "string"
+          },
+          "publication_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The CSL item type, such as article-journal."
+          },
+          "authors": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The author list as one line."
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "issued_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "container_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "doi": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "doi_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "official_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "supplementary_links": {
+            "type": "array",
+            "items": []
+          },
+          "abstract": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "citation": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "html": {
+                "type": "string"
+              },
+              "key": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "manual": {
+                "type": "boolean"
+              }
+            }
+          },
+          "csl": {
+            "type": "object",
+            "description": "The item as CSL-JSON, for citeproc or Zotero."
+          },
+          "is_featured": {
+            "type": "boolean"
+          },
+          "featured_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagRef"
+            }
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Course": {
+        "type": "object",
+        "description": "A course and everything its page shows.",
+        "required": [
+          "id",
+          "type",
+          "slug",
+          "path",
+          "url",
+          "title",
+          "instructor_name",
+          "primary_institution",
+          "excerpt",
+          "content",
+          "offerings",
+          "display_order",
+          "featured_image",
+          "syllabus",
+          "lessons",
+          "materials",
+          "references",
+          "assignments",
+          "tags",
+          "seo",
+          "published_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "course"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Path on the public site, starting with /."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Absolute public URL."
+          },
+          "title": {
+            "type": "string"
+          },
+          "instructor_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "primary_institution": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "offerings": {
+            "type": "array",
+            "items": []
+          },
+          "display_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "featured_image": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "syllabus": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              },
+              "download_url": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              },
+              "file": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/MediaFile"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "lessons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "lesson_number": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "overview": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sort_order": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "materials": {
+                  "type": "array",
+                  "items": []
+                },
+                "references": {
+                  "type": "array",
+                  "items": []
+                },
+                "assignment_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          },
+          "materials": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Materials not attached to a lesson."
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "assignments": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Published assignments only."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagRef"
+            }
+          },
+          "seo": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "LabMember": {
+        "type": "object",
+        "description": "A published lab or study team member.",
+        "required": [
+          "id",
+          "type",
+          "slug",
+          "path",
+          "url",
+          "name",
+          "role",
+          "member_type",
+          "status",
+          "bio",
+          "email",
+          "website_url",
+          "research_interests",
+          "joined_on",
+          "left_on",
+          "sort_order",
+          "photo",
+          "published_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "lab_member"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "member_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "current",
+              "alumni"
+            ]
+          },
+          "bio": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "research_interests": {
+            "type": [
+              "array",
+              "string",
+              "null"
+            ]
+          },
+          "joined_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "left_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "photo": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Study": {
+        "type": "object",
+        "description": "A study site's study.",
+        "required": [
+          "id",
+          "type",
+          "title",
+          "summary",
+          "description",
+          "study_type",
+          "status",
+          "topic",
+          "starts_on",
+          "ends_on",
+          "institution",
+          "funder",
+          "registry_label",
+          "registry_url",
+          "protocol_url",
+          "contact",
+          "resources",
+          "featured_image",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "const": "study"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RichText"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "study_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "topic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "ends_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "institution": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "funder": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registry_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registry_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "protocol_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "contact": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "resources": {
+            "type": "array",
+            "items": []
+          },
+          "featured_image": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "description": "A tag with public content.",
+        "required": [
+          "id",
+          "type",
+          "slug",
+          "path",
+          "url",
+          "name",
+          "description",
+          "counts",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "tag"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "counts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Public records with this tag, by type."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "MediaItem": {
+        "type": "object",
+        "description": "A library file that published content embeds.",
+        "required": [
+          "id",
+          "type",
+          "media_type",
+          "file_name",
+          "alt",
+          "caption",
+          "description",
+          "width",
+          "height",
+          "file",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "const": "media"
+          },
+          "media_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "alt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "caption": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "width": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "height": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "file": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MediaFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementPost": {
+        "type": "object",
+        "description": "A post, draft or published.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementPostInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementPage": {
+        "type": "object",
+        "description": "A page, draft or published.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "parent_page_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "full_slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementPageInput": {
+        "type": "object",
+        "properties": {
+          "parent_page_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementProject": {
+        "type": "object",
+        "description": "A project, draft or published.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object"
+          },
+          "technologies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "project_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "repository_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementProjectInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object"
+          },
+          "technologies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "project_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "repository_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementMedia": {
+        "type": "object",
+        "description": "A library file, used or not.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "media_id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "original_filename": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "default_alt_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "default_caption": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "file": {
+            "type": "object"
+          },
+          "urls": {
+            "type": "object"
+          }
+        }
+      },
+      "MediaUploadInput": {
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary"
+          },
+          "alt_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "caption": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "MediaUpdateInput": {
+        "type": "object",
+        "properties": {
+          "default_alt_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "default_caption": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "has_custom_defaults": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Generic": {
+        "type": "object"
+      },
+      "MultipartInitInput": {
+        "type": "object",
+        "required": [
+          "filename",
+          "content_type",
+          "size_bytes"
+        ],
+        "properties": {
+          "filename": {
+            "type": "string"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "MultipartInitResult": {
+        "type": "object",
+        "properties": {
+          "upload_id": {
+            "type": "string"
+          },
+          "object_key": {
+            "type": "string"
+          },
+          "part_size_hint": {
+            "type": "integer",
+            "description": "Suggested part size in bytes."
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "Seconds until the upload session expires."
+          }
+        }
+      },
+      "MultipartSignInput": {
+        "type": "object",
+        "required": [
+          "part_number"
+        ],
+        "properties": {
+          "part_number": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000
+          }
+        }
+      },
+      "MultipartSignResult": {
+        "type": "object",
+        "properties": {
+          "upload_id": {
+            "type": "string"
+          },
+          "part_number": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "PUT"
+            ]
+          }
+        }
+      },
+      "MultipartCompleteInput": {
+        "type": "object",
+        "required": [
+          "parts"
+        ],
+        "properties": {
+          "parts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "part_number",
+                "etag"
+              ],
+              "properties": {
+                "part_number": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                },
+                "etag": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "alt_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "caption": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "has_custom_defaults": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

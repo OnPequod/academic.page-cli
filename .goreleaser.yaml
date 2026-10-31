@@ -1,0 +1,64 @@
+version: 2
+
+project_name: academic-page
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: academic-page
+    binary: academic-page
+    main: .
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{ .Version }} -X main.commit={{ .ShortCommit }} -X main.date={{ .Date }}
+
+archives:
+  - id: academic-page
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+homebrew_casks:
+  - name: academic-page
+    repository:
+      owner: OnPequod
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Casks
+    binaries: [academic-page]
+    homepage: https://academic.page
+    description: Manage an Academic.page site from the command line, or as an MCP server
+    commit_author:
+      name: academic-page-release
+      email: noreply@academic.page
+    commit_msg_template: "academic-page {{ .Tag }}"
+    hooks:
+      post:
+        # The binaries are not notarized; clear the quarantine flag so macOS
+        # runs them.
+        install_steps: |
+          if OS.mac?
+            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/academic-page"]
+          end
