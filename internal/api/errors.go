@@ -75,6 +75,12 @@ func (e *Error) Hint() string {
 		return "This matches a preprint or published version already on the site (see match). Pass --on-match suggest to propose linking them, or create_anyway to keep both."
 	case "ignored_before":
 		return "This publication was ignored on an earlier import. Pass --on-match create_anyway to add it anyway."
+	case "multipart_upload_not_found":
+		return "The upload session is gone (it expired or storage lost it). Run the upload again."
+	case "multipart_upload_invalid_parts":
+		return "Storage did not match the parts the CLI sent. This is a bug; please report it. Running the upload again usually works."
+	case "multipart_complete_failed":
+		return "Storage could not assemble the upload. Run it again; if it keeps failing, report it with the time."
 	case "media_processing_failed":
 		return "The file could not be processed (for example, an image that cannot be read). Check the file and upload it again."
 	case "tag_in_use":

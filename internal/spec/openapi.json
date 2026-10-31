@@ -3745,7 +3745,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "The assembled file is checked against the same limits as a single upload: `upload_too_large`, `storage_quota_exceeded`, or `bucket_quota_exceeded`. A file sent as an image (its `content_type` at init) that the image library cannot read, such as a damaged file, answers 422 `media_processing_failed`: the stored parts and anything added to the library are removed, and the site's storage is as it was. Start a new upload to try again. An unknown or expired upload answers 404 `multipart_upload_not_found`.",
+        "description": "The assembled file is checked against the same limits as a single upload: `upload_too_large`, `storage_quota_exceeded`, or `bucket_quota_exceeded`. A file sent as an image (its `content_type` at init) that the image library cannot read, such as a damaged file, answers 422 `media_processing_failed`: the stored parts and anything added to the library are removed, and the site's storage is as it was. Start a new upload to try again. An unknown or expired upload answers 404 `multipart_upload_not_found`, and only then does starting a new upload help. A part list that does not match the parts storage holds, such as a wrong ETag or a part that never arrived, answers 422 `multipart_upload_invalid_parts`: the upload is still open, so send the right list or upload the missing part again. Repeating the same list does not help. A part number listed twice answers 422 `validation_failed`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -8634,7 +8634,7 @@
           },
           "code": {
             "type": "string",
-            "description": "section_not_enabled (404) means the site does not have the section: on the content endpoints, the public site does not show it; on the management endpoints, the admin does not let this site type edit it. One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, media_processing_failed, media_upload_failed, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
+            "description": "section_not_enabled (404) means the site does not have the section: on the content endpoints, the public site does not show it; on the management endpoints, the admin does not let this site type edit it. One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, media_processing_failed, media_upload_failed, multipart_upload_not_found, multipart_upload_invalid_parts, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
           },
           "errors": {
             "type": "object",
@@ -14084,6 +14084,7 @@
           "parts": {
             "type": "array",
             "minItems": 1,
+            "maxItems": 10000,
             "items": {
               "type": "object",
               "required": [
