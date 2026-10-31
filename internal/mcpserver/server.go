@@ -13,13 +13,16 @@ import (
 
 const instructions = `Tools for reading and editing an Academic.page academic website through its public API.
 
-- Reads (*_list, *_get, sites_*, profile_get, publications_bibtex) return published content. Pass drafts=true on posts, pages, projects and media reads to include drafts (needs a management key).
-- Writes exist for posts, pages, projects and media only. Creates are drafts unless publish=true; only publish when the user asks.
-- Write body content as Markdown in content_markdown.
+- Reads (*_list, *_get, sites_*, profile_get, publications_bibtex) return published content. Records with drafts (posts, pages, projects, talks, courses, lab members) take drafts=true to include drafts; profile, study, publications, tags and media take manage=true. Both need a management key and return edit_version.
+- Before updating a record, read it with drafts=true or manage=true and pass its edit_version. A 409 edit_conflict means someone changed it since; read it again and redo the change.
+- Creates are drafts unless publish=true; only publish when the user asks.
+- Write rich text as Markdown: content_markdown, abstract_markdown, bio_markdown and so on (one per rich-text field).
+- To import BibTeX, call publications_import with preview=true first and show the user the result; then import, using select to pick entries. publications_create skips existing matches unless on_match says otherwise; a 409 returns the match.
+- key_show tells you what this key may do.
 - Every write accepts dry_run=true to preview the request.
 - List tools are paginated; pass all=true to fetch every page.
 - site defaults to the configured site; sites_list shows the IDs the key can read.
-- Errors come back as JSON with code, message, hint and, for validation errors, fields.`
+- Errors come back as JSON with code, message, hint, fields for validation errors, and details such as match or current_edit_version.`
 
 // New builds the server.
 func New(a *app.App, version string) *mcp.Server {

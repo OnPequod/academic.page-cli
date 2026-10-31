@@ -52,6 +52,48 @@
         }
       }
     },
+    "/me": {
+      "get": {
+        "tags": [
+          "Meta"
+        ],
+        "summary": "The key making the request",
+        "description": "Its name, abilities, the teams and sites it covers (and whether each has API access), its owner's name, and when it expires. Works with content and management keys.",
+        "operationId": "getMe",
+        "responses": {
+          "200": {
+            "description": "The key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ApiKey"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/content/sites": {
       "get": {
         "tags": [
@@ -3098,6 +3140,3107 @@
           }
         }
       }
+    },
+    "/sites/{site}/publications": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List publications",
+        "operationId": "manageListPublications",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Only this CSL type, such as article-journal.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "description": "Only this year.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "doi",
+            "in": "query",
+            "required": false,
+            "description": "Only the publication with this DOI, with or without https://doi.org/.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/updated_since"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementPublication"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Publications have no draft state: every one is on the public site. Newest year first."
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a publication",
+        "operationId": "manageCreatePublication",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Added.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "intake"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPublication"
+                    },
+                    "intake": {
+                      "$ref": "#/components/schemas/PublicationIntakeOutcome"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "description": "The entry matches a publication on the site and nothing was written.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationMatchError"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Brought into the matching publication (on_match=suggest).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "intake"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPublication"
+                    },
+                    "intake": {
+                      "$ref": "#/components/schemas/PublicationIntakeOutcome"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Send a CSL-JSON item as `csl`, simple fields, or both (simple fields win). Publications have no draft state: a new publication is on the public site straight away, so there is no published_at.\n\nThe entry is matched against the site first. With `on_match` at `skip` (the default), an entry that matches a publication already there is refused with 409 and the match is named: `publication_exists`, `possible_duplicate`, `preprint_of_existing`, or `ignored_before` (left out of an earlier import). `suggest` brings an entry for a publication already there into it, as an import does: missing details are filled in and differences are offered as a suggestion; it answers 200. `create_anyway` adds a possible duplicate, a preprint, or an ignored entry as its own publication. An entry for a publication already there is never copied.\n\nA DOI is checked against its record in the background; `doi_check.status` says where that stands.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPublicationInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/publications/import": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Import publications from BibTeX",
+        "operationId": "manageImportPublications",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "name": "dry_run",
+            "in": "query",
+            "required": false,
+            "description": "Preview without writing anything. May also be sent in the body.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "select",
+            "in": "query",
+            "required": false,
+            "description": "Entries to import, by index (from 0, in file order) or citation key, separated by commas. May also be sent in the body as a list.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PublicationImportResult"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send the BibTeX as a text/plain body, as `bibtex` in a JSON body, or as `file` in a multipart form; a Google Scholar export works as it is. Each entry is checked against the site the way the import page checks it.\n\n`dry_run=true` writes nothing and returns each entry's status: `new`, `existing` (already on the site, with what is new about it), `possible_duplicate`, or `preprint` (of a publication already there), and whether it was left out of an earlier import (`ignored_before`).\n\nA real run imports the entries you `select`, or by default every new and existing entry that was not ignored before. An existing entry is never copied: one with a DOI is checked against its DOI record, and one without is merged field by field, with differences offered as suggestions. DOI checks are queued in one batch.\n\nOnly when you send `select` are the entries you left out recorded as ignored, so later imports leave them unselected, as the import page does. An existing entry with nothing new is never recorded. Without `select`, nothing is recorded as ignored.\n\nNeeds a write key, even for a dry run.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationImportInput"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationImportUpload"
+              }
+            },
+            "text/plain": {
+              "schema": {
+                "type": "string",
+                "description": "The BibTeX itself. Pass dry_run and select in the query string."
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/publications/{publicationId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a publication",
+        "operationId": "manageGetPublication",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/publicationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPublication"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a publication",
+        "operationId": "manageUpdatePublication",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/publicationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPublication"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Only the fields you send change; a citation field sent as null is removed. The change is written as your own edit, like the publication form. A new or changed DOI is checked against its record, and differences become a suggestion rather than being written.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPublicationUpdateInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a publication",
+        "operationId": "manageDeletePublication",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/publicationId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/publications/{publicationId}/suggestion/apply": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Use the suggested change, or one field of it",
+        "operationId": "manageApplyPublicationSuggestion",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/publicationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPublication"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Answers 409 with no_pending_suggestion when nothing is waiting, and 409 with edit_conflict for a stale edit_version.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationSuggestionApplyInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/publications/{publicationId}/suggestion/keep": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Keep the citation and dismiss the suggestion",
+        "operationId": "manageKeepPublicationCitation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/publicationId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPublication"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "This version of the suggestion is not offered again. Answers 409 with no_pending_suggestion when nothing is waiting."
+      }
+    },
+    "/sites/{site}/profile": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get the profile (My Info): name, contact details, photo, and bio",
+        "operationId": "manageGetProfile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementProfile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update the profile and record a revision, as the admin's Save does",
+        "operationId": "manageUpdateProfile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementProfile"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementProfileInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/degrees": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile degrees in display order. Personal and study sites only.",
+        "operationId": "manageListProfileDegrees",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileDegree"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile degree, placed where the admin would place it",
+        "operationId": "manageCreateProfileDegree",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileDegree"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileDegreeInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/degrees/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile degree in the order given",
+        "operationId": "manageReorderProfileDegrees",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileDegree"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/degrees/{degreeId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile degree",
+        "operationId": "manageGetProfileDegree",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/degreeId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileDegree"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile degree",
+        "operationId": "manageUpdateProfileDegree",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/degreeId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileDegree"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileDegreeInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile degree",
+        "operationId": "manageDeleteProfileDegree",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/degreeId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/positions": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile positions in display order. Personal and study sites only. The current position is the headline the profile shows.",
+        "operationId": "manageListProfilePositions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfilePosition"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile position, placed where the admin would place it",
+        "operationId": "manageCreateProfilePosition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfilePosition"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfilePositionInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/positions/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile position in the order given",
+        "operationId": "manageReorderProfilePositions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfilePosition"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/positions/{positionId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile position",
+        "operationId": "manageGetProfilePosition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/positionId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfilePosition"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile position",
+        "operationId": "manageUpdateProfilePosition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/positionId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfilePosition"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfilePositionInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile position",
+        "operationId": "manageDeleteProfilePosition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/positionId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/links": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile links in display order. Every site type except course sites.",
+        "operationId": "manageListProfileLinks",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileLink"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile link, placed where the admin would place it",
+        "operationId": "manageCreateProfileLink",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileLink"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileLinkInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/links/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile link in the order given",
+        "operationId": "manageReorderProfileLinks",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileLink"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/links/{linkId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile link",
+        "operationId": "manageGetProfileLink",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/linkId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileLink"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile link",
+        "operationId": "manageUpdateProfileLink",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/linkId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileLink"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileLinkInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile link",
+        "operationId": "manageDeleteProfileLink",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/linkId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/talks": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List talks, drafts included. Sites that use talks.",
+        "operationId": "manageListTalks",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementTalk"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a talk",
+        "operationId": "manageCreateTalk",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementTalk"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementTalkInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/talks/{talkId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a talk",
+        "operationId": "manageGetTalk",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/talkId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementTalk"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a talk",
+        "operationId": "manageUpdateTalk",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/talkId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementTalk"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementTalkInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a talk",
+        "operationId": "manageDeleteTalk",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/talkId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List courses, drafts included. Sites that use courses.",
+        "operationId": "manageListCourses",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourse"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a course",
+        "operationId": "manageCreateCourse",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a course",
+        "operationId": "manageGetCourse",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a course",
+        "operationId": "manageUpdateCourse",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a course",
+        "operationId": "manageDeleteCourse",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/lab-members": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List lab members, drafts included. Lab members, or the study team on a study site.",
+        "operationId": "manageListLabMembers",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementLabMember"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a lab member",
+        "operationId": "manageCreateLabMember",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementLabMember"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementLabMemberInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/lab-members/{memberId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a lab member",
+        "operationId": "manageGetLabMember",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/memberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementLabMember"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a lab member",
+        "operationId": "manageUpdateLabMember",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/memberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementLabMember"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementLabMemberInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a lab member",
+        "operationId": "manageDeleteLabMember",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/memberId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/tags": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List tags by name. Every site.",
+        "operationId": "manageListTags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementTag"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a tag",
+        "operationId": "manageCreateTag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementTag"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementTagInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/tags/{tagId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a tag",
+        "operationId": "manageGetTag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/tagId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementTag"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a tag",
+        "operationId": "manageUpdateTag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/tagId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementTag"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementTagInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a tag no record uses (409 tag_in_use otherwise)",
+        "operationId": "manageDeleteTag",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/tagId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/lessons": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List a course's lessons in order",
+        "operationId": "manageListCourseLessons",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourseLesson"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a lesson at the end of the course",
+        "operationId": "manageCreateCourseLesson",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseLesson"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseLessonInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/lessons/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every lesson in the order given and number them to match",
+        "operationId": "manageReorderCourseLessons",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourseLesson"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/lessons/{lessonId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a lesson",
+        "operationId": "manageGetCourseLesson",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseLesson"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a lesson",
+        "operationId": "manageUpdateCourseLesson",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourseLesson"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementCourseLessonInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a lesson and number the rest again",
+        "operationId": "manageDeleteCourseLesson",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          },
+          {
+            "$ref": "#/components/parameters/lessonId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/sites/{site}/study": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get the study a study site describes",
+        "operationId": "manageGetStudy",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementStudy"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update the study; its title is also the site name",
+        "operationId": "manageUpdateStudy",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementStudy"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementStudyInput"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3260,6 +6403,16 @@
           "minimum": 1
         }
       },
+      "publicationId": {
+        "name": "publicationId",
+        "in": "path",
+        "required": true,
+        "description": "A publication ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "uploadId": {
         "name": "uploadId",
         "in": "path",
@@ -3297,6 +6450,86 @@
         "description": "Only the record with this slug.",
         "schema": {
           "type": "string"
+        }
+      },
+      "degreeId": {
+        "name": "degreeId",
+        "in": "path",
+        "required": true,
+        "description": "A profile degree ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "positionId": {
+        "name": "positionId",
+        "in": "path",
+        "required": true,
+        "description": "A profile position ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "linkId": {
+        "name": "linkId",
+        "in": "path",
+        "required": true,
+        "description": "A profile link ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "talkId": {
+        "name": "talkId",
+        "in": "path",
+        "required": true,
+        "description": "A talk ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "courseId": {
+        "name": "courseId",
+        "in": "path",
+        "required": true,
+        "description": "A course ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "lessonId": {
+        "name": "lessonId",
+        "in": "path",
+        "required": true,
+        "description": "A lesson ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "memberId": {
+        "name": "memberId",
+        "in": "path",
+        "required": true,
+        "description": "A lab or study team member ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "tagId": {
+        "name": "tagId",
+        "in": "path",
+        "required": true,
+        "description": "A tag ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
         }
       }
     },
@@ -5863,6 +9096,17 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Goes up each time the record is saved. Send it back on PATCH to refuse the write if the record changed since you read it."
+          },
+          "tag_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The IDs of the record's tags."
           }
         }
       },
@@ -5905,6 +9149,24 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+          },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "description": "Tag IDs from this site, replacing the record's tags. Leave out to keep them; send [] to remove them all."
           }
         }
       },
@@ -5986,6 +9248,10 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Goes up each time the record is saved. Send it back on PATCH to refuse the write if the record changed since you read it."
           }
         }
       },
@@ -6034,6 +9300,14 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
           }
         }
       },
@@ -6143,6 +9417,17 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Goes up each time the record is saved. Send it back on PATCH to refuse the write if the record changed since you read it."
+          },
+          "tag_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The IDs of the record's tags."
           }
         }
       },
@@ -6220,6 +9505,1086 @@
             ]
           },
           "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+          },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "description": "Tag IDs from this site, replacing the record's tags. Leave out to keep them; send [] to remove them all."
+          }
+        }
+      },
+      "ManagementPublication": {
+        "type": "object",
+        "description": "A publication. Publications have no draft state: every one is on the public site.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "description": "The CSL item type, such as article-journal."
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "citation_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "authors": {
+            "type": "string",
+            "description": "The author list as one line."
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "issued_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "container_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "doi": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "csl": {
+            "type": "object",
+            "description": "The stored citation as CSL-JSON."
+          },
+          "abstract": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Your notes on the publication, as a Tiptap (ProseMirror) document."
+          },
+          "official_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "supplementary_links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicationLink"
+            }
+          },
+          "is_featured": {
+            "type": "boolean"
+          },
+          "featured_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "import_source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where it came from: manual, bibtex, doi, pubmed, cv, api, and so on."
+          },
+          "doi_check": {
+            "type": "object",
+            "description": "Where checking the DOI against its record stands.",
+            "properties": {
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "verified",
+                  "not_checked",
+                  "checking",
+                  "doi_not_found",
+                  null
+                ],
+                "description": "Null when there is no DOI."
+              },
+              "label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "checked_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              }
+            }
+          },
+          "suggestion": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PublicationSuggestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Goes up each time the record is saved. Send it back on PATCH to refuse the write if the record changed since you read it."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "PublicationLink": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PublicationSuggestion": {
+        "type": "object",
+        "description": "A change waiting for you to use or dismiss. Nothing in it is written until you do.",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "doi",
+              "import"
+            ],
+            "description": "Its DOI record, or an imported entry."
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "csl": {
+            "type": "object",
+            "description": "The citation as it would be with every change used."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementPublicationInput": {
+        "type": "object",
+        "description": "A title is required, as title or csl.title.",
+        "properties": {
+          "csl": {
+            "type": "object",
+            "description": "The citation as a CSL-JSON item. When updating, each key sent replaces the stored one."
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "article-journal",
+              "article-magazine",
+              "article-newspaper",
+              "book",
+              "chapter",
+              "paper-conference",
+              "thesis",
+              "report",
+              "software",
+              "dataset",
+              "webpage",
+              "preprint",
+              null
+            ],
+            "description": "The CSL item type."
+          },
+          "authors": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "given": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "family": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "literal": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "A group or organization, in place of given and family."
+                }
+              }
+            }
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Sets the issued date, with month and day when sent."
+          },
+          "month": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 12
+          },
+          "day": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 31
+          },
+          "container_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The journal, book, or proceedings."
+          },
+          "volume": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "issue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "doi": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "With or without https://doi.org/."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "publisher": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "abstract": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Your notes on the publication: a Tiptap (ProseMirror) document, {\"type\": \"doc\", \"content\": [...]}, as the web editor saves it."
+          },
+          "official_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "supplementary_links": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PublicationLink"
+            }
+          },
+          "is_featured": {
+            "type": "boolean"
+          },
+          "featured_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "on_match": {
+            "type": "string",
+            "enum": [
+              "skip",
+              "suggest",
+              "create_anyway"
+            ],
+            "default": "skip",
+            "description": "When the entry matches a publication on the site: skip refuses with 409; suggest brings it into a publication that is the same work; create_anyway adds a possible duplicate, preprint, or ignored entry as its own publication."
+          }
+        }
+      },
+      "ManagementPublicationUpdateInput": {
+        "type": "object",
+        "description": "Only the fields sent change. A citation field sent as null is removed.",
+        "properties": {
+          "csl": {
+            "type": "object",
+            "description": "The citation as a CSL-JSON item. When updating, each key sent replaces the stored one."
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "article-journal",
+              "article-magazine",
+              "article-newspaper",
+              "book",
+              "chapter",
+              "paper-conference",
+              "thesis",
+              "report",
+              "software",
+              "dataset",
+              "webpage",
+              "preprint",
+              null
+            ],
+            "description": "The CSL item type."
+          },
+          "authors": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object",
+              "properties": {
+                "given": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "family": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "literal": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "A group or organization, in place of given and family."
+                }
+              }
+            }
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Sets the issued date, with month and day when sent."
+          },
+          "month": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 12
+          },
+          "day": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 31
+          },
+          "container_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The journal, book, or proceedings."
+          },
+          "volume": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "issue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "doi": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "With or without https://doi.org/."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "publisher": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "abstract": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Your notes on the publication: a Tiptap (ProseMirror) document, {\"type\": \"doc\", \"content\": [...]}, as the web editor saves it."
+          },
+          "official_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "supplementary_links": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PublicationLink"
+            }
+          },
+          "is_featured": {
+            "type": "boolean"
+          },
+          "featured_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+          }
+        }
+      },
+      "PublicationSuggestionApplyInput": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "One CSL field to use, such as volume. Leave it out to use every change."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out to write regardless."
+          }
+        }
+      },
+      "PublicationMatch": {
+        "type": "object",
+        "description": "The publication on the site an entry matched.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "existing",
+              "possible_duplicate",
+              "preprint",
+              "ignored_before"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "What matched, such as doi or title."
+          },
+          "publication_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What the entry would change, in words."
+          }
+        }
+      },
+      "PublicationIntakeOutcome": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "created",
+              "merged"
+            ]
+          },
+          "result": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "updated",
+              "suggested",
+              "updated_and_suggested",
+              "checking",
+              "skipped",
+              null
+            ],
+            "description": "For merged: what bringing the entry in did."
+          },
+          "match": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PublicationMatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "PublicationMatchError": {
+        "type": "object",
+        "required": [
+          "message",
+          "code"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "publication_exists",
+              "possible_duplicate",
+              "preprint_of_existing",
+              "ignored_before"
+            ]
+          },
+          "match": {
+            "$ref": "#/components/schemas/PublicationMatch"
+          }
+        }
+      },
+      "PublicationImportInput": {
+        "type": "object",
+        "required": [
+          "bibtex"
+        ],
+        "properties": {
+          "bibtex": {
+            "type": "string",
+            "description": "BibTeX entries, such as a Google Scholar export. At most 5 MB and 2,000 entries."
+          },
+          "dry_run": {
+            "type": "boolean",
+            "default": false,
+            "description": "Preview without writing anything."
+          },
+          "select": {
+            "type": "array",
+            "items": {
+              "type": [
+                "integer",
+                "string"
+              ]
+            },
+            "minItems": 1,
+            "description": "Entries to import, by index (from 0, in file order) or citation key. When sent, the entries left out are recorded as ignored."
+          }
+        }
+      },
+      "PublicationImportUpload": {
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "description": "A .bib file. At most 5 MB and 2,000 entries."
+          },
+          "dry_run": {
+            "type": "boolean",
+            "default": false
+          },
+          "select": {
+            "type": "array",
+            "items": {
+              "type": [
+                "integer",
+                "string"
+              ]
+            },
+            "minItems": 1,
+            "description": "Entries to import, by index (from 0, in file order) or citation key. When sent, the entries left out are recorded as ignored."
+          }
+        }
+      },
+      "PublicationImportEntry": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "Its place in the file, from 0."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Its BibTeX citation key."
+          },
+          "title": {
+            "type": "string"
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "authors": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "existing",
+              "possible_duplicate",
+              "preprint"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ignored_before": {
+            "type": "boolean"
+          },
+          "nothing_new": {
+            "type": "boolean",
+            "description": "Existing, and importing it would change nothing."
+          },
+          "checks_doi": {
+            "type": "boolean",
+            "description": "Existing with a DOI: importing it checks its DOI record instead of taking anything from the entry."
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "match": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "publication_id": {
+                "type": "integer"
+              },
+              "title": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "selected_by_default": {
+            "type": "boolean"
+          },
+          "csl": {
+            "type": "object",
+            "description": "The entry as CSL-JSON."
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "created",
+              "updated",
+              "updated_and_suggested",
+              "suggested",
+              "checking",
+              "skipped"
+            ],
+            "description": "Real runs only."
+          },
+          "skip_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "nothing_new",
+              "not_selected",
+              "possible_duplicate",
+              "preprint",
+              "ignored_before",
+              null
+            ],
+            "description": "Real runs only."
+          },
+          "publication_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Real runs only: the publication created or brought up to date."
+          },
+          "selected": {
+            "type": "boolean",
+            "description": "Real runs only."
+          },
+          "ignored_now": {
+            "type": "boolean",
+            "description": "Real runs only: recorded as ignored by this import."
+          }
+        }
+      },
+      "PublicationImportResult": {
+        "type": "object",
+        "properties": {
+          "dry_run": {
+            "type": "boolean"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicationImportEntry"
+            },
+            "description": "In file order."
+          },
+          "summary": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Counts. A dry run: total, selected_by_default, and each status. A real run: created, updated, suggested, checking, skipped, ignored."
+          },
+          "doi_checks_queued": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Real runs only: publications waiting for their DOI check."
+          },
+          "recorded_ignores": {
+            "type": "boolean",
+            "description": "Real runs only: whether entries left out were recorded as ignored (only when select was sent)."
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "description": "The key making the request.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "content",
+              "management"
+            ]
+          },
+          "abilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Such as content:read, access:write, scope:team:3."
+          },
+          "access": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "read",
+              "write",
+              null
+            ],
+            "description": "Management keys only."
+          },
+          "scope": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "team",
+                  "site"
+                ]
+              },
+              "teams": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "sites": {
+                "type": "array",
+                "description": "Every site the key covers that its owner can still reach.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "site_type": {
+                      "type": "string"
+                    },
+                    "domain": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "team_id": {
+                      "type": "integer"
+                    },
+                    "api_access": {
+                      "type": "boolean",
+                      "description": "Whether the site's plan includes the API (Pro). Without it, calls for the site answer 403 api_access_requires_pro."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "owner": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null when the key does not expire."
+          },
+          "last_used_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
             "type": [
               "string",
               "null"
@@ -6464,6 +10829,1865 @@
               "boolean",
               "null"
             ]
+          }
+        }
+      },
+      "ReorderInput": {
+        "type": "object",
+        "description": "Every entry's ID, once each, in the new order.",
+        "required": [
+          "ids"
+        ],
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "ManagementProfile": {
+        "type": "object",
+        "description": "The profile as My Info (Lab Info on a lab site) edits it.",
+        "required": [
+          "site_id",
+          "name",
+          "public_email",
+          "show_email",
+          "location",
+          "show_location",
+          "photo_media_id",
+          "photo_url",
+          "summary",
+          "summary_html",
+          "body",
+          "body_html",
+          "edit_version",
+          "updated_at"
+        ],
+        "properties": {
+          "site_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "The site name, shown as the person's or lab's name."
+          },
+          "public_email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "show_email": {
+            "type": "boolean"
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "show_location": {
+            "type": "boolean"
+          },
+          "photo_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The photo's library file ID."
+          },
+          "photo_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "summary": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The short introduction, as a Tiptap document."
+          },
+          "summary_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document rendered as the public site shows it."
+          },
+          "body": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The full bio, as a Tiptap document."
+          },
+          "body_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document rendered as the public site shows it."
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementProfileInput": {
+        "type": "object",
+        "description": "Only the fields sent change. The save records a revision in the profile history.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "public_email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "show_email": {
+            "type": "boolean"
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "show_location": {
+            "type": "boolean"
+          },
+          "photo_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's ID from the media endpoints. Null removes the file. Assigning moves the file into this place, as the admin's picker does."
+          },
+          "summary": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "body": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ProfileDegree": {
+        "type": "object",
+        "description": "A degree or other credential (Education).",
+        "required": [
+          "id",
+          "degree",
+          "field",
+          "honors",
+          "institution",
+          "start_year",
+          "end_year",
+          "in_progress",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "degree": {
+            "type": "string"
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "honors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "institution": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "in_progress": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileDegreeInput": {
+        "type": "object",
+        "description": "A create needs degree and institution. A PATCH changes only the fields sent.",
+        "required": [
+          "degree",
+          "institution"
+        ],
+        "properties": {
+          "degree": {
+            "type": "string"
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "honors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "institution": {
+            "type": "string"
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "in_progress": {
+            "type": "boolean"
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ProfilePosition": {
+        "type": "object",
+        "description": "A position (Experience).",
+        "required": [
+          "id",
+          "title",
+          "employer",
+          "description",
+          "from",
+          "to",
+          "currently_held",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "employer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Free text, such as 2020 or Jan 2020."
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currently_held": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfilePositionInput": {
+        "type": "object",
+        "description": "A create needs title and employer. A PATCH changes only the fields sent.",
+        "required": [
+          "title",
+          "employer"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "employer": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currently_held": {
+            "type": "boolean"
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ProfileLink": {
+        "type": "object",
+        "description": "A profile link: a service such as ORCID or GitHub, or another website.",
+        "required": [
+          "id",
+          "type",
+          "service",
+          "service_handle",
+          "text",
+          "url",
+          "resolved_url",
+          "open_in_new_tab",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "service",
+              "external"
+            ]
+          },
+          "service": {
+            "type": "string",
+            "description": "A service key, such as orcid or github, or website."
+          },
+          "service_handle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "resolved_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where the link goes, built from the handle when there is no URL."
+          },
+          "open_in_new_tab": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileLinkInput": {
+        "type": "object",
+        "description": "Like the admin form: a website URL that belongs to a known service becomes that service; services that build their own URL take a username or profile URL in service_handle; text defaults to the service name. A website needs url and text.",
+        "properties": {
+          "service": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "website",
+              "bluesky",
+              "employee_page",
+              "facebook",
+              "github",
+              "google_scholar",
+              "instagram",
+              "linkedin",
+              "mastodon",
+              "orcid",
+              "pubmed",
+              "twitter",
+              "youtube",
+              null
+            ]
+          },
+          "service_handle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "open_in_new_tab": {
+            "type": "boolean"
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ManagementTalk": {
+        "type": "object",
+        "description": "A talk, draft or published.",
+        "required": [
+          "id",
+          "site_id",
+          "title",
+          "slug",
+          "uri",
+          "excerpt",
+          "abstract_structured",
+          "abstract_html",
+          "speaker_name",
+          "copresenters",
+          "talk_type",
+          "talk_date",
+          "meeting_name",
+          "location",
+          "location_url",
+          "slides_url",
+          "paper_url",
+          "recording_url",
+          "is_featured",
+          "featured_media_id",
+          "featured_image_url",
+          "tag_ids",
+          "meta_title",
+          "meta_description",
+          "published_at",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "abstract_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "abstract_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document rendered as the public site shows it."
+          },
+          "speaker_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "copresenters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Co-presenters' names, in order."
+          },
+          "talk_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "talk_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "meeting_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "slides_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "paper_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "recording_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "is_featured": {
+            "type": "boolean"
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The featured image's library file ID."
+          },
+          "featured_image_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "tag_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The IDs of the record's tags."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementTalkInput": {
+        "type": "object",
+        "description": "A PATCH changes only the fields sent. A talk with a published_at in the past is live; in the future, scheduled; null, a draft. Publishing needs a title.",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Lowercase letters, numbers, and hyphens. Made from the title on publishing when empty."
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "abstract_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "speaker_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "copresenters": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "talk_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "Conference presentation",
+              "Invited talk",
+              "Keynote",
+              "Seminar",
+              "Colloquium",
+              "Workshop",
+              "Panel",
+              "Guest lecture",
+              "Briefing",
+              "Webinar",
+              "Lightning talk",
+              "Poster",
+              "Demo",
+              "Other",
+              null
+            ]
+          },
+          "talk_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "meeting_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "slides_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "paper_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "recording_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "is_featured": {
+            "type": "boolean"
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's ID from the media endpoints. Null removes the file. Assigning moves the file into this place, as the admin's picker does."
+          },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "description": "Tag IDs from this site, replacing the record's tags. Leave out to keep them; send [] to remove them all."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ManagementCourse": {
+        "type": "object",
+        "description": "A course, draft or published. Its lessons are at /courses/{courseId}/lessons.",
+        "required": [
+          "id",
+          "site_id",
+          "title",
+          "slug",
+          "uri",
+          "excerpt",
+          "content_structured",
+          "content_html",
+          "instances",
+          "featured_media_id",
+          "featured_image_url",
+          "tag_ids",
+          "meta_title",
+          "meta_description",
+          "published_at",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "content_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document rendered as the public site shows it."
+          },
+          "instances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourseOffering"
+            },
+            "description": "When and where the course was taught."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The featured image's library file ID."
+          },
+          "featured_image_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "tag_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The IDs of the record's tags."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseOffering": {
+        "type": "object",
+        "description": "One offering of a course. Rows with nothing in them are dropped. starts_on, ends_on, and is_current are read here and cleared when instances is sent, as the course editor does.",
+        "required": [
+          "term"
+        ],
+        "properties": {
+          "course_number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "institution": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "term": {
+            "type": "string",
+            "enum": [
+              "spring",
+              "summer",
+              "fall",
+              "winter",
+              "q1",
+              "q2",
+              "q3",
+              "q4",
+              "other"
+            ]
+          },
+          "custom_term": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Kept only when term is other."
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "readOnly": true
+          },
+          "ends_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "readOnly": true
+          },
+          "is_current": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        }
+      },
+      "ManagementCourseInput": {
+        "type": "object",
+        "description": "A PATCH changes only the fields sent; instances, when sent, replaces the whole list. Publishing needs a title. The slug is made from the title.",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "instances": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/CourseOffering"
+            }
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's ID from the media endpoints. Null removes the file. Assigning moves the file into this place, as the admin's picker does."
+          },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "description": "Tag IDs from this site, replacing the record's tags. Leave out to keep them; send [] to remove them all."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ManagementCourseLesson": {
+        "type": "object",
+        "description": "A lesson in a course.",
+        "required": [
+          "id",
+          "course_id",
+          "title",
+          "lesson_number",
+          "sort_order",
+          "overview",
+          "notes",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "course_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "lesson_number": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "overview": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Shown on the course page."
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Private planning notes. Never shown on the public site."
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementCourseLessonInput": {
+        "type": "object",
+        "description": "A create needs a title. A PATCH changes only the fields sent.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "overview": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ManagementLabMember": {
+        "type": "object",
+        "description": "A lab member, or a study team member on a study site, draft or published.",
+        "required": [
+          "id",
+          "site_id",
+          "name",
+          "slug",
+          "role",
+          "member_type",
+          "bio_structured",
+          "bio_html",
+          "email",
+          "website_url",
+          "research_interests",
+          "is_alumni",
+          "joined_on",
+          "left_on",
+          "sort_order",
+          "photo_media_id",
+          "photo_url",
+          "published_at",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Free text, shown as the person's label."
+          },
+          "member_type": {
+            "type": "string",
+            "description": "Decides where the person appears in the list: principal_investigator, faculty, staff, postdoc, graduate_student, undergraduate, member, collaborator."
+          },
+          "bio_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "bio_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document rendered as the public site shows it."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "research_interests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_alumni": {
+            "type": "boolean"
+          },
+          "joined_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "left_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "sort_order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "photo_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The photo's library file ID."
+          },
+          "photo_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementLabMemberInput": {
+        "type": "object",
+        "description": "A create needs a name. A PATCH changes only the fields sent. A new person goes after everyone else.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "member_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bio_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "research_interests": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_alumni": {
+            "type": "boolean"
+          },
+          "joined_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "left_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "photo_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's ID from the media endpoints. Null removes the file. Assigning moves the file into this place, as the admin's picker does."
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ManagementTag": {
+        "type": "object",
+        "description": "A tag.",
+        "required": [
+          "id",
+          "site_id",
+          "name",
+          "slug",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementTagInput": {
+        "type": "object",
+        "description": "A name, unique on the site whatever its case. Renaming keeps the slug.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
+          }
+        }
+      },
+      "ManagementStudy": {
+        "type": "object",
+        "description": "The study a study site describes. Its title is the site name.",
+        "required": [
+          "site_id",
+          "title",
+          "summary",
+          "description",
+          "description_html",
+          "study_type",
+          "status",
+          "topic",
+          "starts_on",
+          "ends_on",
+          "institution",
+          "funder",
+          "registry_label",
+          "registry_url",
+          "protocol_url",
+          "contact_email",
+          "contact_text",
+          "edit_version",
+          "updated_at"
+        ],
+        "properties": {
+          "site_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "description_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document rendered as the public site shows it."
+          },
+          "study_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "topic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "ends_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "institution": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "funder": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registry_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registry_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "protocol_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "contact_email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contact_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementStudyInput": {
+        "type": "object",
+        "description": "Only the fields sent change. The result must still have a title, and ends_on cannot be before starts_on.",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+          },
+          "study_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "topic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "ends_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "institution": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "funder": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registry_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registry_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "protocol_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "contact_email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "contact_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "edit_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out to save regardless."
           }
         }
       }

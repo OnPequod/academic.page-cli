@@ -11,7 +11,7 @@ import (
 // CallFromArgs builds a Call from JSON arguments shaped by
 // Command.InputSchema, as MCP tools receive them.
 func CallFromArgs(cmd *registry.Command, raw json.RawMessage) (Call, error) {
-	call := Call{Command: cmd, Query: map[string]string{}, Body: map[string]any{}}
+	call := Call{Command: cmd, Query: map[string]string{}, Body: map[string]any{}, Markdown: map[string]string{}, Files: map[string]string{}}
 	args := map[string]any{}
 	if len(raw) > 0 && string(raw) != "null" {
 		if err := json.Unmarshal(raw, &args); err != nil {
@@ -19,20 +19,30 @@ func CallFromArgs(cmd *registry.Command, raw json.RawMessage) (Call, error) {
 		}
 	}
 
-	query := map[string]bool{}
+	query := map[string]string{}
 	for _, f := range cmd.Query {
-		query[f.Name] = true
+		query[f.OptionName()] = f.Name
+	}
+	markdown, files := map[string]string{}, map[string]string{}
+	for _, name := range cmd.Rich {
+		markdown[registry.MarkdownOption(name)] = name
+		files[registry.FileOption(name)] = name
+	}
+	for _, name := range cmd.TextFiles {
+		files[registry.FileOption(name)] = name
 	}
 	for name, v := range args {
 		var err error
 		switch {
 		case name == registry.OptSite:
 			call.Site, err = toInt(name, v)
+		case cmd.Parent != nil && name == cmd.Parent.Name:
+			call.Parent, err = toArg(name, v)
 		case cmd.Arg != nil && name == cmd.Arg.Name:
 			call.Arg, err = toArg(name, v)
 		case cmd.FileArg != nil && name == cmd.FileArg.Name:
 			call.File, err = toString(name, v)
-		case name == registry.OptDrafts:
+		case cmd.DraftsOp != nil && name == cmd.ManageFlag:
 			call.Drafts, err = toBool(name, v)
 		case name == registry.OptAll:
 			call.All, err = toBool(name, v)
@@ -40,18 +50,18 @@ func CallFromArgs(cmd *registry.Command, raw json.RawMessage) (Call, error) {
 			call.DryRun, err = toBool(name, v)
 		case name == registry.OptPublish:
 			call.Publish, err = toBool(name, v)
-		case name == registry.OptContentMarkdown:
-			call.ContentMarkdown, err = toString(name, v)
-		case name == registry.OptContentFile:
-			call.ContentFile, err = toString(name, v)
-			if call.ContentFile == "-" {
-				err = Usagef("content_file must be a file path")
+		case markdown[name] != "":
+			call.Markdown[markdown[name]], err = toString(name, v)
+		case files[name] != "":
+			call.Files[files[name]], err = toString(name, v)
+			if call.Files[files[name]] == "-" {
+				err = Usagef("%s must be a file path", name)
 			}
-		case query[name]:
+		case query[name] != "":
 			if v != nil {
-				call.Query[name] = fmt.Sprint(v)
+				call.Query[query[name]] = fmt.Sprint(v)
 				if f, ok := v.(float64); ok {
-					call.Query[name] = strconv.FormatFloat(f, 'f', -1, 64)
+					call.Query[query[name]] = strconv.FormatFloat(f, 'f', -1, 64)
 				}
 			}
 		default:

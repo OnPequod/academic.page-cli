@@ -71,6 +71,15 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 		case r.URL.Path == "/sites/7/media" && r.Method == "POST":
 			w.WriteHeader(201)
 			fmt.Fprint(w, `{"data":{"id":3,"filename":"cv.pdf"}}`)
+		case r.URL.Path == "/sites/7/publications" && r.Method == "POST":
+			w.WriteHeader(409)
+			fmt.Fprint(w, `{"message":"This publication is already on the site.","code":"publication_exists","match":{"id":12,"title":"A"}}`)
+		case r.URL.Path == "/sites/7/posts/9" && r.Method == "PATCH":
+			w.WriteHeader(409)
+			fmt.Fprint(w, `{"message":"The post was edited since you read it.","code":"edit_conflict","current_edit_version":4}`)
+		case r.URL.Path == "/sites/7/publications/import", r.URL.Path == "/sites/7/profile/degrees/order",
+			r.URL.Path == "/sites/7/talks", r.URL.Path == "/sites/7/courses/3/lessons/5":
+			fmt.Fprint(w, `{"data":{"id":5,"title":"Echo"}}`)
 		case r.URL.Path == "/content/sites/7/publications.bib":
 			fmt.Fprint(w, "@article{a, title={A}}\n")
 		default:
@@ -331,5 +340,75 @@ func TestSchema(t *testing.T) {
 	}
 	if r := run(t, "", "schema", "posts", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--content-markdown"`) {
 		t.Errorf("schema posts create: %d %s", r.code, r.stdout)
+	}
+}
+
+func TestNewResources(t *testing.T) {
+	f := setup(t)
+
+	r := run(t, "", "course-lessons", "update", "3", "5", "--title", "Week 1")
+	if r.code != 0 || f.last().Path != "/sites/7/courses/3/lessons/5" || f.last().Method != "PATCH" {
+		t.Fatalf("lesson update: code %d, %+v, stderr %q", r.code, f.last(), r.stderr)
+	}
+	if r := run(t, "", "course-lessons", "get", "3"); r.code != app.ExitUsage {
+		t.Errorf("lesson get with one argument: code %d", r.code)
+	}
+
+	bib := filepath.Join(t.TempDir(), "refs.bib")
+	if err := os.WriteFile(bib, []byte("@article{a, title={A}}"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	r = run(t, "", "publications", "import", "--bibtex-file", bib, "--preview", "--select", "0,a")
+	last := f.last()
+	if r.code != 0 || last.Query != "dry_run=true&select=0%2Ca" || !strings.Contains(string(last.Body), `"bibtex":"@article{a, title={A}}"`) {
+		t.Fatalf("import: code %d, %+v, stderr %q", r.code, last, r.stderr)
+	}
+
+	r = run(t, "", "profile-degrees", "reorder", "--ids", "3,1,2")
+	if r.code != 0 || string(f.last().Body) != `{"ids":[3,1,2]}` {
+		t.Fatalf("reorder: code %d, body %s, stderr %q", r.code, f.last().Body, r.stderr)
+	}
+
+	r = run(t, "", "talks", "create", "--title", "T", "--abstract-markdown", "**Hi**", "--tag-ids", "4")
+	var body map[string]any
+	_ = json.Unmarshal(f.last().Body, &body)
+	abstract, _ := body["abstract_structured"].(map[string]any)
+	if r.code != 0 || abstract["type"] != "doc" || body["published_at"] != nil || fmt.Sprint(body["tag_ids"]) != "[4]" {
+		t.Fatalf("talk create: code %d, body %s, stderr %q", r.code, f.last().Body, r.stderr)
+	}
+	if _, ok := body["published_at"]; !ok {
+		t.Error("talk create should send published_at: null")
+	}
+}
+
+func TestConflicts(t *testing.T) {
+	setup(t)
+	r := run(t, "", "publications", "create", "--title", "A", "--json")
+	var out struct {
+		Error app.ErrorBody `json:"error"`
+	}
+	if err := json.Unmarshal([]byte(r.stderr), &out); err != nil {
+		t.Fatalf("stderr is not JSON: %q", r.stderr)
+	}
+	if r.code != app.ExitConflict || out.Error.Code != "publication_exists" || out.Error.Hint == "" || !strings.Contains(string(out.Error.Details["match"]), `"id": 12`) {
+		t.Errorf("code %d, error %+v", r.code, out.Error)
+	}
+
+	r = run(t, "", "posts", "update", "9", "--title", "B", "--edit-version", "3")
+	if r.code != app.ExitConflict || !strings.Contains(r.stderr, "current_edit_version: 4") {
+		t.Errorf("edit conflict: code %d, stderr %q", r.code, r.stderr)
+	}
+}
+
+func TestManageFlag(t *testing.T) {
+	setup(t)
+	if r := run(t, "", "publications", "get", "1", "--manage", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/publications/1") {
+		t.Errorf("publications --manage: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "publications", "get", "1", "--drafts"); r.code != app.ExitUsage {
+		t.Errorf("publications --drafts should be unknown: code %d", r.code)
+	}
+	if r := run(t, "", "key", "show", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "/me") {
+		t.Errorf("key show: code %d, stdout %q", r.code, r.stdout)
 	}
 }

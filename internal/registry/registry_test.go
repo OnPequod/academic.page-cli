@@ -47,13 +47,11 @@ func TestCommandShapes(t *testing.T) {
 	r := load(t)
 
 	create := r.Find("posts", "create")
-	if create.Kind != KindWrite || !create.Content || !create.Publishable || create.Arg != nil {
+	if create.Kind != KindWrite || !create.IsRich("content_structured") || !create.Publishable || create.Arg != nil {
 		t.Errorf("posts create: %+v", create)
 	}
-	for _, f := range create.Body {
-		if f.Name == "content_structured" {
-			t.Error("content_structured should be handled by --content-*, not a flag")
-		}
+	if r.Find("posts", "get").ManageFlag != "drafts" || r.Find("publications", "get").ManageFlag != "manage" {
+		t.Error("drafts flag should be --drafts for posts and --manage for publications")
 	}
 
 	get := r.Find("posts", "get")
@@ -80,8 +78,50 @@ func TestCommandShapes(t *testing.T) {
 		t.Errorf("media upload: %+v", upload)
 	}
 
-	if r.Find("sites", "list").NeedsSite() {
-		t.Error("sites list should not need a site")
+	if r.Find("sites", "list").NeedsSite() || r.Find("key", "show").NeedsSite() {
+		t.Error("sites list and key show should not need a site")
+	}
+
+	lesson := r.Find("course-lessons", "update")
+	if lesson.Parent == nil || lesson.Parent.Name != "course_id" || lesson.Parent.Param != "courseId" || lesson.Arg == nil || lesson.Arg.Param != "lessonId" {
+		t.Errorf("course-lessons update: parent %+v, arg %+v", lesson.Parent, lesson.Arg)
+	}
+	if lessons := r.Find("course-lessons", "list"); lessons.Parent == nil || lessons.Arg != nil {
+		t.Errorf("course-lessons list: parent %+v, arg %+v", lessons.Parent, lessons.Arg)
+	}
+
+	imp := r.Find("publications", "import")
+	if imp.Op.BodyType != "application/json" || !imp.IsTextFile("bibtex") {
+		t.Errorf("publications import: body %s, text files %v", imp.Op.BodyType, imp.TextFiles)
+	}
+	for _, f := range imp.Body {
+		if f.Name == "dry_run" || f.Name == "select" {
+			t.Errorf("import body field %s duplicates the query parameter", f.Name)
+		}
+	}
+	var preview *Field
+	for i := range imp.Query {
+		if imp.Query[i].Name == "dry_run" {
+			preview = &imp.Query[i]
+		}
+	}
+	if preview == nil || preview.Flag != "preview" || preview.OptionName() != "preview" {
+		t.Errorf("import dry_run should be --preview: %+v", preview)
+	}
+
+	reorder := r.Find("profile-degrees", "reorder")
+	if len(reorder.Body) != 1 || reorder.Body[0].Name != "ids" || reorder.Body[0].Items != "integer" {
+		t.Errorf("reorder body: %+v", reorder.Body)
+	}
+
+	talk := r.Find("talks", "create")
+	if !talk.IsRich("abstract_structured") || !talk.Publishable {
+		t.Errorf("talks create: rich %v", talk.Rich)
+	}
+	for _, f := range r.Find("publications", "create").Body {
+		if f.Name == "on_match" && len(f.Enum) != 3 {
+			t.Errorf("on_match enum = %v", f.Enum)
+		}
 	}
 }
 
@@ -95,5 +135,26 @@ func TestInputSchema(t *testing.T) {
 	}
 	if req := s["required"].([]string); len(req) != 1 || req[0] != "id" {
 		t.Errorf("required = %v", req)
+	}
+
+	props = load(t).Find("talks", "update").InputSchema()["properties"].(map[string]any)
+	for _, name := range []string{"abstract_markdown", "abstract_file", "tag_ids", "edit_version"} {
+		if _, ok := props[name]; !ok {
+			t.Errorf("talks update input schema lacks %q", name)
+		}
+	}
+	if items := props["tag_ids"].(map[string]any)["items"].(map[string]any)["type"]; items != "integer" {
+		t.Errorf("tag_ids items = %v", items)
+	}
+
+	props = load(t).Find("publications", "import").InputSchema()["properties"].(map[string]any)
+	for _, name := range []string{"bibtex", "bibtex_file", "preview", "select", "dry_run"} {
+		if _, ok := props[name]; !ok {
+			t.Errorf("publications import input schema lacks %q", name)
+		}
+	}
+	req := load(t).Find("course-lessons", "get").InputSchema()["required"].([]string)
+	if len(req) != 2 || req[0] != "course_id" || req[1] != "id" {
+		t.Errorf("course-lessons get required = %v", req)
 	}
 }

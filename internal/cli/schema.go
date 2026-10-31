@@ -122,7 +122,7 @@ func describeCommand(root *cobra.Command, rc *registry.Command) commandSchema {
 	if rc.DraftsOp != nil {
 		cs.DraftsAPI = &apiRef{rc.DraftsOp.Method, rc.DraftsOp.Path, rc.DraftsOp.ID}
 	}
-	for _, f := range []*registry.Field{rc.Arg, rc.FileArg} {
+	for _, f := range []*registry.Field{rc.Parent, rc.Arg, rc.FileArg} {
 		if f != nil {
 			cs.Args = append(cs.Args, *f)
 		}

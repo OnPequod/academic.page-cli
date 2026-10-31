@@ -75,13 +75,18 @@ func (c *CLI) printWriteSummary(rc *registry.Command, call app.Call, raw, data j
 		fmt.Fprintf(c.Stdout, "Deleted %s %s.\n", singular(rc.Group), call.Arg)
 		return nil
 	}
+	if len(data) == 0 {
+		return c.printJSON(json.RawMessage(raw))
+	}
 	var record map[string]any
 	if json.Unmarshal(data, &record) != nil {
 		return c.printJSON(json.RawMessage(raw))
 	}
 	verb := map[string]string{"create": "Created", "update": "Updated", "upload": "Uploaded"}[rc.Name]
 	if verb == "" {
-		verb = "Saved"
+		// Imports, reorders and suggestion actions return more than one
+		// record's worth; show the response.
+		return c.printJSON(json.RawMessage(raw))
 	}
 	line := fmt.Sprintf("%s %s %v", verb, singular(rc.Group), record["id"])
 	if title := label(record); title != "" {
@@ -195,10 +200,10 @@ func singular(group string) string {
 	switch group {
 	case "media":
 		return "media file"
-	case "lab-members":
-		return "lab member"
+	case "study":
+		return "study"
 	}
-	return strings.TrimSuffix(group, "s")
+	return strings.TrimSuffix(strings.ReplaceAll(group, "-", " "), "s")
 }
 
 func readAll(r io.Reader) ([]byte, error) {

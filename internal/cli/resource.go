@@ -16,6 +16,10 @@ import (
 func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 	use := rc.Name
 	var positional []*registry.Field
+	if rc.Parent != nil {
+		use += " <" + rc.Parent.Name + ">"
+		positional = append(positional, rc.Parent)
+	}
 	if rc.Arg != nil {
 		use += " <" + rc.Arg.Name + ">"
 		positional = append(positional, rc.Arg)
@@ -27,8 +31,10 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 
 	var (
 		drafts, all, dryRun, publish, unpublish, yes bool
-		data, contentFile, contentMarkdown           string
+		data                                         string
 		nulls                                        []string
+		markdown                                     = map[string]*string{}
+		files                                        = map[string]*string{}
 	)
 
 	cmd := &cobra.Command{
@@ -54,7 +60,11 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 	body := addFields(flags, rc.Body)
 
 	if rc.DraftsOp != nil {
-		flags.BoolVar(&drafts, "drafts", false, "Read through the management API, which includes drafts and unpublished records (needs a management key)")
+		usage := "Read through the management API, which includes drafts and unpublished records (needs a management key)"
+		if rc.ManageFlag != "drafts" {
+			usage = "Read through the management API, which adds edit_version and management fields (needs a management key)"
+		}
+		flags.BoolVar(&drafts, rc.ManageFlag, false, usage)
 	}
 	if rc.Paginated {
 		flags.BoolVar(&all, "all", false, "Follow every page and return all records")
@@ -72,9 +82,13 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 			flags.StringSliceVar(&nulls, "null", nil, "Clear these fields (set them to null): "+strings.Join(nullable, ", "))
 		}
 	}
-	if rc.Content {
-		flags.StringVar(&contentFile, "content-file", "", "Body content from a Markdown (.md) or Tiptap JSON (.json) file, or - for Markdown on stdin")
-		flags.StringVar(&contentMarkdown, "content-markdown", "", "Body content as Markdown")
+	for _, name := range rc.Rich {
+		prefix := strings.ReplaceAll(registry.RichPrefix(name), "_", "-")
+		markdown[name] = flags.String(prefix+"-markdown", "", name+" as Markdown")
+		files[name] = flags.String(prefix+"-file", "", name+" from a Markdown (.md) or Tiptap JSON (.json) file, or - for Markdown on stdin")
+	}
+	for _, name := range rc.TextFiles {
+		files[name] = flags.String(strings.ReplaceAll(name, "_", "-")+"-file", "", name+" from a file, or - for stdin")
 	}
 	if rc.Publishable {
 		flags.BoolVar(&publish, "publish", false, "Publish now (sets published_at to the current time)")
@@ -88,14 +102,27 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		call := app.Call{
-			Command: rc, Drafts: drafts, All: all, DryRun: dryRun, Publish: publish,
-			ContentFile: contentFile, ContentMarkdown: contentMarkdown, Stdin: c.Stdin,
+			Command: rc, Drafts: drafts, All: all, DryRun: dryRun, Publish: publish, Stdin: c.Stdin,
 			Query: map[string]string{}, Body: map[string]any{},
+			Markdown: map[string]string{}, Files: map[string]string{},
+		}
+		for name, v := range markdown {
+			if *v != "" {
+				call.Markdown[name] = *v
+			}
+		}
+		for name, v := range files {
+			if *v != "" {
+				call.Files[name] = *v
+			}
 		}
 		for i, f := range positional {
-			if f == rc.FileArg {
+			switch f {
+			case rc.FileArg:
 				call.File = args[i]
-			} else {
+			case rc.Parent:
+				call.Parent = args[i]
+			default:
 				call.Arg = args[i]
 			}
 		}
@@ -153,7 +180,7 @@ func longHelp(rc *registry.Command) string {
 	}
 	fmt.Fprintf(&b, "\n\nAPI: %s %s", rc.Op.Method, rc.Op.Path)
 	if rc.DraftsOp != nil {
-		fmt.Fprintf(&b, "\nWith --drafts: %s %s", rc.DraftsOp.Method, rc.DraftsOp.Path)
+		fmt.Fprintf(&b, "\nWith --%s: %s %s", rc.ManageFlag, rc.DraftsOp.Method, rc.DraftsOp.Path)
 	}
 	if rc.Publishable && rc.Arg == nil {
 		b.WriteString("\n\nCreates a draft unless you pass --publish or --published-at.")
@@ -180,11 +207,18 @@ func addFields(flags *pflag.FlagSet, fields []registry.Field) []boundFlag {
 		if field.Format != "" {
 			desc += " (" + field.Format + ")"
 		}
+		if len(field.Enum) > 0 {
+			values := make([]string, len(field.Enum))
+			for i, v := range field.Enum {
+				values[i] = fmt.Sprint(v)
+			}
+			desc += " (one of: " + strings.Join(values, ", ") + ")"
+		}
 		if field.DraftsOnly {
-			desc += " [with --drafts]"
+			desc += " [management read only]"
 		}
 		if field.PublishedOnly {
-			desc += " [without --drafts]"
+			desc += " [published read only]"
 		}
 		var value func() any
 		switch field.Type {
@@ -195,8 +229,17 @@ func addFields(flags *pflag.FlagSet, fields []registry.Field) []boundFlag {
 			v := flags.Bool(field.Flag, false, desc)
 			value = func() any { return *v }
 		case "array":
-			v := flags.StringSlice(field.Flag, nil, desc+" (comma-separated or repeated)")
-			value = func() any { return *v }
+			switch field.Items {
+			case "object", "array":
+				// Lists of objects only come through --data.
+				continue
+			case "integer":
+				v := flags.Int64Slice(field.Flag, nil, desc+" (comma-separated or repeated)")
+				value = func() any { return *v }
+			default:
+				v := flags.StringSlice(field.Flag, nil, desc+" (comma-separated or repeated)")
+				value = func() any { return *v }
+			}
 		case "object":
 			// Objects only come through --data.
 			continue

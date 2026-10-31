@@ -68,6 +68,18 @@ func (s *Schema) PrimaryType() string {
 	return types[0]
 }
 
+// ItemSchema returns an array schema's item schema, unresolved, or nil.
+func (s *Schema) ItemSchema() *Schema {
+	if len(s.Items) == 0 {
+		return nil
+	}
+	var item Schema
+	if json.Unmarshal(s.Items, &item) != nil {
+		return nil
+	}
+	return &item
+}
+
 // Param is an operation parameter.
 type Param struct {
 	Ref         string  `json:"$ref,omitempty"`
@@ -172,10 +184,13 @@ func Parse(data []byte) (*Spec, error) {
 				op.Params = append(op.Params, p)
 			}
 			if ro.RequestBody != nil {
-				for mediaType, c := range ro.RequestBody.Content {
-					op.BodyType = mediaType
-					op.Body = s.Resolve(c.Schema)
-					break
+				// Prefer JSON when an operation accepts several media types,
+				// so the choice does not depend on map order.
+				types := sortedKeys(ro.RequestBody.Content)
+				sort.SliceStable(types, func(i, j int) bool { return types[i] == "application/json" && types[j] != "application/json" })
+				if len(types) > 0 {
+					op.BodyType = types[0]
+					op.Body = s.Resolve(ro.RequestBody.Content[types[0]].Schema)
 				}
 			}
 			s.Operations[op.ID] = op
@@ -203,4 +218,13 @@ func (s *Spec) OperationIDs() []string {
 	}
 	sort.Strings(ids)
 	return ids
+}
+
+func sortedKeys[V any](m map[string]V) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

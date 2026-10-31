@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -41,7 +42,7 @@ var ExitCodes = []struct {
 	{ExitRateLimit, "rate_limited", "Too many requests (429), even after retrying."},
 	{ExitServer, "server", "The API had a server error (5xx)."},
 	{ExitNetwork, "network", "The API could not be reached."},
-	{ExitConflict, "conflict", "The record changed since it was read (409). Read it again, then retry with the new edit_version."},
+	{ExitConflict, "conflict", "Conflict (409): the record changed since it was read (edit_conflict; read it again and retry with the new edit_version), the record already exists (see the error's details.match), or a tag is still in use."},
 }
 
 // UsageError is a mistake in how a command was called.
@@ -90,12 +91,14 @@ func ExitCode(err error) int {
 
 // ErrorBody is the JSON form of an error.
 type ErrorBody struct {
-	Code     string              `json:"code"`
-	Message  string              `json:"message"`
-	Status   int                 `json:"status,omitempty"`
-	Fields   map[string][]string `json:"fields,omitempty"`
-	Hint     string              `json:"hint,omitempty"`
-	ExitCode int                 `json:"exit_code"`
+	Code    string              `json:"code"`
+	Message string              `json:"message"`
+	Status  int                 `json:"status,omitempty"`
+	Fields  map[string][]string `json:"fields,omitempty"`
+	// Details holds the API's other error fields, such as match.
+	Details  map[string]json.RawMessage `json:"details,omitempty"`
+	Hint     string                     `json:"hint,omitempty"`
+	ExitCode int                        `json:"exit_code"`
 }
 
 // Describe turns an error into its JSON form.
@@ -109,7 +112,7 @@ func Describe(err error) ErrorBody {
 		b.Code = "usage"
 		b.Hint = "Run the command with --help, or `academic-page schema` for every command and field."
 	case errors.As(err, &apiErr):
-		b.Code, b.Message, b.Status, b.Fields, b.Hint = apiErr.Code, apiErr.Message, apiErr.Status, apiErr.Errors, apiErr.Hint()
+		b.Code, b.Message, b.Status, b.Fields, b.Details, b.Hint = apiErr.Code, apiErr.Message, apiErr.Status, apiErr.Errors, apiErr.Details, apiErr.Hint()
 	case errors.As(err, &netErr):
 		b.Code = "network"
 		b.Hint = "Check your connection and the base URL (--base-url or " + "ACADEMIC_PAGE_BASE_URL)."

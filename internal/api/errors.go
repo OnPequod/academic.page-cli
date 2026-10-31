@@ -14,6 +14,9 @@ type Error struct {
 	Code    string              `json:"code"`
 	Message string              `json:"message"`
 	Errors  map[string][]string `json:"errors,omitempty"`
+	// Details holds the other fields of the error body, such as the match
+	// of a duplicate publication or current_edit_version.
+	Details map[string]json.RawMessage `json:"details,omitempty"`
 }
 
 func (e *Error) Error() string {
@@ -29,6 +32,14 @@ func (e *Error) Error() string {
 	sort.Strings(fields)
 	for _, f := range fields {
 		fmt.Fprintf(&b, "\n  %s: %s", f, strings.Join(e.Errors[f], " "))
+	}
+	keys := make([]string, 0, len(e.Details))
+	for k := range e.Details {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		fmt.Fprintf(&b, "\n  %s: %s", k, e.Details[k])
 	}
 	return b.String()
 }
@@ -56,6 +67,16 @@ func (e *Error) Hint() string {
 		return "The storage bucket is full. This is a server-side limit; contact Academic.page support."
 	case "edit_conflict":
 		return "The record was edited after you read it. Fetch it again, apply your change to the new version, and pass its edit_version."
+	case "publication_exists":
+		return "The publication is already on the site (see match). Update that record instead, or pass --on-match suggest to propose changes to it."
+	case "possible_duplicate":
+		return "This looks like a publication already on the site (see match). Check it; pass --on-match create_anyway only if it is a different work."
+	case "preprint_of_existing":
+		return "This matches a preprint or published version already on the site (see match). Pass --on-match suggest to propose linking them, or create_anyway to keep both."
+	case "ignored_before":
+		return "This publication was ignored on an earlier import. Pass --on-match create_anyway to add it anyway."
+	case "tag_in_use":
+		return "The tag is still attached to records. Remove it from them first."
 	case "section_not_enabled":
 		return "That section is turned off for this site. Turn it on in the site's settings."
 	}
@@ -87,6 +108,19 @@ func parseError(r *Response) *Error {
 	}
 	if json.Unmarshal(r.Body, &body) == nil {
 		e.Message, e.Code, e.Errors = body.Message, body.Code, body.Errors
+		var all map[string]json.RawMessage
+		if json.Unmarshal(r.Body, &all) == nil {
+			for k, v := range all {
+				switch k {
+				case "message", "code", "errors":
+				default:
+					if e.Details == nil {
+						e.Details = map[string]json.RawMessage{}
+					}
+					e.Details[k] = v
+				}
+			}
+		}
 	}
 	if e.Code == "" {
 		switch r.Status {

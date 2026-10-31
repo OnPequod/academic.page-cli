@@ -37,6 +37,14 @@ type Field struct {
 	Required    bool   `json:"required,omitempty"`
 	Nullable    bool   `json:"nullable,omitempty"`
 	Default     any    `json:"default,omitempty"`
+	// Option is the name MCP tools and the schema use, when it differs from
+	// Name (the API's dry_run becomes preview, beside the CLI's dry_run).
+	Option string `json:"option,omitempty"`
+	// Items is an array's item type, such as integer or object.
+	Items string `json:"items,omitempty"`
+	Enum  []any  `json:"enum,omitempty"`
+	// Param is the path parameter a positional argument fills.
+	Param string `json:"-"`
 	// DraftsOnly and PublishedOnly mark query flags that only one of the two
 	// operations behind a read command accepts.
 	DraftsOnly    bool `json:"drafts_only,omitempty"`
@@ -50,17 +58,28 @@ type Command struct {
 	Short string
 	Kind  Kind
 	Op    *spec.Operation
-	// DraftsOp is the management operation used with --drafts, if any.
+	// DraftsOp is the management operation used with --drafts (or
+	// --manage, for records without drafts), if any.
 	DraftsOp *spec.Operation
+	// ManageFlag names the flag that selects DraftsOp: "drafts" where the
+	// group's records have drafts, otherwise "manage".
+	ManageFlag string
 	// Paginated commands accept --page, --per-page and --all.
 	Paginated bool
 	// Text commands return a non-JSON body, such as BibTeX.
 	Text bool
 	// Publishable writes accept --publish and default to drafts.
 	Publishable bool
-	// Content writes accept --content-file and --content-markdown.
-	Content bool
+	// Rich lists body fields that hold a Tiptap document. Each accepts
+	// --<prefix>-markdown and --<prefix>-file; see RichPrefix.
+	Rich []string
+	// TextFiles lists string body fields that can be read from a file with
+	// --<field>-file, such as the BibTeX of an import.
+	TextFiles []string
 
+	// Parent is the positional ID of the record this one belongs to, such as
+	// the course of a lesson.
+	Parent *Field
 	// Arg is the positional ID argument, if any.
 	Arg *Field
 	// FileArg is the positional file argument of an upload.
@@ -91,31 +110,68 @@ type entry struct {
 	kind               Kind
 	op, draftsOp       string
 	text               bool
+	// parent names the first path argument when it identifies a parent
+	// record, such as course_id for lessons.
+	parent string
+	// textFile is a string body field that --<field>-file can fill.
+	textFile string
 }
+
+// RichPrefix returns the flag and option prefix of a Tiptap field:
+// content_structured gives content, so --content-markdown and content_file.
+func RichPrefix(field string) string { return strings.TrimSuffix(field, "_structured") }
 
 // Groups lists the command groups in help order.
 var Groups = []Group{
+	{"key", "The API key in use"},
 	{"sites", "Sites you can reach with this key"},
 	{"profile", "The site owner's profile"},
+	{"profile-degrees", "Degrees on the profile"},
+	{"profile-positions", "Positions on the profile"},
+	{"profile-links", "Links on the profile"},
 	{"posts", "Blog posts"},
 	{"pages", "Pages"},
 	{"projects", "Projects"},
 	{"publications", "Publications"},
 	{"talks", "Talks"},
 	{"courses", "Courses"},
-	{"lab-members", "Lab members"},
-	{"study", "Study content"},
+	{"course-lessons", "Lessons in a course"},
+	{"lab-members", "Lab members (the study team on study sites)"},
+	{"study", "Study details"},
 	{"tags", "Tags"},
 	{"media", "Media library files"},
 }
 
 var table = []entry{
+	{group: "key", name: "show", short: "Show this key's abilities, site scope, Pro status and expiry", op: "getMe"},
+
 	{group: "sites", name: "list", short: "List the sites this key can read", op: "listSites"},
 	{group: "sites", name: "get", short: "Show a site's settings, domains, sections and navigation", op: "getSite"},
 	{group: "sites", name: "manifest", short: "List every public record's ID and timestamps", op: "getManifest"},
 
-	{group: "profile", name: "get", short: "Show the profile", op: "getProfile"},
-	{group: "study", name: "get", short: "Show study content", op: "getStudy"},
+	{group: "profile", name: "get", short: "Show the profile", op: "getProfile", draftsOp: "manageGetProfile"},
+	{group: "profile", name: "update", short: "Update the profile (saves like the Save button)", op: "manageUpdateProfile", kind: KindWrite},
+
+	{group: "profile-degrees", name: "list", short: "List degrees", op: "manageListProfileDegrees"},
+	{group: "profile-degrees", name: "get", short: "Show a degree", op: "manageGetProfileDegree"},
+	{group: "profile-degrees", name: "create", short: "Add a degree", op: "manageCreateProfileDegree", kind: KindWrite},
+	{group: "profile-degrees", name: "update", short: "Update a degree", op: "manageUpdateProfileDegree", kind: KindWrite},
+	{group: "profile-degrees", name: "delete", short: "Delete a degree", op: "manageDeleteProfileDegree", kind: KindDelete},
+	{group: "profile-degrees", name: "reorder", short: "Set the order of the degrees", op: "manageReorderProfileDegrees", kind: KindWrite},
+
+	{group: "profile-positions", name: "list", short: "List positions", op: "manageListProfilePositions"},
+	{group: "profile-positions", name: "get", short: "Show a position", op: "manageGetProfilePosition"},
+	{group: "profile-positions", name: "create", short: "Add a position", op: "manageCreateProfilePosition", kind: KindWrite},
+	{group: "profile-positions", name: "update", short: "Update a position", op: "manageUpdateProfilePosition", kind: KindWrite},
+	{group: "profile-positions", name: "delete", short: "Delete a position", op: "manageDeleteProfilePosition", kind: KindDelete},
+	{group: "profile-positions", name: "reorder", short: "Set the order of the positions", op: "manageReorderProfilePositions", kind: KindWrite},
+
+	{group: "profile-links", name: "list", short: "List links", op: "manageListProfileLinks"},
+	{group: "profile-links", name: "get", short: "Show a link", op: "manageGetProfileLink"},
+	{group: "profile-links", name: "create", short: "Add a link", op: "manageCreateProfileLink", kind: KindWrite},
+	{group: "profile-links", name: "update", short: "Update a link", op: "manageUpdateProfileLink", kind: KindWrite},
+	{group: "profile-links", name: "delete", short: "Delete a link", op: "manageDeleteProfileLink", kind: KindDelete},
+	{group: "profile-links", name: "reorder", short: "Set the order of the links", op: "manageReorderProfileLinks", kind: KindWrite},
 
 	{group: "posts", name: "list", short: "List posts", op: "listPosts", draftsOp: "manageListPosts"},
 	{group: "posts", name: "get", short: "Show a post", op: "getPost", draftsOp: "manageGetPost"},
@@ -135,21 +191,49 @@ var table = []entry{
 	{group: "projects", name: "update", short: "Update a project", op: "manageUpdateProject", kind: KindWrite},
 	{group: "projects", name: "delete", short: "Delete a project", op: "manageDeleteProject", kind: KindDelete},
 
-	{group: "publications", name: "list", short: "List publications (CSL-JSON, formatted citation, DOI)", op: "listPublications"},
-	{group: "publications", name: "get", short: "Show a publication", op: "getPublication"},
+	{group: "publications", name: "list", short: "List publications (CSL-JSON, formatted citation, DOI)", op: "listPublications", draftsOp: "manageListPublications"},
+	{group: "publications", name: "get", short: "Show a publication", op: "getPublication", draftsOp: "manageGetPublication"},
 	{group: "publications", name: "bibtex", short: "Export every publication as BibTeX", op: "exportPublicationsBibtex", text: true},
+	{group: "publications", name: "create", short: "Add a publication (skips matches unless --on-match says otherwise)", op: "manageCreatePublication", kind: KindWrite},
+	{group: "publications", name: "update", short: "Update a publication", op: "manageUpdatePublication", kind: KindWrite},
+	{group: "publications", name: "delete", short: "Delete a publication", op: "manageDeletePublication", kind: KindDelete},
+	{group: "publications", name: "import", short: "Import BibTeX (use --preview first to see what would change)", op: "manageImportPublications", kind: KindWrite, textFile: "bibtex"},
+	{group: "publications", name: "apply-suggestion", short: "Apply a publication's pending suggested change", op: "manageApplyPublicationSuggestion", kind: KindWrite},
+	{group: "publications", name: "keep-citation", short: "Dismiss a publication's suggestion and keep its citation", op: "manageKeepPublicationCitation", kind: KindWrite},
 
-	{group: "talks", name: "list", short: "List talks", op: "listTalks"},
-	{group: "talks", name: "get", short: "Show a talk", op: "getTalk"},
+	{group: "talks", name: "list", short: "List talks", op: "listTalks", draftsOp: "manageListTalks"},
+	{group: "talks", name: "get", short: "Show a talk", op: "getTalk", draftsOp: "manageGetTalk"},
+	{group: "talks", name: "create", short: "Create a talk (a draft unless --publish)", op: "manageCreateTalk", kind: KindWrite},
+	{group: "talks", name: "update", short: "Update a talk", op: "manageUpdateTalk", kind: KindWrite},
+	{group: "talks", name: "delete", short: "Delete a talk", op: "manageDeleteTalk", kind: KindDelete},
 
-	{group: "courses", name: "list", short: "List courses", op: "listCourses"},
-	{group: "courses", name: "get", short: "Show a course", op: "getCourse"},
+	{group: "courses", name: "list", short: "List courses", op: "listCourses", draftsOp: "manageListCourses"},
+	{group: "courses", name: "get", short: "Show a course", op: "getCourse", draftsOp: "manageGetCourse"},
+	{group: "courses", name: "create", short: "Create a course (a draft unless --publish)", op: "manageCreateCourse", kind: KindWrite},
+	{group: "courses", name: "update", short: "Update a course", op: "manageUpdateCourse", kind: KindWrite},
+	{group: "courses", name: "delete", short: "Delete a course", op: "manageDeleteCourse", kind: KindDelete},
 
-	{group: "lab-members", name: "list", short: "List lab members", op: "listLabMembers"},
-	{group: "lab-members", name: "get", short: "Show a lab member", op: "getLabMember"},
+	{group: "course-lessons", name: "list", short: "List a course's lessons", op: "manageListCourseLessons", parent: "course_id"},
+	{group: "course-lessons", name: "get", short: "Show a lesson", op: "manageGetCourseLesson", parent: "course_id"},
+	{group: "course-lessons", name: "create", short: "Add a lesson to a course", op: "manageCreateCourseLesson", kind: KindWrite, parent: "course_id"},
+	{group: "course-lessons", name: "update", short: "Update a lesson", op: "manageUpdateCourseLesson", kind: KindWrite, parent: "course_id"},
+	{group: "course-lessons", name: "delete", short: "Delete a lesson", op: "manageDeleteCourseLesson", kind: KindDelete, parent: "course_id"},
+	{group: "course-lessons", name: "reorder", short: "Set the order of a course's lessons", op: "manageReorderCourseLessons", kind: KindWrite, parent: "course_id"},
 
-	{group: "tags", name: "list", short: "List tags", op: "listTags"},
-	{group: "tags", name: "get", short: "Show a tag", op: "getTag"},
+	{group: "lab-members", name: "list", short: "List lab members", op: "listLabMembers", draftsOp: "manageListLabMembers"},
+	{group: "lab-members", name: "get", short: "Show a lab member", op: "getLabMember", draftsOp: "manageGetLabMember"},
+	{group: "lab-members", name: "create", short: "Add a lab member (a draft unless --publish)", op: "manageCreateLabMember", kind: KindWrite},
+	{group: "lab-members", name: "update", short: "Update a lab member", op: "manageUpdateLabMember", kind: KindWrite},
+	{group: "lab-members", name: "delete", short: "Delete a lab member", op: "manageDeleteLabMember", kind: KindDelete},
+
+	{group: "study", name: "get", short: "Show study details", op: "getStudy", draftsOp: "manageGetStudy"},
+	{group: "study", name: "update", short: "Update study details", op: "manageUpdateStudy", kind: KindWrite},
+
+	{group: "tags", name: "list", short: "List tags", op: "listTags", draftsOp: "manageListTags"},
+	{group: "tags", name: "get", short: "Show a tag", op: "getTag", draftsOp: "manageGetTag"},
+	{group: "tags", name: "create", short: "Create a tag", op: "manageCreateTag", kind: KindWrite},
+	{group: "tags", name: "update", short: "Rename a tag", op: "manageUpdateTag", kind: KindWrite},
+	{group: "tags", name: "delete", short: "Delete a tag", op: "manageDeleteTag", kind: KindDelete},
 
 	{group: "media", name: "list", short: "List media files", op: "listMedia", draftsOp: "manageListMedia"},
 	{group: "media", name: "get", short: "Show a media file", op: "getMediaItem", draftsOp: "manageGetMedia"},
@@ -192,6 +276,21 @@ func Build(s *spec.Spec) (*Registry, error) {
 			return nil, err
 		}
 		r.Commands = append(r.Commands, c)
+	}
+	drafts := map[string]bool{}
+	for _, c := range r.Commands {
+		if c.Publishable {
+			drafts[c.Group] = true
+		}
+	}
+	for _, c := range r.Commands {
+		if c.DraftsOp == nil {
+			continue
+		}
+		c.ManageFlag = "manage"
+		if drafts[c.Group] {
+			c.ManageFlag = "drafts"
+		}
 	}
 	return r, nil
 }
@@ -250,13 +349,28 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 		}
 	}
 
-	c.Arg = pathArg(op)
-	if c.DraftsOp != nil && (c.Arg == nil) != (pathArg(c.DraftsOp) == nil) {
+	args := pathArgs(op)
+	if e.parent != "" {
+		if len(args) == 0 {
+			return nil, fmt.Errorf("%s %s: %s has no parent path argument", e.group, e.name, op.ID)
+		}
+		args[0].Name = e.parent
+		c.Parent, args = args[0], args[1:]
+	}
+	if len(args) > 1 {
+		return nil, fmt.Errorf("%s %s: %s has more path arguments than the CLI maps", e.group, e.name, op.ID)
+	}
+	if len(args) == 1 {
+		c.Arg = args[0]
+	}
+	if c.DraftsOp != nil && (c.Arg == nil) != (len(pathArgs(c.DraftsOp)) == 0) {
 		return nil, fmt.Errorf("%s %s: %s and %s take different path arguments", e.group, e.name, op.ID, c.DraftsOp.ID)
 	}
 
-	c.Query = queryFields(op, c.DraftsOp)
+	c.Query = queryFields(s, op, c.DraftsOp)
+	inQuery := map[string]bool{}
 	for _, f := range c.Query {
+		inQuery[f.Name] = true
 		if f.Name == "page" || f.Name == "per_page" {
 			c.Paginated = true
 		}
@@ -264,47 +378,63 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 
 	if op.Body != nil {
 		for _, name := range sortedKeys(op.Body.Properties) {
+			if inQuery[name] {
+				// Sent in the query string instead; one flag is enough.
+				continue
+			}
 			prop := s.Resolve(op.Body.Properties[name])
-			f := field(name, prop)
+			f := field(s, name, prop)
 			f.Required = contains(op.Body.Required, name)
 			if prop.Format == "binary" {
 				f.Flag = ""
 				c.FileArg = &f
 				continue
 			}
-			switch name {
-			case "content_structured":
-				c.Content = true
-				continue
-			case "published_at":
+			if f.Type == "object" && (strings.HasSuffix(name, "_structured") || strings.Contains(prop.Description, "Tiptap")) {
+				c.Rich = append(c.Rich, name)
+			}
+			if name == "published_at" {
 				c.Publishable = true
 			}
 			c.Body = append(c.Body, f)
 		}
 	}
+	if e.textFile != "" {
+		if !hasField(c.Body, e.textFile) {
+			return nil, fmt.Errorf("%s %s: %s has no body field %s", e.group, e.name, op.ID, e.textFile)
+		}
+		c.TextFiles = []string{e.textFile}
+	}
 	return c, nil
 }
 
-func pathArg(op *spec.Operation) *Field {
+// pathArgs returns an operation's path arguments other than the site. The
+// last one is always named "id", so every tool and command names it the
+// same way.
+func pathArgs(op *spec.Operation) []*Field {
+	var out []*Field
 	for _, p := range op.Params {
 		if p.In == "path" && p.Name != "site" {
-			// Always "id", so every tool and command names it the same way.
-			f := field("id", p.Schema)
+			f := field(nil, p.Name, p.Schema)
 			f.Flag = ""
 			f.Description = p.Description
 			f.Required = true
-			return &f
+			f.Param = p.Name
+			out = append(out, &f)
 		}
 	}
-	return nil
+	if len(out) > 0 {
+		out[len(out)-1].Name = "id"
+	}
+	return out
 }
 
-func queryFields(op, draftsOp *spec.Operation) []Field {
-	published := params(op, "query")
+func queryFields(s *spec.Spec, op, draftsOp *spec.Operation) []Field {
+	published := params(s, op, "query")
 	if draftsOp == nil {
 		return published
 	}
-	drafts := params(draftsOp, "query")
+	drafts := params(s, draftsOp, "query")
 	byName := map[string]bool{}
 	for _, f := range drafts {
 		byName[f.Name] = true
@@ -325,13 +455,13 @@ func queryFields(op, draftsOp *spec.Operation) []Field {
 	return out
 }
 
-func params(op *spec.Operation, in string) []Field {
+func params(s *spec.Spec, op *spec.Operation, in string) []Field {
 	var out []Field
 	for _, p := range op.Params {
 		if p.In != in {
 			continue
 		}
-		f := field(p.Name, p.Schema)
+		f := field(s, p.Name, p.Schema)
 		f.Description = p.Description
 		f.Required = p.Required
 		out = append(out, f)
@@ -339,13 +469,13 @@ func params(op *spec.Operation, in string) []Field {
 	return out
 }
 
-func field(name string, schema *spec.Schema) Field {
+func field(s *spec.Spec, name string, schema *spec.Schema) Field {
 	types, nullable := schema.Types()
 	typ := "string"
 	if len(types) > 0 {
 		typ = types[0]
 	}
-	return Field{
+	f := Field{
 		Name:        name,
 		Flag:        strings.ReplaceAll(name, "_", "-"),
 		Type:        typ,
@@ -354,6 +484,44 @@ func field(name string, schema *spec.Schema) Field {
 		Nullable:    nullable,
 		Default:     schema.Default,
 	}
+	for _, v := range schema.Enum {
+		if v != nil {
+			f.Enum = append(f.Enum, v)
+		}
+	}
+	if typ == "array" {
+		f.Items = "string"
+		if item := schema.ItemSchema(); item != nil {
+			if s != nil {
+				item = s.Resolve(item)
+			}
+			f.Items = item.PrimaryType()
+		}
+	}
+	if name == "dry_run" {
+		// The API's own preview. The CLI's --dry-run sends nothing, so this
+		// one gets another name.
+		f.Flag, f.Option = "preview", "preview"
+		f.Description = "Ask the API what would change, without saving anything (the request is sent). " + f.Description
+	}
+	return f
+}
+
+// OptionName returns the name MCP tools and the schema use for the field.
+func (f Field) OptionName() string {
+	if f.Option != "" {
+		return f.Option
+	}
+	return f.Name
+}
+
+func hasField(fields []Field, name string) bool {
+	for _, f := range fields {
+		if f.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 func sortedKeys[V any](m map[string]V) []string {

@@ -2,6 +2,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -176,6 +177,18 @@ func (c *CLI) printError(err error) {
 	sort.Strings(fields)
 	for _, field := range fields {
 		fmt.Fprintf(c.Stderr, "  %s: %s\n", field, strings.Join(body.Fields[field], " "))
+	}
+	details := make([]string, 0, len(body.Details))
+	for k := range body.Details {
+		details = append(details, k)
+	}
+	sort.Strings(details)
+	for _, k := range details {
+		var compact bytes.Buffer
+		if json.Compact(&compact, body.Details[k]) != nil {
+			compact.Write(body.Details[k])
+		}
+		fmt.Fprintf(c.Stderr, "  %s: %s\n", k, compact.String())
 	}
 	if body.Hint != "" {
 		fmt.Fprintln(c.Stderr, body.Hint)

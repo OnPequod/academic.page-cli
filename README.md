@@ -24,7 +24,7 @@ academic-page sites list
 academic-page sites use 42        # default site for this profile
 ```
 
-A content key reads published content. A management key can also read drafts and write posts, pages, projects, and media.
+A content key reads published content. A management key can also read drafts and edit the site.
 
 Keys are stored in your OS config directory (`academic-page/config.json`, mode 0600) and are never printed. Use `--profile` for more than one account. Environment variables override the file:
 
@@ -42,6 +42,10 @@ academic-page profile get
 academic-page publications list --all --json
 academic-page publications bibtex > pubs.bib
 academic-page posts list --drafts
+academic-page key show                      # what this key may do
+academic-page publications import --bibtex-file refs.bib --preview
+academic-page publications import --bibtex-file refs.bib --select 0,smith2024
+academic-page course-lessons list 3         # lessons of course 3
 
 academic-page posts create --title "New paper out" --content-file post.md          # a draft
 academic-page posts update 12 --publish
@@ -76,13 +80,13 @@ Each command is a tool (`posts_list`, `posts_create`, …) with the same argumen
 | 7 | Rate limited (429) |
 | 8 | Server error (5xx) |
 | 9 | Network error |
-| 10 | Conflict: the record changed since it was read (409); read it again and retry |
+| 10 | Conflict (409): the record changed since it was read, it already exists, or a tag is in use |
 
-With `--json`, errors go to stderr as `{"error": {"code", "message", "status", "fields", "hint", "exit_code"}}`.
+With `--json`, errors go to stderr as `{"error": {"code", "message", "status", "fields", "details", "hint", "exit_code"}}`.
 
 ## What the API covers
 
-Reads: sites, manifest, profile, posts, pages, projects, publications (CSL-JSON and BibTeX), talks, courses, lab members, study, tags, and media. Writes: posts, pages, projects, and media. Writes for the profile, degrees, positions, publications, and the rest will follow when the API adds them.
+Reads and writes: the profile (with degrees, positions, and links), posts, pages, projects, publications (including BibTeX import), talks, courses and their lessons, lab members, study details, tags, and media. Reads only: sites, the manifest, and the BibTeX export. Records with drafts take `--drafts` on reads; the others take `--manage` for the management view, which includes `edit_version`. Pass `--edit-version` on updates so a change made elsewhere since you read the record returns a conflict (exit code 10) instead of being overwritten.
 
 ## Development
 

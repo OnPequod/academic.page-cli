@@ -51,6 +51,8 @@ type Call struct {
 	Command *registry.Command
 	// Site overrides the configured site when non-zero.
 	Site int64
+	// Parent is the parent record's ID, such as a lesson's course.
+	Parent string
 	// Arg is the positional ID.
 	Arg string
 	// File is the path of the file to upload.
@@ -60,12 +62,12 @@ type Call struct {
 	// Body holds body fields by API name.
 	Body map[string]any
 
-	// ContentMarkdown is Markdown for content_structured.
-	ContentMarkdown string
-	// ContentFile is a .md, .markdown or .json file for content_structured;
-	// "-" reads Markdown from Stdin.
-	ContentFile string
-	Stdin       io.Reader
+	// Markdown holds Markdown for Tiptap fields, by API name.
+	Markdown map[string]string
+	// Files holds file paths for Tiptap fields (.md, .markdown or .json) and
+	// text fields, by API name; "-" reads standard input.
+	Files map[string]string
+	Stdin io.Reader
 
 	Publish bool
 	Drafts  bool
@@ -109,7 +111,7 @@ func (a *App) Execute(ctx context.Context, call Call) (*Result, error) {
 	op := cmd.Op
 	if call.Drafts {
 		if cmd.DraftsOp == nil {
-			return nil, Usagef("`%s` has no --drafts option; only the published version can be read", cmd.Path())
+			return nil, Usagef("`%s` has no --drafts or --manage option", cmd.Path())
 		}
 		op = cmd.DraftsOp
 	}
@@ -160,7 +162,7 @@ func (a *App) Execute(ctx context.Context, call Call) (*Result, error) {
 		plan.Multipart = true
 		upload, uploadFields = info, body
 	default:
-		if len(call.Body) > 0 || call.ContentFile != "" || call.ContentMarkdown != "" || call.Publish {
+		if len(call.Body) > 0 || len(call.Markdown) > 0 || len(call.Files) > 0 || call.Publish {
 			return nil, Usagef("`%s` only reads; it takes no body fields", cmd.Path())
 		}
 	}
@@ -247,7 +249,7 @@ func (a *App) path(call Call, op *spec.Operation) (string, error) {
 		if p.In != "path" {
 			continue
 		}
-		var value string
+		var name, value string
 		if p.Name == "site" {
 			site, err := a.site(call)
 			if err != nil {
@@ -255,13 +257,16 @@ func (a *App) path(call Call, op *spec.Operation) (string, error) {
 			}
 			value = fmt.Sprint(site)
 		} else {
-			if call.Arg == "" {
-				return "", Usagef("`%s` needs the %s: %s", call.Command.Path(), p.Name, p.Description)
+			name, value = "id", call.Arg
+			if parent := call.Command.Parent; parent != nil && p.Name == parent.Param {
+				name, value = parent.Name, call.Parent
 			}
-			if p.Schema.PrimaryType() == "integer" && !isPositiveInt(call.Arg) {
-				return "", Usagef("%s must be a numeric ID, got %q", p.Name, call.Arg)
+			if value == "" {
+				return "", Usagef("`%s` needs the %s: %s", call.Command.Path(), name, p.Description)
 			}
-			value = call.Arg
+			if p.Schema.PrimaryType() == "integer" && !isPositiveInt(value) {
+				return "", Usagef("%s must be a numeric ID, got %q", name, value)
+			}
 		}
 		path = strings.ReplaceAll(path, "{"+p.Name+"}", url.PathEscape(value))
 	}
@@ -281,10 +286,10 @@ func (a *App) query(call Call, op *spec.Operation) (url.Values, error) {
 		if !accepted[name] {
 			for _, f := range call.Command.Query {
 				if f.Name == name && f.DraftsOnly {
-					return nil, Usagef("--%s only works with --drafts", f.Flag)
+					return nil, Usagef("--%s only works with --%s", f.Flag, call.Command.ManageFlag)
 				}
 				if f.Name == name && f.PublishedOnly {
-					return nil, Usagef("--%s does not work with --drafts", f.Flag)
+					return nil, Usagef("--%s does not work with --%s", f.Flag, call.Command.ManageFlag)
 				}
 			}
 			return nil, Usagef("`%s` has no %q option", call.Command.Path(), name)
@@ -301,12 +306,6 @@ func (a *App) body(call Call) (map[string]any, error) {
 	for _, f := range cmd.Body {
 		known[f.Name] = true
 	}
-	if cmd.Content {
-		known["content_structured"] = true
-	}
-	if cmd.Publishable {
-		known["published_at"] = true
-	}
 	body := map[string]any{}
 	for _, name := range sortedKeys(call.Body) {
 		if !known[name] {
@@ -315,18 +314,45 @@ func (a *App) body(call Call) (map[string]any, error) {
 		body[name] = call.Body[name]
 	}
 
-	if call.ContentFile != "" || call.ContentMarkdown != "" {
-		if !cmd.Content {
-			return nil, Usagef("`%s` has no content", cmd.Path())
+	for _, name := range sortedKeys(call.Markdown) {
+		if !cmd.IsRich(name) {
+			return nil, Usagef("`%s` has no rich-text field %q", cmd.Path(), name)
 		}
-		if call.ContentFile != "" && call.ContentMarkdown != "" {
-			return nil, Usagef("give --content-file or --content-markdown, not both")
+	}
+	for _, name := range sortedKeys(call.Files) {
+		if !cmd.IsRich(name) && !cmd.IsTextFile(name) {
+			return nil, Usagef("`%s` cannot read %q from a file", cmd.Path(), name)
 		}
-		doc, err := contentDoc(call)
+	}
+	for _, name := range cmd.Rich {
+		md, file := call.Markdown[name], call.Files[name]
+		if md == "" && file == "" {
+			continue
+		}
+		prefix := registry.RichPrefix(name)
+		_, inBody := body[name]
+		if (md != "" && file != "") || inBody {
+			return nil, Usagef("give one of --%s-markdown, --%s-file, or %s", prefix, prefix, name)
+		}
+		doc, err := richDoc(md, file, call.Stdin)
 		if err != nil {
 			return nil, err
 		}
-		body["content_structured"] = doc
+		body[name] = doc
+	}
+	for _, name := range cmd.TextFiles {
+		file := call.Files[name]
+		if file == "" {
+			continue
+		}
+		if _, ok := body[name]; ok {
+			return nil, Usagef("give --%s or --%s-file, not both", strings.ReplaceAll(name, "_", "-"), strings.ReplaceAll(name, "_", "-"))
+		}
+		data, err := readInput(file, call.Stdin)
+		if err != nil {
+			return nil, err
+		}
+		body[name] = string(data)
 	}
 
 	if call.Publish {
@@ -346,37 +372,47 @@ func (a *App) body(call Call) (map[string]any, error) {
 	return body, nil
 }
 
-func contentDoc(call Call) (any, error) {
-	if call.ContentMarkdown != "" {
-		return content.FromMarkdown([]byte(call.ContentMarkdown)), nil
+func richDoc(markdown, file string, stdin io.Reader) (any, error) {
+	if markdown != "" {
+		return content.FromMarkdown([]byte(markdown)), nil
 	}
-	var data []byte
-	var err error
-	if call.ContentFile == "-" {
-		if call.Stdin == nil {
-			return nil, Usagef("--content-file - reads standard input, which is not available here")
-		}
-		data, err = io.ReadAll(call.Stdin)
-	} else {
-		data, err = os.ReadFile(call.ContentFile)
-	}
+	data, err := readInput(file, stdin)
 	if err != nil {
-		return nil, Usagef("read content file: %v", err)
+		return nil, err
 	}
-	switch strings.ToLower(filepath.Ext(call.ContentFile)) {
+	switch strings.ToLower(filepath.Ext(file)) {
 	case ".json":
 		var doc map[string]any
 		if err := json.Unmarshal(data, &doc); err != nil {
-			return nil, Usagef("%s is not valid JSON: %v", call.ContentFile, err)
+			return nil, Usagef("%s is not valid JSON: %v", file, err)
 		}
 		if doc["type"] != "doc" {
-			return nil, Usagef(`%s must be a Tiptap document: {"type": "doc", "content": [...]}`, call.ContentFile)
+			return nil, Usagef(`%s must be a Tiptap document: {"type": "doc", "content": [...]}`, file)
 		}
 		return doc, nil
 	case ".md", ".markdown", ".txt", "":
 		return content.FromMarkdown(data), nil
 	}
-	return nil, Usagef("--content-file takes Markdown (.md) or Tiptap JSON (.json), got %s", call.ContentFile)
+	return nil, Usagef("give Markdown (.md) or Tiptap JSON (.json), got %s", file)
+}
+
+// readInput reads a file, or standard input for "-".
+func readInput(file string, stdin io.Reader) ([]byte, error) {
+	if file == "-" {
+		if stdin == nil {
+			return nil, Usagef("- reads standard input, which is not available here")
+		}
+		data, err := io.ReadAll(stdin)
+		if err != nil {
+			return nil, Usagef("read standard input: %v", err)
+		}
+		return data, nil
+	}
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return nil, Usagef("read %s: %v", file, err)
+	}
+	return data, nil
 }
 
 func fileInfo(path string) (*FileInfo, error) {
