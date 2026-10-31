@@ -88,7 +88,7 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 		files[name] = flags.String(prefix+"-file", "", strings.ReplaceAll(registry.RichPrefix(name), "_", " ")+" from a Markdown file, or - for stdin")
 	}
 	for _, name := range rc.TextFiles {
-		files[name] = flags.String(strings.ReplaceAll(name, "_", "-")+"-file", "", name+" from a file, or - for stdin")
+		files[name] = flags.String(strings.ReplaceAll(registry.FileOption(name), "_", "-"), "", name+" from a file, or - for stdin")
 	}
 	if rc.Publishable {
 		flags.BoolVar(&publish, "publish", false, "Publish now (sets published_at to the current time)")

@@ -170,8 +170,8 @@ func TestCreateDefaultsToDraft(t *testing.T) {
 	if v, ok := body["published_at"]; !ok || v != nil {
 		t.Errorf("published_at should be sent as null, body = %s", f.last().Body)
 	}
-	if doc, _ := body["content_structured"].(map[string]any); doc["type"] != "doc" {
-		t.Errorf("content_structured = %v", body["content_structured"])
+	if body["content_markdown"] != "Hello **world**" || body["content_structured"] != nil {
+		t.Errorf("Markdown should pass through to the API, body = %s", f.last().Body)
 	}
 }
 
@@ -378,8 +378,7 @@ func TestNewResources(t *testing.T) {
 	r = run(t, "", "talks", "create", "--title", "T", "--abstract-markdown", "**Hi**", "--tag-ids", "4")
 	var body map[string]any
 	_ = json.Unmarshal(f.last().Body, &body)
-	abstract, _ := body["abstract_structured"].(map[string]any)
-	if r.code != 0 || abstract["type"] != "doc" || body["published_at"] != nil || fmt.Sprint(body["tag_ids"]) != "[4]" {
+	if r.code != 0 || body["abstract_markdown"] != "**Hi**" || body["published_at"] != nil || fmt.Sprint(body["tag_ids"]) != "[4]" {
 		t.Fatalf("talk create: code %d, body %s, stderr %q", r.code, f.last().Body, r.stderr)
 	}
 	if _, ok := body["published_at"]; !ok {
@@ -419,6 +418,15 @@ func TestManageFlag(t *testing.T) {
 	}
 }
 
+func TestAssignmentMarkdownFallback(t *testing.T) {
+	setup(t)
+	// Assignments have no content_markdown yet, so the CLI converts.
+	r := run(t, "", "course-assignments", "create", "3", "--title", "Essay", "--content-markdown", "Write **500** words.", "--dry-run", "--json")
+	if r.code != 0 || !strings.Contains(r.stdout, `"content_structured"`) || !strings.Contains(r.stdout, `"type": "doc"`) {
+		t.Errorf("code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+}
+
 func TestRichTextIsMarkdownFirst(t *testing.T) {
 	setup(t)
 	r := run(t, "", "posts", "create", "--title", "T", "--data", `{"content_structured":{"type":"doc","content":[]}}`, "--dry-run")
@@ -439,7 +447,7 @@ func TestRichTextIsMarkdownFirst(t *testing.T) {
 	if r := run(t, "", "profile", "update", "--bio-markdown", "x"); r.code != app.ExitUsage {
 		t.Errorf("profile has summary and body, not bio: code %d", r.code)
 	}
-	if r := run(t, "", "profile", "update", "--summary-markdown", "I study *birds*.", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, `"summary"`) {
+	if r := run(t, "", "profile", "update", "--summary-markdown", "I study *birds*.", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, `"summary_markdown": "I study *birds*."`) {
 		t.Errorf("profile summary: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
 	}
 }

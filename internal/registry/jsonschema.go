@@ -3,6 +3,7 @@ package registry
 import (
 	"fmt"
 	"slices"
+	"strings"
 )
 
 // Option names shared by the MCP tools and the schema output. Body and query
@@ -47,7 +48,7 @@ func (c *Command) InputSchema() map[string]any {
 	}
 	for _, f := range c.Body {
 		s := fieldSchema(f)
-		if c.IsRich(f.Name) {
+		if slices.Contains(c.Tiptap, f.Name) {
 			s["description"] = fmt.Sprintf("Advanced: the editor's Tiptap JSON document. Use %s instead unless you need exact control.", MarkdownOption(f.Name))
 		}
 		props[f.OptionName()] = s
@@ -58,6 +59,9 @@ func (c *Command) InputSchema() map[string]any {
 	}
 	for _, name := range c.TextFiles {
 		props[FileOption(name)] = map[string]any{"type": "string", "description": fmt.Sprintf("Path of a file whose text is sent as %s.", name)}
+		if strings.HasSuffix(name, "_markdown") {
+			props[FileOption(name)] = map[string]any{"type": "string", "description": fmt.Sprintf("Path of a Markdown file whose text is sent as %s.", name)}
+		}
 	}
 	if c.DraftsOp != nil {
 		desc := "Read through the management API, which includes drafts and unpublished records. Needs a management key."

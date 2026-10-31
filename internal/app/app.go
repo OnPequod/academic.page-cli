@@ -330,6 +330,14 @@ func (a *App) body(call Call) (map[string]any, error) {
 			return nil, Usagef("`%s` cannot read %q from a file", cmd.Path(), name)
 		}
 	}
+	for _, name := range cmd.Tiptap {
+		md := registry.RichPrefix(name) + "_markdown"
+		_, tiptap := body[name]
+		_, markdown := body[md]
+		if tiptap && (markdown || call.Files[md] != "") {
+			return nil, Usagef("give %s (Markdown) or %s (Tiptap JSON), not both", md, name)
+		}
+	}
 	for _, name := range cmd.Rich {
 		md, file := call.Markdown[name], call.Files[name]
 		if md == "" && file == "" {
@@ -351,7 +359,10 @@ func (a *App) body(call Call) (map[string]any, error) {
 			continue
 		}
 		if _, ok := body[name]; ok {
-			return nil, Usagef("give --%s or --%s-file, not both", strings.ReplaceAll(name, "_", "-"), strings.ReplaceAll(name, "_", "-"))
+			return nil, Usagef("give --%s or --%s, not both", strings.ReplaceAll(name, "_", "-"), strings.ReplaceAll(registry.FileOption(name), "_", "-"))
+		}
+		if ext := strings.ToLower(filepath.Ext(file)); strings.HasSuffix(name, "_markdown") && (ext == ".json" || ext == ".html" || ext == ".htm") {
+			return nil, Usagef("%s: this option takes Markdown; to send the editor's JSON, put it in --data", file)
 		}
 		data, err := readInput(file, call.Stdin)
 		if err != nil {

@@ -70,10 +70,13 @@ type Command struct {
 	Text bool
 	// Publishable writes accept --publish and default to drafts.
 	Publishable bool
-	// Rich lists body fields that hold rich text. Markdown is the normal way
-	// to write them, through --<prefix>-markdown and --<prefix>-file (see
-	// RichPrefix); the CLI converts it. The API's Tiptap form stays
-	// available through --data for callers that want it.
+	// Tiptap lists body fields that take the editor's Tiptap JSON. Most have
+	// a Markdown sibling (content_markdown for content_structured) that the
+	// API converts; the Tiptap form stays available through --data.
+	Tiptap []string
+	// Rich lists Tiptap fields with no Markdown sibling. The CLI converts
+	// Markdown for these itself, through --<prefix>-markdown and
+	// --<prefix>-file (see RichPrefix).
 	Rich []string
 	// TextFiles lists string body fields that can be read from a file with
 	// --<field>-file, such as the BibTeX of an import.
@@ -119,9 +122,12 @@ type entry struct {
 	textFile string
 }
 
-// RichPrefix returns the flag and option prefix of a Tiptap field:
-// content_structured gives content, so --content-markdown and content_file.
-func RichPrefix(field string) string { return strings.TrimSuffix(field, "_structured") }
+// RichPrefix returns the flag and option prefix of a rich-text field:
+// content_structured and content_markdown give content, so
+// --content-markdown and content_file.
+func RichPrefix(field string) string {
+	return strings.TrimSuffix(strings.TrimSuffix(field, "_structured"), "_markdown")
+}
 
 // Groups lists the command groups in help order.
 var Groups = []Group{
@@ -426,7 +432,7 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 				continue
 			}
 			if f.Type == "object" && (strings.HasSuffix(name, "_structured") || strings.Contains(prop.Description, "Tiptap")) {
-				c.Rich = append(c.Rich, name)
+				c.Tiptap = append(c.Tiptap, name)
 			}
 			if name == "published_at" {
 				c.Publishable = true
@@ -434,11 +440,18 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 			c.Body = append(c.Body, f)
 		}
 	}
+	for _, name := range c.Tiptap {
+		if md := RichPrefix(name) + "_markdown"; hasField(c.Body, md) {
+			c.TextFiles = append(c.TextFiles, md)
+		} else {
+			c.Rich = append(c.Rich, name)
+		}
+	}
 	if e.textFile != "" {
 		if !hasField(c.Body, e.textFile) {
 			return nil, fmt.Errorf("%s %s: %s has no body field %s", e.group, e.name, op.ID, e.textFile)
 		}
-		c.TextFiles = []string{e.textFile}
+		c.TextFiles = append(c.TextFiles, e.textFile)
 	}
 	return c, nil
 }

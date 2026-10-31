@@ -54,7 +54,7 @@ academic-page media upload headshot.jpg --alt-text "Portrait"   # up to 1 GB
 academic-page posts delete 12 --yes
 ```
 
-Content is written as Markdown and converted to the editor's format. Only the formatting both the editor and the public site support is used: headings (levels 1–3), paragraphs, lists, block quotes, code blocks, rules, and bold, italic, strikethrough, code, and links. Images become links until image embedding is supported. Every rich-text field works this way: `--content-markdown`, `--abstract-file`, `--bio-markdown`, and so on. If you need exact control, you can send the editor's Tiptap JSON in `--data` instead; the API checks it either way.
+Content is written as Markdown, and the API converts it to the editor's format. Only the formatting both the editor and the public site support is used: headings (levels 1–3), paragraphs, lists, block quotes, code blocks, rules, and bold, italic, strikethrough, code, and links. Images become links until image embedding is supported. Every rich-text field works this way: `--content-markdown`, `--abstract-file`, `--bio-markdown`, and so on. If you need exact control, you can send the editor's Tiptap JSON in `--data` instead; the API checks it either way.
 
 `academic-page schema` prints JSON describing every command, argument, flag, body field, exit code, and MCP tool. `academic-page schema posts create` describes one command.
 

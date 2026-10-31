@@ -7800,10 +7800,11 @@
       },
       "RichText": {
         "type": "object",
-        "description": "Rich text in two forms.",
+        "description": "Rich text in three forms.",
         "required": [
           "html",
-          "json"
+          "json",
+          "markdown"
         ],
         "properties": {
           "html": {
@@ -7819,6 +7820,13 @@
               "null"
             ],
             "description": "The editor's ProseMirror (Tiptap) document."
+          },
+          "markdown": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The document as Markdown, for tools that take Markdown, such as static site generators. Images are Markdown images with their URL."
           }
         }
       },
@@ -10540,7 +10548,16 @@
             ]
           },
           "content_structured": {
-            "type": "object"
+            "type": "object",
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. content_markdown has the same content as Markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "content_structured as Markdown. Images are written as Markdown images with their URL."
           },
           "meta_title": {
             "type": [
@@ -10607,7 +10624,16 @@
             ]
           },
           "content_structured": {
-            "type": "object"
+            "type": "object",
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -10692,7 +10718,16 @@
             ]
           },
           "content_structured": {
-            "type": "object"
+            "type": "object",
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. content_markdown has the same content as Markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "content_structured as Markdown. Images are written as Markdown images with their URL."
           },
           "meta_title": {
             "type": [
@@ -10758,7 +10793,16 @@
             ]
           },
           "content_structured": {
-            "type": "object"
+            "type": "object",
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -10821,7 +10865,16 @@
             ]
           },
           "content_structured": {
-            "type": "object"
+            "type": "object",
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. content_markdown has the same content as Markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "content_structured as Markdown. Images are written as Markdown images with their URL."
           },
           "technologies": {
             "type": "array",
@@ -10928,7 +10981,16 @@
             ]
           },
           "content_structured": {
-            "type": "object"
+            "type": "object",
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "technologies": {
             "type": "array",
@@ -11082,7 +11144,15 @@
               "object",
               "null"
             ],
-            "description": "Your notes on the publication, as a Tiptap (ProseMirror) document."
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. description_markdown has the same content as Markdown."
+          },
+          "description_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "description as Markdown. Images are written as Markdown images with their URL."
           },
           "official_url": {
             "type": [
@@ -11394,7 +11464,15 @@
               "object",
               "null"
             ],
-            "description": "Your notes on the publication: a Tiptap (ProseMirror) document, {\"type\": \"doc\", \"content\": [...]}, as the web editor saves it."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown instead. Send one of the two, not both."
+          },
+          "description_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set description: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "official_url": {
             "type": [
@@ -11585,7 +11663,15 @@
               "object",
               "null"
             ],
-            "description": "Your notes on the publication: a Tiptap (ProseMirror) document, {\"type\": \"doc\", \"content\": [...]}, as the web editor saves it."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown instead. Send one of the two, not both."
+          },
+          "description_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set description: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "official_url": {
             "type": [
@@ -12370,7 +12456,9 @@
           "body",
           "body_html",
           "edit_version",
-          "updated_at"
+          "updated_at",
+          "summary_markdown",
+          "body_markdown"
         ],
         "properties": {
           "site_id": {
@@ -12417,7 +12505,15 @@
               "object",
               "null"
             ],
-            "description": "The short introduction, as a Tiptap document."
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. summary_markdown has the same content as Markdown."
+          },
+          "summary_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "summary as Markdown. Images are written as Markdown images with their URL."
           },
           "summary_html": {
             "type": [
@@ -12431,7 +12527,15 @@
               "object",
               "null"
             ],
-            "description": "The full bio, as a Tiptap document."
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. body_markdown has the same content as Markdown."
+          },
+          "body_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "body as Markdown. Images are written as Markdown images with their URL."
           },
           "body_html": {
             "type": [
@@ -12491,14 +12595,30 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send summary_markdown instead. Send one of the two, not both."
+          },
+          "summary_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set summary: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send summary_markdown or summary, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "body": {
             "type": [
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send body_markdown instead. Send one of the two, not both."
+          },
+          "body_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set body: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send body_markdown or body, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "edit_version": {
             "type": [
@@ -12936,7 +13056,8 @@
           "published_at",
           "edit_version",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "abstract_markdown"
         ],
         "properties": {
           "id": {
@@ -12974,7 +13095,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. abstract_markdown has the same content as Markdown."
+          },
+          "abstract_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "abstract_structured as Markdown. Images are written as Markdown images with their URL."
           },
           "abstract_html": {
             "type": [
@@ -13170,7 +13299,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send abstract_markdown instead. Send one of the two, not both."
+          },
+          "abstract_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set abstract_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send abstract_markdown or abstract_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "speaker_name": {
             "type": [
@@ -13346,7 +13483,8 @@
           "published_at",
           "edit_version",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "content_markdown"
         ],
         "properties": {
           "id": {
@@ -13384,7 +13522,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. content_markdown has the same content as Markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "content_structured as Markdown. Images are written as Markdown images with their URL."
           },
           "content_html": {
             "type": [
@@ -13586,7 +13732,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "instances": {
             "type": [
@@ -13778,7 +13932,8 @@
           "published_at",
           "edit_version",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "bio_markdown"
         ],
         "properties": {
           "id": {
@@ -13812,7 +13967,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. bio_markdown has the same content as Markdown."
+          },
+          "bio_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "bio_structured as Markdown. Images are written as Markdown images with their URL."
           },
           "bio_html": {
             "type": [
@@ -13937,7 +14100,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send bio_markdown instead. Send one of the two, not both."
+          },
+          "bio_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set bio_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "email": {
             "type": [
@@ -14095,7 +14266,8 @@
           "contact_email",
           "contact_text",
           "edit_version",
-          "updated_at"
+          "updated_at",
+          "description_markdown"
         ],
         "properties": {
           "site_id": {
@@ -14118,7 +14290,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. description_markdown has the same content as Markdown."
+          },
+          "description_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "description as Markdown. Images are written as Markdown images with their URL."
           },
           "description_html": {
             "type": [
@@ -14234,7 +14414,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown instead. Send one of the two, not both."
+          },
+          "description_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set description: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "study_type": {
             "type": [
@@ -14322,6 +14510,21 @@
             "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
+      },
+      "Markdown": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "A rich-text field as Markdown, rendered from the stored document. Null when the record has no document."
+      },
+      "MarkdownInput": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "maxLength": 1000000,
+        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Null clears the field."
       },
       "ManagementCv": {
         "type": "object",

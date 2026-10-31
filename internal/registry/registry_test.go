@@ -48,7 +48,7 @@ func TestCommandShapes(t *testing.T) {
 	r := load(t)
 
 	create := r.Find("posts", "create")
-	if create.Kind != KindWrite || !create.IsRich("content_structured") || !create.Publishable || create.Arg != nil {
+	if create.Kind != KindWrite || !create.IsTextFile("content_markdown") || create.IsRich("content_structured") || !create.Publishable || create.Arg != nil {
 		t.Errorf("posts create: %+v", create)
 	}
 	if r.Find("posts", "get").ManageFlag != "drafts" || r.Find("publications", "get").ManageFlag != "manage" {
@@ -120,8 +120,8 @@ func TestCommandShapes(t *testing.T) {
 	}
 
 	talk := r.Find("talks", "create")
-	if !talk.IsRich("abstract_structured") || !talk.Publishable {
-		t.Errorf("talks create: rich %v", talk.Rich)
+	if !talk.IsTextFile("abstract_markdown") || !talk.Publishable {
+		t.Errorf("talks create: text files %v", talk.TextFiles)
 	}
 	for _, f := range r.Find("publications", "create").Body {
 		if f.Name == "on_match" && len(f.Enum) != 3 {
