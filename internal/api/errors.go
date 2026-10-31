@@ -87,7 +87,7 @@ func (e *Error) Hint() string {
 		return "Check the ID. List commands show the IDs that exist."
 	case e.Status == http.StatusConflict:
 		return "The request conflicts with the record's current state. Fetch it again and retry."
-	case e.Status == http.StatusUnprocessableEntity:
+	case e.Status == http.StatusUnprocessableEntity && len(e.Errors) > 0:
 		return "Fix the fields listed above and try again."
 	case e.Status == http.StatusRequestEntityTooLarge:
 		return "The file is larger than the server accepts in one request. Ask the site's administrator to enable multipart uploads, or upload a smaller file."
