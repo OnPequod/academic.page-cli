@@ -94,3 +94,7 @@ make spec      # refresh internal/spec/openapi.json from the live API
 Commands, flags, the schema output and the MCP tools are all generated from the embedded OpenAPI document plus the table in `internal/registry/registry.go`. After `make spec`, the tests fail if the API gained an operation that has no command.
 
 Releases: push a `v*` tag. GoReleaser builds the binaries, publishes a GitHub release, and updates the cask in [OnPequod/homebrew-tap](https://github.com/OnPequod/homebrew-tap) using the `HOMEBREW_TAP_TOKEN` secret.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

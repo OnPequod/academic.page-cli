@@ -49,7 +49,6 @@ Setup:
 3. Add the configuration below to `.goreleaser.yaml`. A snapshot build with it produced valid manifests for x64 and arm64.
 4. Sign the Microsoft contributor license agreement on the first pull request and wait for review. Later versions are mostly automatic.
 
-winget requires a license field. Replace `Proprietary` once the license is chosen.
 
 ```yaml
 winget:
@@ -58,7 +57,7 @@ winget:
     publisher: OnPequod
     publisher_url: https://github.com/OnPequod
     short_description: Manage an Academic.page site from the command line, or as an MCP server
-    license: Proprietary
+    license: MIT
     homepage: https://academic.page
     skip_upload: '{{ if isEnvSet "WINGET_TOKEN" }}false{{ else }}true{{ end }}'
     commit_author:
