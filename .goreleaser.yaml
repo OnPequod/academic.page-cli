@@ -19,6 +19,23 @@ builds:
     ldflags:
       - -s -w -X main.version={{ .Version }} -X main.commit={{ .ShortCommit }} -X main.date={{ .Date }}
 
+# Signs the macOS binaries with the Developer ID certificate and notarizes
+# them with Apple, from the Linux runner. Skipped when the secrets are not
+# set, as in local snapshots.
+notarize:
+  macos:
+    - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
+      ids: [academic-page]
+      sign:
+        certificate: "{{ .Env.MACOS_SIGN_P12 }}"
+        password: "{{ .Env.MACOS_SIGN_PASSWORD }}"
+      notarize:
+        issuer_id: "{{ .Env.MACOS_NOTARY_ISSUER_ID }}"
+        key_id: "{{ .Env.MACOS_NOTARY_KEY_ID }}"
+        key: "{{ .Env.MACOS_NOTARY_KEY }}"
+        wait: true
+        timeout: 20m
+
 archives:
   - id: academic-page
     formats: [tar.gz]
@@ -29,6 +46,10 @@ archives:
     files:
       - README.md
       - LICENSE
+
+release:
+  # Tags such as v0.2.0-rc.1 publish a prerelease.
+  prerelease: auto
 
 checksum:
   name_template: checksums.txt
@@ -55,11 +76,5 @@ homebrew_casks:
       name: academic-page-release
       email: noreply@academic.page
     commit_msg_template: "academic-page {{ .Tag }}"
-    hooks:
-      post:
-        # The binaries are not notarized; clear the quarantine flag so macOS
-        # runs them.
-        install_steps: |
-          if OS.mac?
-            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/academic-page"]
-          end
+    # Release candidates (v1.2.3-rc.1) do not update the tap.
+    skip_upload: auto

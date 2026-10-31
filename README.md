@@ -12,7 +12,7 @@ brew install onpequod/tap/academic-page
 
 Or download a binary from the [releases](https://github.com/OnPequod/academic.page-cli/releases), or `go install github.com/OnPequod/academic.page-cli@latest`.
 
-The binaries are not notarized. On macOS, a binary downloaded with a browser is blocked on first run. Allow it with `xattr -d com.apple.quarantine academic-page`, or with Open Anyway in System Settings › Privacy & Security. Homebrew, `curl`, and `go install` are not affected. See [docs/distribution.md](docs/distribution.md) for every platform.
+The macOS binaries are signed and notarized by Apple. Windows may show a SmartScreen prompt for the unsigned `.exe`; choose More info › Run anyway. See [docs/distribution.md](docs/distribution.md) for every platform.
 
 ## Sign in
 

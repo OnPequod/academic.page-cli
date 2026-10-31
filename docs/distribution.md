@@ -1,28 +1,27 @@
 # Distribution
 
-This note records how `academic-page` is shipped today, what each platform does with unsigned binaries, and the options we have deferred. Revisit it once there is evidence that people outside the team use the CLI.
+This note records how `academic-page` is shipped today, how each platform treats the binaries, and the options we have deferred. Revisit it once there is evidence that people outside the team use the CLI.
 
 ## Current setup
 
 A `v*` tag runs GoReleaser (`.github/workflows/release.yml`). It builds binaries for macOS, Linux, and Windows on amd64 and arm64. It then publishes them to a GitHub release and updates the Homebrew cask in [OnPequod/homebrew-tap](https://github.com/OnPequod/homebrew-tap) with the `HOMEBREW_TAP_TOKEN` secret.
 
-The binaries are not signed with a paid certificate. The Go linker gives macOS arm64 binaries an ad-hoc signature, which Apple Silicon requires before it will run any code. Gatekeeper still rejects the binaries when it checks them, because they are not notarized.
+The macOS binaries are signed with the Developer ID Application certificate of Erik Westlund (team 2NATT8G496) and notarized by Apple. GoReleaser does both on the Linux runner (the `notarize` block in `.goreleaser.yaml`), using five repository secrets: `MACOS_SIGN_P12` (the base64-encoded `.p12`), `MACOS_SIGN_PASSWORD`, `MACOS_NOTARY_KEY` (the base64-encoded App Store Connect `.p8`), `MACOS_NOTARY_KEY_ID`, and `MACOS_NOTARY_ISSUER_ID`. The values also live in the vault under `apple.*`. The certificate expires on November 30, 2027.
+
+Signing is skipped when the secrets are absent, as in local snapshots. Tags with a prerelease suffix, such as `v0.2.0-rc.1`, publish a GitHub prerelease and leave the Homebrew tap alone.
+
+The Linux and Windows binaries are not signed.
 
 ## How each install path behaves
 
-macOS only runs Gatekeeper on files that carry the `com.apple.quarantine` attribute. Browsers set that attribute on downloads, and Homebrew sets it on casks. `curl`, `wget`, and `go install` do not.
-
 | Install path | Result |
 | --- | --- |
-| macOS, `brew install onpequod/tap/academic-page` | Runs. The cask's postflight step removes the quarantine attribute. |
-| macOS, `go install` | Runs. The binary is built locally and is not quarantined. |
-| macOS, `curl` or `wget` from the release | Runs. The download is not quarantined. |
-| macOS, browser download from the release | Blocked on first run with "cannot verify the developer". Users can run `xattr -d com.apple.quarantine academic-page` or choose Open Anyway in System Settings › Privacy & Security. |
+| macOS, `brew install onpequod/tap/academic-page` | Runs. The binary is notarized. |
+| macOS, browser download from the release | Runs. Gatekeeper checks the notarization online on first run. |
+| macOS, `curl`, `wget`, or `go install` | Runs. These do not quarantine the file, and `go install` builds it locally without a signature. |
 | Linux, any path | Runs. Linux has no signing requirement. |
 | Windows, run from a terminal | Usually runs. |
 | Windows, `.exe` opened from Explorer after a browser download | SmartScreen may show "Windows protected your PC". Users can choose More info › Run anyway. Antivirus tools occasionally flag unsigned Go binaries. |
-
-Homebrew has been tightening its rules on unsigned software. The rules announced so far apply to the official `homebrew/cask` repository, which does not include third-party taps. If a later Homebrew release stops the postflight step from working, the fallback is the deprecated `brews` setting in GoReleaser, which publishes a formula instead of a cask.
 
 ## Deferred options
 
@@ -30,7 +29,7 @@ Each option below solves a problem that only matters once there are users. They 
 
 ### Install script
 
-A `curl -fsSL …/install.sh | sh` script (and a PowerShell equivalent) avoids quarantine on macOS for free, because `curl` does not set the attribute. Claude Code ships this way. The script would download the right archive from the GitHub release, check it against `checksums.txt`, and place the binary on the `PATH`.
+A `curl -fsSL …/install.sh | sh` script (and a PowerShell equivalent) would give a one-line install without Homebrew. Claude Code ships this way. The script would download the right archive from the GitHub release, check it against `checksums.txt`, and place the binary on the `PATH`.
 
 ### npm
 
@@ -77,35 +76,6 @@ winget:
           name: winget-pkgs
           branch: master
 ```
-
-### macOS notarization
-
-Notarization removes the Gatekeeper prompt for every install path. It costs $99 a year for the Apple Developer Program. Enrolling as an organization needs a D-U-N-S number, and the certificate then shows the organization's name.
-
-Setup:
-
-1. Create a Developer ID Application certificate in the Apple developer portal. Export it from Keychain Access as a `.p12` file with a password.
-2. Create an App Store Connect API key for the notary service under Users and Access › Integrations › App Store Connect API. Download the `.p8` file (it can only be downloaded once) and record the key ID and issuer ID.
-3. Store five secrets on this repository: `MACOS_SIGN_P12` (the base64-encoded `.p12`), `MACOS_SIGN_PASSWORD`, `MACOS_NOTARY_KEY` (the base64-encoded `.p8`), `MACOS_NOTARY_KEY_ID`, and `MACOS_NOTARY_ISSUER_ID`. Pass them to GoReleaser in `release.yml`.
-4. Add the configuration below to `.goreleaser.yaml`. GoReleaser signs and notarizes on the Linux runner, so no macOS runner is needed. This block has not been checked against the GoReleaser documentation or run.
-5. Remove the cask's postflight quarantine step.
-
-```yaml
-notarize:
-  macos:
-    - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
-      sign:
-        certificate: "{{ .Env.MACOS_SIGN_P12 }}"
-        password: "{{ .Env.MACOS_SIGN_PASSWORD }}"
-      notarize:
-        issuer_id: "{{ .Env.MACOS_NOTARY_ISSUER_ID }}"
-        key_id: "{{ .Env.MACOS_NOTARY_KEY_ID }}"
-        key: "{{ .Env.MACOS_NOTARY_KEY }}"
-        wait: true
-        timeout: 20m
-```
-
-A notarization ticket cannot be stapled to a bare binary. macOS checks with Apple online the first time a notarized binary runs, so a machine without network access may still show a prompt.
 
 ### Windows code signing
 
