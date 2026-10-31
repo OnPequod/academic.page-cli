@@ -123,9 +123,10 @@ func (a *App) uploadParts(ctx context.Context, session string, info *FileInfo, p
 var errMultipartUnsupported = errors.New("multipart uploads are not supported for this site")
 
 // isLimitMessage reports whether a multipart_upload_not_supported error is
-// really a file size or storage quota refusal. The API uses that one code for
-// all three, so only the message tells them apart, and falling back to a
-// single upload would not help with a limit.
+// really a file size or storage quota refusal. Older API versions used that
+// one code for all three; newer ones send upload_too_large,
+// storage_quota_exceeded or bucket_quota_exceeded instead, which never fall
+// back. Falling back to a single upload would not help with a limit.
 func isLimitMessage(msg string) bool {
 	msg = strings.ToLower(msg)
 	for _, s := range []string{"larger than", "quota", "limit", "storage is full", "too large"} {

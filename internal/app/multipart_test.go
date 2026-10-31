@@ -32,6 +32,8 @@ type storage struct {
 	// as nginx does.
 	singleLimit int
 	failPart    int
+	// initCode makes init fail with this 422 code.
+	initCode string
 }
 
 func newStorage(t *testing.T, supported bool) *storage {
@@ -43,6 +45,11 @@ func newStorage(t *testing.T, supported bool) *storage {
 		s.calls = append(s.calls, r.Method+" "+r.URL.Path)
 		switch {
 		case strings.HasSuffix(r.URL.Path, "/multipart/init"):
+			if s.initCode != "" {
+				w.WriteHeader(422)
+				fmt.Fprintf(w, `{"message":"Refused.","code":%q}`, s.initCode)
+				return
+			}
 			if !s.supported {
 				msg := s.initMessage
 				if msg == "" {
@@ -166,6 +173,17 @@ func TestLimitRefusalDoesNotFallBack(t *testing.T) {
 	}
 	if len(s.calls) != 1 {
 		t.Errorf("calls = %v", s.calls)
+	}
+}
+
+func TestLimitCodesDoNotFallBack(t *testing.T) {
+	for _, code := range []string{"upload_too_large", "storage_quota_exceeded", "bucket_quota_exceeded"} {
+		s := newStorage(t, true)
+		s.initCode = code
+		_, err := uploadCall(t, s, bigFile(t, 1024))
+		if Describe(err).Code != code || Describe(err).Hint == "" || len(s.calls) != 1 {
+			t.Errorf("%s: err = %+v, calls = %v", code, Describe(err), s.calls)
+		}
 	}
 }
 

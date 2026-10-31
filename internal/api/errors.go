@@ -48,6 +48,12 @@ func (e *Error) Hint() string {
 		return "No site with that ID is visible to this key. Run `academic-page sites list` to see the IDs."
 	case "site_disabled":
 		return "The site is disabled. Re-enable it in the Academic.page admin."
+	case "upload_too_large":
+		return "The file is larger than the site's plan allows per file (1 GB on Pro)."
+	case "storage_quota_exceeded":
+		return "The site's storage is full. Delete unused media files, or move to a plan with more storage."
+	case "bucket_quota_exceeded":
+		return "The storage bucket is full. This is a server-side limit; contact Academic.page support."
 	case "section_not_enabled":
 		return "That section is turned off for this site. Turn it on in the site's settings."
 	}
