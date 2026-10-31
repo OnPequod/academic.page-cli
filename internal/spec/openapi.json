@@ -3,7 +3,7 @@
   "info": {
     "title": "Academic.page API",
     "version": "1.0.0",
-    "description": "Read the content of your Academic.page sites, and manage posts, pages, projects, and media.\n\nThe content endpoints (`/content/...`) return exactly what each public site shows: published records only, never drafts, scheduled items before their time, deleted records, autosaves, revisions, or private notes. They need a content key and Pro.\n\nThe management endpoints (`/sites/{site}/...`) show drafts and accept writes. They need a management key and Pro."
+    "description": "Read the content of your Academic.page sites, and manage posts, pages, projects, and media.\n\nThe content endpoints (`/content/...`) return exactly what each public site shows: published records only, never drafts, scheduled items before their time, deleted records, autosaves, revisions, or private notes. They need a content key and Pro.\n\nThe management endpoints (`/sites/{site}/...`) show drafts and accept writes. They need a management key and Pro.\n\nWhich sections answer `404 section_not_enabled`: the content endpoints follow the public site, so a section the public site does not show answers it. The management endpoints follow what the admin lets the owner edit for that site type, so they answer it only for a section the site cannot have, such as projects on a course site or lessons on a personal site. A section the admin edits is managed here even while the public site does not show it."
   },
   "servers": [
     {
@@ -27,6 +27,10 @@
     {
       "name": "Meta",
       "description": "This description."
+    },
+    {
+      "name": "Webhooks",
+      "description": "Requests Academic.page sends to your webhook URLs. Add webhooks on Account > API > Webhooks."
     }
   ],
   "paths": {
@@ -73,6 +77,49 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/ApiKey"
+                    }
+                  }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "A read-only management key",
+                    "value": {
+                      "data": {
+                        "name": "Nightly build",
+                        "kind": "management",
+                        "abilities": [
+                          "access:read",
+                          "scope:team:3"
+                        ],
+                        "access": "read",
+                        "scope": {
+                          "type": "team",
+                          "teams": [
+                            {
+                              "id": 3,
+                              "name": "Jane Smith"
+                            }
+                          ],
+                          "sites": [
+                            {
+                              "id": 42,
+                              "name": "Jane Smith",
+                              "slug": "jane",
+                              "site_type": "personal",
+                              "domain": "biostatistician.page",
+                              "url": "https://jane.biostatistician.page",
+                              "team_id": 3,
+                              "api_access": true
+                            }
+                          ]
+                        },
+                        "owner": {
+                          "name": "Jane Smith"
+                        },
+                        "expires_at": null,
+                        "last_used_at": "2026-10-30T02:00:00Z",
+                        "created_at": "2026-06-01T12:00:00Z"
+                      }
                     }
                   }
                 }
@@ -214,6 +261,79 @@
                       "$ref": "#/components/schemas/Site"
                     }
                   }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "A site",
+                    "value": {
+                      "data": {
+                        "id": 42,
+                        "name": "Jane Smith",
+                        "slug": "jane",
+                        "site_type": "personal",
+                        "domain": "biostatistician.page",
+                        "url": "https://jane.biostatistician.page",
+                        "custom_domain": null,
+                        "is_published": true,
+                        "published_at": "2026-01-15T09:30:00Z",
+                        "content_version": "118.1793397100",
+                        "content_updated_at": "2026-10-30T14:04:00Z",
+                        "api_url": "https://academic.page/api/v1/content/sites/42",
+                        "timezone": "America/New_York",
+                        "locale": "en",
+                        "accent_color": "#1d4ed8",
+                        "theme": "classic",
+                        "allow_search_indexing": true,
+                        "footer_text": null,
+                        "favicons": {
+                          "favicon-ico": "https://media.academic.page/42/favicon.ico",
+                          "favicon-svg": null
+                        },
+                        "sections": [
+                          "posts",
+                          "pages",
+                          "publications",
+                          "talks"
+                        ],
+                        "homepage": {
+                          "title": "Jane Smith, biostatistician",
+                          "description": "Methods for missing data in clinical trials.",
+                          "image": null
+                        },
+                        "navigation": {
+                          "header": [
+                            {
+                              "label": "Publications",
+                              "description": null,
+                              "path": "/publications",
+                              "url": "https://jane.biostatistician.page/publications",
+                              "open_in_new_tab": false,
+                              "children": []
+                            },
+                            {
+                              "label": "Blog",
+                              "description": null,
+                              "path": "/posts",
+                              "url": "https://jane.biostatistician.page/posts",
+                              "open_in_new_tab": false,
+                              "children": []
+                            }
+                          ],
+                          "footer": []
+                        },
+                        "links": {
+                          "profile": "https://academic.page/api/v1/content/sites/42/profile",
+                          "manifest": "https://academic.page/api/v1/content/sites/42/manifest",
+                          "tags": "https://academic.page/api/v1/content/sites/42/tags",
+                          "media": "https://academic.page/api/v1/content/sites/42/media",
+                          "posts": "https://academic.page/api/v1/content/sites/42/posts",
+                          "pages": "https://academic.page/api/v1/content/sites/42/pages",
+                          "publications": "https://academic.page/api/v1/content/sites/42/publications",
+                          "talks": "https://academic.page/api/v1/content/sites/42/talks"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -306,7 +426,7 @@
           "Content"
         ],
         "summary": "The site's profile",
-        "description": "Bio, photo, CV, credentials, positions, and links, following the site's visibility switches.",
+        "description": "Bio, photo, CV, credentials, positions, and links, following the site's visibility switches. Course sites have no profile and answer 404 section_not_enabled.",
         "operationId": "getProfile",
         "parameters": [
           {
@@ -342,6 +462,126 @@
                       "$ref": "#/components/schemas/Profile"
                     }
                   }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "A personal site's profile",
+                    "value": {
+                      "data": {
+                        "name": "Jane Smith",
+                        "summary": {
+                          "html": "<p>I develop methods for missing data in clinical trials.</p>",
+                          "json": {
+                            "type": "doc",
+                            "content": [
+                              {
+                                "type": "paragraph",
+                                "content": [
+                                  {
+                                    "type": "text",
+                                    "text": "I develop methods for missing data in clinical trials."
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "markdown": "I develop methods for missing data in clinical trials."
+                        },
+                        "body": {
+                          "html": "<p>I am an associate professor of biostatistics.</p>",
+                          "json": {
+                            "type": "doc",
+                            "content": [
+                              {
+                                "type": "paragraph",
+                                "content": [
+                                  {
+                                    "type": "text",
+                                    "text": "I am an associate professor of biostatistics."
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "markdown": "I am an associate professor of biostatistics."
+                        },
+                        "about_page": {
+                          "title": "About",
+                          "path": "/about",
+                          "url": "https://jane.biostatistician.page/about"
+                        },
+                        "headings": {
+                          "body": "About me",
+                          "credentials": "Education",
+                          "positions": "Positions"
+                        },
+                        "location": "Baltimore, MD",
+                        "email": null,
+                        "photo": {
+                          "id": 311,
+                          "file_name": "jane-smith.jpg",
+                          "mime_type": "image/jpeg",
+                          "size": 482113,
+                          "alt": "Jane Smith",
+                          "url": "https://media.academic.page/42/jane-smith.jpg",
+                          "conversions": {
+                            "thumb": {
+                              "url": "https://media.academic.page/42/conversions/thumb-jane-smith.jpg",
+                              "width": 300,
+                              "height": 300
+                            }
+                          }
+                        },
+                        "cv": {
+                          "url": "https://jane.biostatistician.page/cv",
+                          "file": {
+                            "id": 312,
+                            "file_name": "cv.pdf",
+                            "mime_type": "application/pdf",
+                            "size": 482113,
+                            "alt": null,
+                            "url": "https://media.academic.page/42/cv.pdf",
+                            "conversions": []
+                          }
+                        },
+                        "credentials": [
+                          {
+                            "id": 7,
+                            "degree": "PhD",
+                            "field": "Biostatistics",
+                            "honors": null,
+                            "institution": "University of Washington",
+                            "start_year": 2012,
+                            "end_year": 2017,
+                            "in_progress": false,
+                            "display": "PhD, Biostatistics, University of Washington, 2017"
+                          }
+                        ],
+                        "positions": [
+                          {
+                            "id": 3,
+                            "title": "Associate Professor",
+                            "employer": "Johns Hopkins University",
+                            "description": null,
+                            "from": "2023",
+                            "to": null,
+                            "currently_held": true
+                          }
+                        ],
+                        "links": [
+                          {
+                            "id": 12,
+                            "type": "academic",
+                            "service": "orcid",
+                            "label": "ORCID",
+                            "url": "https://orcid.org/0000-0002-1825-0097",
+                            "open_in_new_tab": true
+                          }
+                        ],
+                        "updated_at": "2026-10-12T16:20:00Z"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -370,7 +610,7 @@
           "Content"
         ],
         "summary": "The study a study site describes",
-        "description": "Study sites only; other site types answer 404.",
+        "description": "Study sites only; other site types answer 404 section_not_enabled.",
         "operationId": "getStudy",
         "parameters": [
           {
@@ -434,6 +674,7 @@
           "Content"
         ],
         "summary": "Every public publication as BibTeX",
+        "description": "One BibTeX file with every publication, in list order. Served as `application/x-bibtex; charset=UTF-8`.",
         "operationId": "exportPublicationsBibtex",
         "parameters": [
           {
@@ -442,7 +683,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A BibTeX file.",
+            "description": "BibTeX, UTF-8.",
             "headers": {
               "ETag": {
                 "description": "Send back as If-None-Match to get 304 when nothing changed.",
@@ -461,7 +702,68 @@
               "application/x-bibtex": {
                 "schema": {
                   "type": "string"
+                },
+                "example": "@article{smith2025,\n  author = {Smith, Jane},\n  title = {A Study of Things},\n  journal = {Journal of Examples},\n  year = {2025},\n  doi = {10.1000/xyz123},\n}\n"
+              }
+            }
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/content/sites/{site}/publications/{publication}.bib": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "summary": "One publication as BibTeX",
+        "description": "The same entry the whole-site file holds for this publication, and the same text as its `bibtex` field. Served as `application/x-bibtex; charset=UTF-8`.",
+        "operationId": "exportPublicationBibtex",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/publication"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "BibTeX, UTF-8.",
+            "headers": {
+              "ETag": {
+                "description": "Send back as If-None-Match to get 304 when nothing changed.",
+                "schema": {
+                  "type": "string"
                 }
+              },
+              "Last-Modified": {
+                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/x-bibtex": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "@article{smith2025,\n  author = {Smith, Jane},\n  title = {A Study of Things},\n  journal = {Journal of Examples},\n  year = {2025},\n  doi = {10.1000/xyz123},\n}\n"
               }
             }
           },
@@ -546,6 +848,75 @@
                     },
                     "meta": {
                       "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "The first page of posts",
+                    "value": {
+                      "data": [
+                        {
+                          "id": 501,
+                          "type": "post",
+                          "slug": "new-paper-on-missing-data",
+                          "path": "/posts/new-paper-on-missing-data",
+                          "url": "https://jane.biostatistician.page/posts/new-paper-on-missing-data",
+                          "title": "New paper on missing data",
+                          "excerpt": "Our sensitivity analysis paper is out.",
+                          "content": {
+                            "html": "<p>Our sensitivity analysis paper is out.</p>",
+                            "json": {
+                              "type": "doc",
+                              "content": [
+                                {
+                                  "type": "paragraph",
+                                  "content": [
+                                    {
+                                      "type": "text",
+                                      "text": "Our sensitivity analysis paper is out."
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "markdown": "Our sensitivity analysis paper is out."
+                          },
+                          "author": {
+                            "name": "Jane Smith"
+                          },
+                          "featured_image": null,
+                          "tags": [
+                            {
+                              "id": 9,
+                              "name": "Missing data",
+                              "slug": "missing-data"
+                            }
+                          ],
+                          "seo": {
+                            "title": null,
+                            "description": null
+                          },
+                          "published_at": "2026-10-30T14:00:00Z",
+                          "created_at": "2026-10-29T18:12:00Z",
+                          "updated_at": "2026-10-30T14:00:00Z"
+                        }
+                      ],
+                      "links": {
+                        "first": "https://academic.page/api/v1/content/sites/42/posts?page=1",
+                        "last": "https://academic.page/api/v1/content/sites/42/posts?page=3",
+                        "prev": null,
+                        "next": "https://academic.page/api/v1/content/sites/42/posts?page=2"
+                      },
+                      "meta": {
+                        "current_page": 1,
+                        "last_page": 3,
+                        "per_page": 50,
+                        "total": 121,
+                        "from": 1,
+                        "to": 50,
+                        "path": "https://academic.page/api/v1/content/sites/42/posts"
+                      }
                     }
                   }
                 }
@@ -1249,6 +1620,81 @@
                       "$ref": "#/components/schemas/Publication"
                     }
                   }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "A journal article",
+                    "value": {
+                      "data": {
+                        "id": 88,
+                        "type": "publication",
+                        "slug": "sensitivity-analysis-for-missing-outcomes",
+                        "path": "/publications/sensitivity-analysis-for-missing-outcomes",
+                        "url": "https://jane.biostatistician.page/publications/sensitivity-analysis-for-missing-outcomes",
+                        "title": "Sensitivity analysis for missing outcomes in randomized trials",
+                        "publication_type": "article-journal",
+                        "authors": "Jane Smith, Ana Rivera",
+                        "year": 2025,
+                        "issued_date": "2025-03-01",
+                        "container_title": "Statistics in Medicine",
+                        "doi": "10.1000/xyz123",
+                        "doi_url": "https://doi.org/10.1000/xyz123",
+                        "official_url": null,
+                        "supplementary_links": [
+                          {
+                            "type": "code",
+                            "label": "Code",
+                            "url": "https://github.com/example/missing-outcomes"
+                          }
+                        ],
+                        "abstract": "Missing outcomes threaten the validity of randomized trials.",
+                        "description": null,
+                        "citation": {
+                          "text": "Smith, J., & Rivera, A. (2025). Sensitivity analysis for missing outcomes in randomized trials. Statistics in Medicine. https://doi.org/10.1000/xyz123",
+                          "html": "Smith, J., &amp; Rivera, A. (2025). Sensitivity analysis for missing outcomes in randomized trials. <i>Statistics in Medicine</i>. https://doi.org/10.1000/xyz123",
+                          "key": "smith2025sensitivity",
+                          "manual": false
+                        },
+                        "csl": {
+                          "id": "smith2025sensitivity",
+                          "type": "article-journal",
+                          "title": "Sensitivity analysis for missing outcomes in randomized trials",
+                          "author": [
+                            {
+                              "family": "Smith",
+                              "given": "Jane"
+                            },
+                            {
+                              "family": "Rivera",
+                              "given": "Ana"
+                            }
+                          ],
+                          "issued": {
+                            "date-parts": [
+                              [
+                                2025,
+                                3
+                              ]
+                            ]
+                          },
+                          "container-title": "Statistics in Medicine",
+                          "DOI": "10.1000/xyz123"
+                        },
+                        "bibtex": "@article{smith2025sensitivity,\n  author = {Smith, Jane and Rivera, Ana},\n  title = {Sensitivity analysis for missing outcomes in randomized trials},\n  journal = {Statistics in Medicine},\n  year = {2025},\n  doi = {10.1000/xyz123},\n}",
+                        "is_featured": true,
+                        "featured_order": 1,
+                        "tags": [
+                          {
+                            "id": 9,
+                            "name": "Missing data",
+                            "slug": "missing-data"
+                          }
+                        ],
+                        "created_at": "2025-03-04T10:00:00Z",
+                        "updated_at": "2026-02-11T08:45:00Z"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -1401,6 +1847,163 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/Course"
+                    }
+                  }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "A course with one lesson",
+                    "value": {
+                      "data": {
+                        "id": 17,
+                        "type": "course",
+                        "slug": "introduction-to-biostatistics",
+                        "path": "/courses/introduction-to-biostatistics",
+                        "url": "https://jane.biostatistician.page/courses/introduction-to-biostatistics",
+                        "title": "Introduction to Biostatistics",
+                        "instructor_name": "Jane Smith",
+                        "primary_institution": "Johns Hopkins University",
+                        "excerpt": "Probability, inference, and regression for public health.",
+                        "content": {
+                          "html": "<p>An introduction to statistical reasoning for public health.</p>",
+                          "json": {
+                            "type": "doc",
+                            "content": [
+                              {
+                                "type": "paragraph",
+                                "content": [
+                                  {
+                                    "type": "text",
+                                    "text": "An introduction to statistical reasoning for public health."
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "markdown": "An introduction to statistical reasoning for public health."
+                        },
+                        "offerings": [
+                          {
+                            "course_number": "BIOS 140.621",
+                            "institution": "Johns Hopkins University",
+                            "term": "fall",
+                            "custom_term": null,
+                            "year": 2026,
+                            "starts_on": "2026-08-31",
+                            "ends_on": "2026-12-18",
+                            "is_current": true
+                          }
+                        ],
+                        "display_order": 1,
+                        "featured_image": null,
+                        "syllabus": {
+                          "url": "https://jane.biostatistician.page/courses/introduction-to-biostatistics/syllabus",
+                          "download_url": "https://jane.biostatistician.page/courses/introduction-to-biostatistics/syllabus/download",
+                          "file": {
+                            "id": 401,
+                            "file_name": "syllabus.pdf",
+                            "mime_type": "application/pdf",
+                            "size": 482113,
+                            "alt": null,
+                            "url": "https://media.academic.page/42/syllabus.pdf",
+                            "conversions": []
+                          }
+                        },
+                        "lessons": [
+                          {
+                            "id": 201,
+                            "title": "Week 1: Describing data",
+                            "lesson_number": 1,
+                            "overview": "Summaries and plots for one variable.",
+                            "sort_order": 1,
+                            "materials": [
+                              {
+                                "id": 301,
+                                "lesson_id": 201,
+                                "title": "Lecture slides",
+                                "type": "slides",
+                                "description": null,
+                                "external_url": null,
+                                "url": "https://jane.biostatistician.page/media/402/download",
+                                "file": {
+                                  "id": 402,
+                                  "file_name": "week-1-slides.pdf",
+                                  "mime_type": "application/pdf",
+                                  "size": 482113,
+                                  "alt": null,
+                                  "url": "https://media.academic.page/42/week-1-slides.pdf",
+                                  "conversions": []
+                                },
+                                "sort_order": 1
+                              }
+                            ],
+                            "references": [
+                              {
+                                "reference_id": 51,
+                                "required_note": "Chapter 1",
+                                "sort_order": 2
+                              }
+                            ],
+                            "assignment_ids": [
+                              61
+                            ]
+                          }
+                        ],
+                        "materials": [],
+                        "references": [
+                          {
+                            "id": 51,
+                            "kind": "textbook",
+                            "title": "Fundamentals of Biostatistics",
+                            "authors": "Bernard Rosner",
+                            "details": "8th edition",
+                            "info_url": null,
+                            "purchase_url": null,
+                            "file": null,
+                            "sort_order": 1
+                          }
+                        ],
+                        "assignments": [
+                          {
+                            "id": 61,
+                            "slug": "problem-set-1",
+                            "lesson_id": 201,
+                            "title": "Problem set 1",
+                            "excerpt": null,
+                            "content": {
+                              "html": "<p>Answer every question and show your work.</p>",
+                              "json": {
+                                "type": "doc",
+                                "content": [
+                                  {
+                                    "type": "paragraph",
+                                    "content": [
+                                      {
+                                        "type": "text",
+                                        "text": "Answer every question and show your work."
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "markdown": "Answer every question and show your work."
+                            },
+                            "due_at": "2026-09-11T03:59:59Z",
+                            "file": null,
+                            "sort_order": 1,
+                            "published_at": "2026-08-31T13:00:00Z",
+                            "updated_at": "2026-08-31T13:00:00Z"
+                          }
+                        ],
+                        "tags": [],
+                        "seo": {
+                          "title": null,
+                          "description": null
+                        },
+                        "published_at": "2026-08-20T12:00:00Z",
+                        "created_at": "2026-08-01T15:30:00Z",
+                        "updated_at": "2026-09-02T09:10:00Z"
+                      }
                     }
                   }
                 }
@@ -1568,6 +2171,55 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/LabMember"
+                    }
+                  }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "A current lab member",
+                    "value": {
+                      "data": {
+                        "id": 73,
+                        "type": "lab_member",
+                        "slug": "ana-rivera",
+                        "path": "/members#ana-rivera",
+                        "url": "https://smith-lab.biostatistician.page/members#ana-rivera",
+                        "name": "Ana Rivera",
+                        "role": "Postdoctoral Fellow",
+                        "member_type": "postdoc",
+                        "status": "current",
+                        "bio": {
+                          "html": "<p>Ana studies causal inference with missing data.</p>",
+                          "json": {
+                            "type": "doc",
+                            "content": [
+                              {
+                                "type": "paragraph",
+                                "content": [
+                                  {
+                                    "type": "text",
+                                    "text": "Ana studies causal inference with missing data."
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "markdown": "Ana studies causal inference with missing data."
+                        },
+                        "email": "ana.rivera@example.edu",
+                        "website_url": null,
+                        "research_interests": [
+                          "causal inference",
+                          "missing data"
+                        ],
+                        "joined_on": "2025-09-01",
+                        "left_on": null,
+                        "sort_order": 2,
+                        "photo": null,
+                        "published_at": "2025-09-03T12:00:00Z",
+                        "created_at": "2025-09-02T17:40:00Z",
+                        "updated_at": "2026-04-18T10:05:00Z"
+                      }
                     }
                   }
                 }
@@ -2787,6 +3439,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
+        "description": "A file that does not fit is refused with 422 and the same codes as a multipart upload: `upload_too_large` (larger than the plan's per-file limit), `storage_quota_exceeded` (the site's allowance is full), or `bucket_quota_exceeded` (the platform's storage is full). An image the image library cannot read, such as a damaged file, answers 422 `media_processing_failed` and nothing of it is kept. A request without a file answers 422 `validation_failed`; any other failure to store the file, 422 `media_upload_failed`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -3092,6 +3745,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
+        "description": "The assembled file is checked against the same limits as a single upload: `upload_too_large`, `storage_quota_exceeded`, or `bucket_quota_exceeded`. A file sent as an image (its `content_type` at init) that the image library cannot read, such as a damaged file, answers 422 `media_processing_failed`: the stored parts and anything added to the library are removed, and the site's storage is as it was. Start a new upload to try again. An unknown or expired upload answers 404 `multipart_upload_not_found`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -3368,6 +4022,91 @@
                   "properties": {
                     "data": {
                       "$ref": "#/components/schemas/PublicationImportResult"
+                    }
+                  }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "A dry run of two entries",
+                    "value": {
+                      "data": {
+                        "dry_run": true,
+                        "entries": [
+                          {
+                            "index": 0,
+                            "key": "rivera2026bounds",
+                            "title": "Bounds for treatment effects under informative dropout",
+                            "year": 2026,
+                            "type": "article-journal",
+                            "authors": "Ana Rivera, Jane Smith",
+                            "status": "new",
+                            "reason": null,
+                            "ignored_before": false,
+                            "nothing_new": false,
+                            "checks_doi": false,
+                            "changes": [],
+                            "match": null,
+                            "selected_by_default": true,
+                            "csl": {
+                              "type": "article-journal",
+                              "title": "Bounds for treatment effects under informative dropout",
+                              "author": [
+                                {
+                                  "family": "Rivera",
+                                  "given": "Ana"
+                                },
+                                {
+                                  "family": "Smith",
+                                  "given": "Jane"
+                                }
+                              ],
+                              "issued": {
+                                "date-parts": [
+                                  [
+                                    2026
+                                  ]
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "index": 1,
+                            "key": "smith2025sensitivity",
+                            "title": "Sensitivity analysis for missing outcomes in randomized trials",
+                            "year": 2025,
+                            "type": "article-journal",
+                            "authors": "Jane Smith, Ana Rivera",
+                            "status": "existing",
+                            "reason": "doi",
+                            "ignored_before": false,
+                            "nothing_new": false,
+                            "checks_doi": true,
+                            "changes": [
+                              "Adds the volume"
+                            ],
+                            "match": {
+                              "publication_id": 88,
+                              "title": "Sensitivity analysis for missing outcomes in randomized trials"
+                            },
+                            "selected_by_default": true,
+                            "csl": {
+                              "type": "article-journal",
+                              "title": "Sensitivity analysis for missing outcomes in randomized trials",
+                              "DOI": "10.1000/xyz123",
+                              "volume": "44"
+                            }
+                          }
+                        ],
+                        "summary": {
+                          "total": 2,
+                          "selected_by_default": 2,
+                          "new": 1,
+                          "existing": 1,
+                          "possible_duplicate": 0,
+                          "preprint": 0,
+                          "ignored_before": 0
+                        }
+                      }
                     }
                   }
                 }
@@ -5802,7 +6541,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "List a course's lessons in order",
+        "summary": "List a course's lessons in order. Course sites only.",
         "operationId": "manageListCourseLessons",
         "parameters": [
           {
@@ -6396,7 +7135,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "List a lesson's materials",
+        "summary": "List a lesson's materials. Course sites only.",
         "operationId": "manageListCourseMaterials",
         "parameters": [
           {
@@ -7369,6 +8108,148 @@
       }
     }
   },
+  "webhooks": {
+    "content.updated": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "The site's public content changed",
+        "description": "Sent about a minute after the first change a visitor could see: publishing, editing published content, unpublishing, deleting, or changing the profile, menus, or site settings. Changes made in that minute are delivered together. Saving a draft sends nothing. The body does not say what changed: fetch what you need using `content_version`, `updated_since`, or the manifest.\n\nTo check a request, split Academic-Page-Signature into `t` and `v1`. Compute the HMAC-SHA256, in lowercase hex, of `t`, a period, and the raw request body, keyed with the webhook's signing secret, and compare it with `v1` in constant time. Reject a request whose `t` is more than five minutes from your clock.\n\nA failed delivery is tried again after 1 minute, 5 minutes, 15 minutes, 1 hour, and 3 hours, 5 retries in all, each with the same delivery ID. After the last one the delivery is dropped, and the account page shows that the last delivery failed.",
+        "operationId": "webhookContentUpdated",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Academic-Page-Event",
+            "in": "header",
+            "required": true,
+            "description": "The event type, the same as `type` in the body.",
+            "schema": {
+              "type": "string",
+              "const": "content.updated"
+            }
+          },
+          {
+            "name": "Academic-Page-Delivery",
+            "in": "header",
+            "required": true,
+            "description": "The delivery ID, the same as `id` in the body. Every retry of one delivery carries the same ID, so you can ignore one you have already handled.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Academic-Page-Signature",
+            "in": "header",
+            "required": true,
+            "description": "`t=<unix time>,v1=<hex>`: the time the request was signed and the HMAC-SHA256 signature.",
+            "schema": {
+              "type": "string",
+              "pattern": "^t=\\d+,v1=[0-9a-f]{64}$"
+            }
+          },
+          {
+            "name": "User-Agent",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "Academic.page-Webhooks/1.0"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookContentUpdated"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Received. Any 2xx status within 10 seconds counts as delivered; the body is ignored."
+          },
+          "default": {
+            "description": "Any other status, a redirect, a timeout, or no connection counts as a failure and the delivery is retried."
+          }
+        }
+      }
+    },
+    "ping": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "A test from the account page",
+        "description": "Sent when you press **Send test** on Account > API > Webhooks. It is sent once, right away, and is not retried.\n\nTo check a request, split Academic-Page-Signature into `t` and `v1`. Compute the HMAC-SHA256, in lowercase hex, of `t`, a period, and the raw request body, keyed with the webhook's signing secret, and compare it with `v1` in constant time. Reject a request whose `t` is more than five minutes from your clock.",
+        "operationId": "webhookPing",
+        "security": [],
+        "parameters": [
+          {
+            "name": "Academic-Page-Event",
+            "in": "header",
+            "required": true,
+            "description": "The event type, the same as `type` in the body.",
+            "schema": {
+              "type": "string",
+              "const": "ping"
+            }
+          },
+          {
+            "name": "Academic-Page-Delivery",
+            "in": "header",
+            "required": true,
+            "description": "The delivery ID, the same as `id` in the body. Every retry of one delivery carries the same ID, so you can ignore one you have already handled.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Academic-Page-Signature",
+            "in": "header",
+            "required": true,
+            "description": "`t=<unix time>,v1=<hex>`: the time the request was signed and the HMAC-SHA256 signature.",
+            "schema": {
+              "type": "string",
+              "pattern": "^t=\\d+,v1=[0-9a-f]{64}$"
+            }
+          },
+          {
+            "name": "User-Agent",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "Academic.page-Webhooks/1.0"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookPing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Received. Any 2xx status within 10 seconds counts as delivered; the body is ignored."
+          },
+          "default": {
+            "description": "Any other status, a redirect, a timeout, or no connection counts as a failure and is shown on the account page."
+          }
+        }
+      }
+    }
+  },
   "components": {
     "securitySchemes": {
       "bearerAuth": {
@@ -7699,6 +8580,41 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "not_found": {
+                "summary": "No such record on this site",
+                "value": {
+                  "message": "Not found.",
+                  "code": "not_found"
+                }
+              },
+              "validation_failed": {
+                "summary": "A refused field",
+                "value": {
+                  "message": "The title field is required.",
+                  "code": "validation_failed",
+                  "errors": {
+                    "title": [
+                      "The title field is required."
+                    ]
+                  }
+                }
+              },
+              "api_access_requires_pro": {
+                "summary": "A site without Pro",
+                "value": {
+                  "message": "API access requires Pro.",
+                  "code": "api_access_requires_pro"
+                }
+              },
+              "upload_too_large": {
+                "summary": "A file over the plan's limit",
+                "value": {
+                  "message": "This file is larger than your plan allows. Your current limit is 1 GB per file.",
+                  "code": "upload_too_large"
+                }
+              }
             }
           }
         }
@@ -7718,7 +8634,7 @@
           },
           "code": {
             "type": "string",
-            "description": "One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
+            "description": "section_not_enabled (404) means the site does not have the section: on the content endpoints, the public site does not show it; on the management endpoints, the admin does not let this site type edit it. One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, media_processing_failed, media_upload_failed, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
           },
           "errors": {
             "type": "object",
@@ -7730,7 +8646,13 @@
               }
             }
           }
-        }
+        },
+        "examples": [
+          {
+            "message": "Not found.",
+            "code": "not_found"
+          }
+        ]
       },
       "PaginationLinks": {
         "type": "object",
@@ -7996,7 +8918,23 @@
             ],
             "format": "uri"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": 42,
+            "name": "Jane Smith",
+            "slug": "jane",
+            "site_type": "personal",
+            "domain": "biostatistician.page",
+            "url": "https://jane.biostatistician.page",
+            "custom_domain": null,
+            "is_published": true,
+            "published_at": "2026-01-15T09:30:00Z",
+            "content_version": "118.1793397100",
+            "content_updated_at": "2026-10-30T14:04:00Z",
+            "api_url": "https://academic.page/api/v1/content/sites/42"
+          }
+        ]
       },
       "Site": {
         "type": "object",
@@ -8186,13 +9124,81 @@
           },
           "links": {
             "type": "object",
-            "description": "API URLs for the site's profile, manifest, and collections.",
+            "description": "API URLs for the site's profile (not on course sites), manifest, collections, and study (study sites).",
             "additionalProperties": {
               "type": "string",
               "format": "uri"
             }
           }
-        }
+        },
+        "examples": [
+          {
+            "id": 42,
+            "name": "Jane Smith",
+            "slug": "jane",
+            "site_type": "personal",
+            "domain": "biostatistician.page",
+            "url": "https://jane.biostatistician.page",
+            "custom_domain": null,
+            "is_published": true,
+            "published_at": "2026-01-15T09:30:00Z",
+            "content_version": "118.1793397100",
+            "content_updated_at": "2026-10-30T14:04:00Z",
+            "api_url": "https://academic.page/api/v1/content/sites/42",
+            "timezone": "America/New_York",
+            "locale": "en",
+            "accent_color": "#1d4ed8",
+            "theme": "classic",
+            "allow_search_indexing": true,
+            "footer_text": null,
+            "favicons": {
+              "favicon-ico": "https://media.academic.page/42/favicon.ico",
+              "favicon-svg": null
+            },
+            "sections": [
+              "posts",
+              "pages",
+              "publications",
+              "talks"
+            ],
+            "homepage": {
+              "title": "Jane Smith, biostatistician",
+              "description": "Methods for missing data in clinical trials.",
+              "image": null
+            },
+            "navigation": {
+              "header": [
+                {
+                  "label": "Publications",
+                  "description": null,
+                  "path": "/publications",
+                  "url": "https://jane.biostatistician.page/publications",
+                  "open_in_new_tab": false,
+                  "children": []
+                },
+                {
+                  "label": "Blog",
+                  "description": null,
+                  "path": "/posts",
+                  "url": "https://jane.biostatistician.page/posts",
+                  "open_in_new_tab": false,
+                  "children": []
+                }
+              ],
+              "footer": []
+            },
+            "links": {
+              "profile": "https://academic.page/api/v1/content/sites/42/profile",
+              "manifest": "https://academic.page/api/v1/content/sites/42/manifest",
+              "tags": "https://academic.page/api/v1/content/sites/42/tags",
+              "media": "https://academic.page/api/v1/content/sites/42/media",
+              "posts": "https://academic.page/api/v1/content/sites/42/posts",
+              "pages": "https://academic.page/api/v1/content/sites/42/pages",
+              "publications": "https://academic.page/api/v1/content/sites/42/publications",
+              "talks": "https://academic.page/api/v1/content/sites/42/talks"
+            }
+          }
+        ]
       },
       "MenuItem": {
         "type": "object",
@@ -8588,7 +9594,122 @@
             ],
             "format": "date-time"
           }
-        }
+        },
+        "examples": [
+          {
+            "name": "Jane Smith",
+            "summary": {
+              "html": "<p>I develop methods for missing data in clinical trials.</p>",
+              "json": {
+                "type": "doc",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "I develop methods for missing data in clinical trials."
+                      }
+                    ]
+                  }
+                ]
+              },
+              "markdown": "I develop methods for missing data in clinical trials."
+            },
+            "body": {
+              "html": "<p>I am an associate professor of biostatistics.</p>",
+              "json": {
+                "type": "doc",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "I am an associate professor of biostatistics."
+                      }
+                    ]
+                  }
+                ]
+              },
+              "markdown": "I am an associate professor of biostatistics."
+            },
+            "about_page": {
+              "title": "About",
+              "path": "/about",
+              "url": "https://jane.biostatistician.page/about"
+            },
+            "headings": {
+              "body": "About me",
+              "credentials": "Education",
+              "positions": "Positions"
+            },
+            "location": "Baltimore, MD",
+            "email": null,
+            "photo": {
+              "id": 311,
+              "file_name": "jane-smith.jpg",
+              "mime_type": "image/jpeg",
+              "size": 482113,
+              "alt": "Jane Smith",
+              "url": "https://media.academic.page/42/jane-smith.jpg",
+              "conversions": {
+                "thumb": {
+                  "url": "https://media.academic.page/42/conversions/thumb-jane-smith.jpg",
+                  "width": 300,
+                  "height": 300
+                }
+              }
+            },
+            "cv": {
+              "url": "https://jane.biostatistician.page/cv",
+              "file": {
+                "id": 312,
+                "file_name": "cv.pdf",
+                "mime_type": "application/pdf",
+                "size": 482113,
+                "alt": null,
+                "url": "https://media.academic.page/42/cv.pdf",
+                "conversions": []
+              }
+            },
+            "credentials": [
+              {
+                "id": 7,
+                "degree": "PhD",
+                "field": "Biostatistics",
+                "honors": null,
+                "institution": "University of Washington",
+                "start_year": 2012,
+                "end_year": 2017,
+                "in_progress": false,
+                "display": "PhD, Biostatistics, University of Washington, 2017"
+              }
+            ],
+            "positions": [
+              {
+                "id": 3,
+                "title": "Associate Professor",
+                "employer": "Johns Hopkins University",
+                "description": null,
+                "from": "2023",
+                "to": null,
+                "currently_held": true
+              }
+            ],
+            "links": [
+              {
+                "id": 12,
+                "type": "academic",
+                "service": "orcid",
+                "label": "ORCID",
+                "url": "https://orcid.org/0000-0002-1825-0097",
+                "open_in_new_tab": true
+              }
+            ],
+            "updated_at": "2026-10-12T16:20:00Z"
+          }
+        ]
       },
       "Post": {
         "type": "object",
@@ -8629,7 +9750,7 @@
               "string",
               "null"
             ],
-            "description": "Path on the public site, starting with /."
+            "description": "Path on the public site. Starts with / and never ends with one, except the site root."
           },
           "url": {
             "type": [
@@ -8637,7 +9758,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Absolute public URL."
+            "description": "Absolute public URL. Like path, it has no trailing slash except at the site root."
           },
           "title": {
             "type": "string"
@@ -8724,7 +9845,54 @@
             ],
             "format": "date-time"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": 501,
+            "type": "post",
+            "slug": "new-paper-on-missing-data",
+            "path": "/posts/new-paper-on-missing-data",
+            "url": "https://jane.biostatistician.page/posts/new-paper-on-missing-data",
+            "title": "New paper on missing data",
+            "excerpt": "Our sensitivity analysis paper is out.",
+            "content": {
+              "html": "<p>Our sensitivity analysis paper is out.</p>",
+              "json": {
+                "type": "doc",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Our sensitivity analysis paper is out."
+                      }
+                    ]
+                  }
+                ]
+              },
+              "markdown": "Our sensitivity analysis paper is out."
+            },
+            "author": {
+              "name": "Jane Smith"
+            },
+            "featured_image": null,
+            "tags": [
+              {
+                "id": 9,
+                "name": "Missing data",
+                "slug": "missing-data"
+              }
+            ],
+            "seo": {
+              "title": null,
+              "description": null
+            },
+            "published_at": "2026-10-30T14:00:00Z",
+            "created_at": "2026-10-29T18:12:00Z",
+            "updated_at": "2026-10-30T14:00:00Z"
+          }
+        ]
       },
       "Page": {
         "type": "object",
@@ -8768,7 +9936,7 @@
               "string",
               "null"
             ],
-            "description": "Path on the public site, starting with /."
+            "description": "Path on the public site. Starts with / and never ends with one, except the site root."
           },
           "url": {
             "type": [
@@ -8776,7 +9944,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Absolute public URL."
+            "description": "Absolute public URL. Like path, it has no trailing slash except at the site root."
           },
           "title": {
             "type": "string"
@@ -8920,7 +10088,7 @@
               "string",
               "null"
             ],
-            "description": "Path on the public site, starting with /."
+            "description": "Path on the public site. Starts with / and never ends with one, except the site root."
           },
           "url": {
             "type": [
@@ -8928,7 +10096,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Absolute public URL."
+            "description": "Absolute public URL. Like path, it has no trailing slash except at the site root."
           },
           "title": {
             "type": "string"
@@ -9109,7 +10277,7 @@
               "string",
               "null"
             ],
-            "description": "Path on the public site, starting with /."
+            "description": "Path on the public site. Starts with / and never ends with one, except the site root."
           },
           "url": {
             "type": [
@@ -9117,7 +10285,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Absolute public URL."
+            "description": "Absolute public URL. Like path, it has no trailing slash except at the site root."
           },
           "title": {
             "type": "string"
@@ -9307,7 +10475,7 @@
       },
       "Publication": {
         "type": "object",
-        "description": "A publication.",
+        "description": "A publication. Publications have no draft state, so every one on the site is public and there is no published_at, and they have no seo field.",
         "required": [
           "id",
           "type",
@@ -9328,6 +10496,7 @@
           "description",
           "citation",
           "csl",
+          "bibtex",
           "is_featured",
           "featured_order",
           "tags",
@@ -9463,6 +10632,10 @@
             "type": "object",
             "description": "The item as CSL-JSON, for citeproc or Zotero."
           },
+          "bibtex": {
+            "type": "string",
+            "description": "The publication as one BibTeX entry, the same text as GET /content/sites/{site}/publications/{publication}.bib."
+          },
           "is_featured": {
             "type": "boolean"
           },
@@ -9492,7 +10665,77 @@
             ],
             "format": "date-time"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": 88,
+            "type": "publication",
+            "slug": "sensitivity-analysis-for-missing-outcomes",
+            "path": "/publications/sensitivity-analysis-for-missing-outcomes",
+            "url": "https://jane.biostatistician.page/publications/sensitivity-analysis-for-missing-outcomes",
+            "title": "Sensitivity analysis for missing outcomes in randomized trials",
+            "publication_type": "article-journal",
+            "authors": "Jane Smith, Ana Rivera",
+            "year": 2025,
+            "issued_date": "2025-03-01",
+            "container_title": "Statistics in Medicine",
+            "doi": "10.1000/xyz123",
+            "doi_url": "https://doi.org/10.1000/xyz123",
+            "official_url": null,
+            "supplementary_links": [
+              {
+                "type": "code",
+                "label": "Code",
+                "url": "https://github.com/example/missing-outcomes"
+              }
+            ],
+            "abstract": "Missing outcomes threaten the validity of randomized trials.",
+            "description": null,
+            "citation": {
+              "text": "Smith, J., & Rivera, A. (2025). Sensitivity analysis for missing outcomes in randomized trials. Statistics in Medicine. https://doi.org/10.1000/xyz123",
+              "html": "Smith, J., &amp; Rivera, A. (2025). Sensitivity analysis for missing outcomes in randomized trials. <i>Statistics in Medicine</i>. https://doi.org/10.1000/xyz123",
+              "key": "smith2025sensitivity",
+              "manual": false
+            },
+            "csl": {
+              "id": "smith2025sensitivity",
+              "type": "article-journal",
+              "title": "Sensitivity analysis for missing outcomes in randomized trials",
+              "author": [
+                {
+                  "family": "Smith",
+                  "given": "Jane"
+                },
+                {
+                  "family": "Rivera",
+                  "given": "Ana"
+                }
+              ],
+              "issued": {
+                "date-parts": [
+                  [
+                    2025,
+                    3
+                  ]
+                ]
+              },
+              "container-title": "Statistics in Medicine",
+              "DOI": "10.1000/xyz123"
+            },
+            "bibtex": "@article{smith2025sensitivity,\n  author = {Smith, Jane and Rivera, Ana},\n  title = {Sensitivity analysis for missing outcomes in randomized trials},\n  journal = {Statistics in Medicine},\n  year = {2025},\n  doi = {10.1000/xyz123},\n}",
+            "is_featured": true,
+            "featured_order": 1,
+            "tags": [
+              {
+                "id": 9,
+                "name": "Missing data",
+                "slug": "missing-data"
+              }
+            ],
+            "created_at": "2025-03-04T10:00:00Z",
+            "updated_at": "2026-02-11T08:45:00Z"
+          }
+        ]
       },
       "Course": {
         "type": "object",
@@ -9541,7 +10784,7 @@
               "string",
               "null"
             ],
-            "description": "Path on the public site, starting with /."
+            "description": "Path on the public site. Starts with / and never ends with one, except the site root."
           },
           "url": {
             "type": [
@@ -9549,7 +10792,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Absolute public URL."
+            "description": "Absolute public URL. Like path, it has no trailing slash except at the site root."
           },
           "title": {
             "type": "string"
@@ -9750,7 +10993,159 @@
             ],
             "format": "date-time"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": 17,
+            "type": "course",
+            "slug": "introduction-to-biostatistics",
+            "path": "/courses/introduction-to-biostatistics",
+            "url": "https://jane.biostatistician.page/courses/introduction-to-biostatistics",
+            "title": "Introduction to Biostatistics",
+            "instructor_name": "Jane Smith",
+            "primary_institution": "Johns Hopkins University",
+            "excerpt": "Probability, inference, and regression for public health.",
+            "content": {
+              "html": "<p>An introduction to statistical reasoning for public health.</p>",
+              "json": {
+                "type": "doc",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "An introduction to statistical reasoning for public health."
+                      }
+                    ]
+                  }
+                ]
+              },
+              "markdown": "An introduction to statistical reasoning for public health."
+            },
+            "offerings": [
+              {
+                "course_number": "BIOS 140.621",
+                "institution": "Johns Hopkins University",
+                "term": "fall",
+                "custom_term": null,
+                "year": 2026,
+                "starts_on": "2026-08-31",
+                "ends_on": "2026-12-18",
+                "is_current": true
+              }
+            ],
+            "display_order": 1,
+            "featured_image": null,
+            "syllabus": {
+              "url": "https://jane.biostatistician.page/courses/introduction-to-biostatistics/syllabus",
+              "download_url": "https://jane.biostatistician.page/courses/introduction-to-biostatistics/syllabus/download",
+              "file": {
+                "id": 401,
+                "file_name": "syllabus.pdf",
+                "mime_type": "application/pdf",
+                "size": 482113,
+                "alt": null,
+                "url": "https://media.academic.page/42/syllabus.pdf",
+                "conversions": []
+              }
+            },
+            "lessons": [
+              {
+                "id": 201,
+                "title": "Week 1: Describing data",
+                "lesson_number": 1,
+                "overview": "Summaries and plots for one variable.",
+                "sort_order": 1,
+                "materials": [
+                  {
+                    "id": 301,
+                    "lesson_id": 201,
+                    "title": "Lecture slides",
+                    "type": "slides",
+                    "description": null,
+                    "external_url": null,
+                    "url": "https://jane.biostatistician.page/media/402/download",
+                    "file": {
+                      "id": 402,
+                      "file_name": "week-1-slides.pdf",
+                      "mime_type": "application/pdf",
+                      "size": 482113,
+                      "alt": null,
+                      "url": "https://media.academic.page/42/week-1-slides.pdf",
+                      "conversions": []
+                    },
+                    "sort_order": 1
+                  }
+                ],
+                "references": [
+                  {
+                    "reference_id": 51,
+                    "required_note": "Chapter 1",
+                    "sort_order": 2
+                  }
+                ],
+                "assignment_ids": [
+                  61
+                ]
+              }
+            ],
+            "materials": [],
+            "references": [
+              {
+                "id": 51,
+                "kind": "textbook",
+                "title": "Fundamentals of Biostatistics",
+                "authors": "Bernard Rosner",
+                "details": "8th edition",
+                "info_url": null,
+                "purchase_url": null,
+                "file": null,
+                "sort_order": 1
+              }
+            ],
+            "assignments": [
+              {
+                "id": 61,
+                "slug": "problem-set-1",
+                "lesson_id": 201,
+                "title": "Problem set 1",
+                "excerpt": null,
+                "content": {
+                  "html": "<p>Answer every question and show your work.</p>",
+                  "json": {
+                    "type": "doc",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Answer every question and show your work."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "markdown": "Answer every question and show your work."
+                },
+                "due_at": "2026-09-11T03:59:59Z",
+                "file": null,
+                "sort_order": 1,
+                "published_at": "2026-08-31T13:00:00Z",
+                "updated_at": "2026-08-31T13:00:00Z"
+              }
+            ],
+            "tags": [],
+            "seo": {
+              "title": null,
+              "description": null
+            },
+            "published_at": "2026-08-20T12:00:00Z",
+            "created_at": "2026-08-01T15:30:00Z",
+            "updated_at": "2026-09-02T09:10:00Z"
+          }
+        ]
       },
       "CourseMaterial": {
         "type": "object",
@@ -10037,7 +11432,7 @@
       },
       "LabMember": {
         "type": "object",
-        "description": "A published lab or study team member.",
+        "description": "A published lab or study team member. Members have no pages of their own: path and url point to an anchor on the members page.",
         "required": [
           "id",
           "type",
@@ -10078,14 +11473,16 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "An anchor on the members page, such as /members#ana-rivera (/team#ana-rivera on a study site)."
           },
           "url": {
             "type": [
               "string",
               "null"
             ],
-            "format": "uri"
+            "format": "uri",
+            "description": "The same anchor as an absolute URL."
           },
           "name": {
             "type": "string"
@@ -10133,11 +11530,11 @@
             "format": "uri"
           },
           "research_interests": {
-            "type": [
-              "array",
-              "string",
-              "null"
-            ]
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Short topics, in order. Always a list of strings, empty when there are none."
           },
           "joined_on": {
             "type": [
@@ -10190,7 +11587,51 @@
             ],
             "format": "date-time"
           }
-        }
+        },
+        "examples": [
+          {
+            "id": 73,
+            "type": "lab_member",
+            "slug": "ana-rivera",
+            "path": "/members#ana-rivera",
+            "url": "https://smith-lab.biostatistician.page/members#ana-rivera",
+            "name": "Ana Rivera",
+            "role": "Postdoctoral Fellow",
+            "member_type": "postdoc",
+            "status": "current",
+            "bio": {
+              "html": "<p>Ana studies causal inference with missing data.</p>",
+              "json": {
+                "type": "doc",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Ana studies causal inference with missing data."
+                      }
+                    ]
+                  }
+                ]
+              },
+              "markdown": "Ana studies causal inference with missing data."
+            },
+            "email": "ana.rivera@example.edu",
+            "website_url": null,
+            "research_interests": [
+              "causal inference",
+              "missing data"
+            ],
+            "joined_on": "2025-09-01",
+            "left_on": null,
+            "sort_order": 2,
+            "photo": null,
+            "published_at": "2025-09-03T12:00:00Z",
+            "created_at": "2025-09-02T17:40:00Z",
+            "updated_at": "2026-04-18T10:05:00Z"
+          }
+        ]
       },
       "Study": {
         "type": "object",
@@ -11133,6 +12574,10 @@
             "type": "object",
             "description": "The stored citation as CSL-JSON."
           },
+          "bibtex": {
+            "type": "string",
+            "description": "The publication as one BibTeX entry, as the BibTeX export writes it."
+          },
           "abstract": {
             "type": [
               "string",
@@ -12057,7 +13502,87 @@
             "type": "boolean",
             "description": "Real runs only: whether entries left out were recorded as ignored (only when select was sent)."
           }
-        }
+        },
+        "examples": [
+          {
+            "dry_run": true,
+            "entries": [
+              {
+                "index": 0,
+                "key": "rivera2026bounds",
+                "title": "Bounds for treatment effects under informative dropout",
+                "year": 2026,
+                "type": "article-journal",
+                "authors": "Ana Rivera, Jane Smith",
+                "status": "new",
+                "reason": null,
+                "ignored_before": false,
+                "nothing_new": false,
+                "checks_doi": false,
+                "changes": [],
+                "match": null,
+                "selected_by_default": true,
+                "csl": {
+                  "type": "article-journal",
+                  "title": "Bounds for treatment effects under informative dropout",
+                  "author": [
+                    {
+                      "family": "Rivera",
+                      "given": "Ana"
+                    },
+                    {
+                      "family": "Smith",
+                      "given": "Jane"
+                    }
+                  ],
+                  "issued": {
+                    "date-parts": [
+                      [
+                        2026
+                      ]
+                    ]
+                  }
+                }
+              },
+              {
+                "index": 1,
+                "key": "smith2025sensitivity",
+                "title": "Sensitivity analysis for missing outcomes in randomized trials",
+                "year": 2025,
+                "type": "article-journal",
+                "authors": "Jane Smith, Ana Rivera",
+                "status": "existing",
+                "reason": "doi",
+                "ignored_before": false,
+                "nothing_new": false,
+                "checks_doi": true,
+                "changes": [
+                  "Adds the volume"
+                ],
+                "match": {
+                  "publication_id": 88,
+                  "title": "Sensitivity analysis for missing outcomes in randomized trials"
+                },
+                "selected_by_default": true,
+                "csl": {
+                  "type": "article-journal",
+                  "title": "Sensitivity analysis for missing outcomes in randomized trials",
+                  "DOI": "10.1000/xyz123",
+                  "volume": "44"
+                }
+              }
+            ],
+            "summary": {
+              "total": 2,
+              "selected_by_default": 2,
+              "new": 1,
+              "existing": 1,
+              "possible_duplicate": 0,
+              "preprint": 0,
+              "ignored_before": 0
+            }
+          }
+        ]
       },
       "ApiKey": {
         "type": "object",
@@ -12183,14 +13708,53 @@
             ],
             "format": "date-time"
           }
-        }
+        },
+        "examples": [
+          {
+            "name": "Nightly build",
+            "kind": "management",
+            "abilities": [
+              "access:read",
+              "scope:team:3"
+            ],
+            "access": "read",
+            "scope": {
+              "type": "team",
+              "teams": [
+                {
+                  "id": 3,
+                  "name": "Jane Smith"
+                }
+              ],
+              "sites": [
+                {
+                  "id": 42,
+                  "name": "Jane Smith",
+                  "slug": "jane",
+                  "site_type": "personal",
+                  "domain": "biostatistician.page",
+                  "url": "https://jane.biostatistician.page",
+                  "team_id": 3,
+                  "api_access": true
+                }
+              ]
+            },
+            "owner": {
+              "name": "Jane Smith"
+            },
+            "expires_at": null,
+            "last_used_at": "2026-10-30T02:00:00Z",
+            "created_at": "2026-06-01T12:00:00Z"
+          }
+        ]
       },
       "ManagementMedia": {
         "type": "object",
-        "description": "A library file, used or not.",
+        "description": "A library file, used or not. Every field is filled in when the upload is stored, so the upload's own response is complete: nothing is read later.",
         "properties": {
           "id": {
-            "type": "integer"
+            "type": "integer",
+            "description": "The site media ID. Send it in a record's file field, such as slides_media_id."
           },
           "site_id": {
             "type": "integer"
@@ -12202,7 +13766,16 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "enum": [
+              "image",
+              "video",
+              "audio",
+              "document",
+              "other",
+              null
+            ],
+            "description": "Decided from the MIME type."
           },
           "original_filename": {
             "type": [
@@ -12229,13 +13802,144 @@
             ]
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "description": "What was read from the file when it was stored. Always an object; empty for audio and other files.",
+            "properties": {
+              "width": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Images: the width in pixels. Null for an image format that cannot be measured, such as SVG, and for videos, whose size is not read yet."
+              },
+              "height": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Images: the height in pixels, null in the same cases as width."
+              },
+              "format": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Images: the file extension."
+              },
+              "mime_type": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Images: the same as file.mime_type."
+              }
+            },
+            "additionalProperties": true
+          },
+          "has_custom_defaults": {
+            "type": "boolean"
+          },
+          "usage_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "last_used_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "file": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The display name: the original file name without its extension."
+              },
+              "file_name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The stored file name."
+              },
+              "mime_type": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Set when the file is stored. A single upload takes it from the file's bytes; a multipart upload takes the content_type sent at init."
+              },
+              "size": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Bytes."
+              },
+              "extension": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
           },
           "urls": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "original": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              },
+              "thumb": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "description": "A 300-pixel-wide version of an image, made when the upload is stored. Null for other files."
+              },
+              "medium": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "description": "Null for library uploads, which get only a thumbnail."
+              },
+              "large": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri",
+                "description": "Null for library uploads, which get only a thumbnail."
+              }
+            }
           }
         }
       },
@@ -14001,7 +15705,8 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Short topics, in order. Always a list, empty when there are none."
           },
           "is_alumni": {
             "type": "boolean"
@@ -14127,11 +15832,15 @@
           "research_interests": {
             "type": [
               "array",
+              "string",
               "null"
             ],
             "items": {
-              "type": "string"
-            }
+              "type": "string",
+              "maxLength": 120
+            },
+            "maxItems": 50,
+            "description": "A list of short topics, replacing the stored list. One string is also taken and split on commas, semicolons, and line breaks. Null or [] removes them all."
           },
           "is_alumni": {
             "type": "boolean"
@@ -14511,21 +16220,6 @@
           }
         }
       },
-      "Markdown": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "description": "A rich-text field as Markdown, rendered from the stored document. Null when the record has no document."
-      },
-      "MarkdownInput": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "maxLength": 1000000,
-        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Null clears the field."
-      },
       "ManagementCv": {
         "type": "object",
         "description": "A personal site's CV. The file fields are null when the site has no CV.",
@@ -14829,7 +16523,8 @@
           "published_at",
           "edit_version",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "content_markdown"
         ],
         "properties": {
           "id": {
@@ -14858,7 +16553,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. content_markdown has the same content as Markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "content_structured as Markdown. Images are written as Markdown images with their URL."
           },
           "content_html": {
             "type": [
@@ -14951,7 +16654,15 @@
               "object",
               "null"
             ],
-            "description": "A Tiptap (ProseMirror) document, schema version 1: {\"type\": \"doc\", \"content\": [...]}."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "lesson_id": {
             "type": [
@@ -15173,6 +16884,190 @@
             "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         }
+      },
+      "Markdown": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "A rich-text field as Markdown, rendered from the stored document. Null when the record has no document."
+      },
+      "MarkdownInput": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "maxLength": 1000000,
+        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Null clears the field."
+      },
+      "WebhookContentUpdated": {
+        "type": "object",
+        "description": "The body of a content.updated delivery.",
+        "required": [
+          "id",
+          "type",
+          "created_at",
+          "data"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The delivery ID, the same as the Academic-Page-Delivery header. Retries keep it."
+          },
+          "type": {
+            "type": "string",
+            "const": "content.updated"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this attempt was sent, in UTC."
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "site",
+              "content_version",
+              "content_updated_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "site": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "url",
+                  "api_url"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "The site's ID, as in /content/sites/{site}."
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The site's public address: its custom domain once active, otherwise its .page subdomain."
+                  },
+                  "api_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The site in the content API."
+                  }
+                }
+              },
+              "content_version": {
+                "type": "string",
+                "description": "The site's content_version after the change. Opaque; compare for equality."
+              },
+              "content_updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time",
+                "description": "When the public content last changed."
+              }
+            }
+          }
+        },
+        "examples": [
+          {
+            "id": "5f0c3a8e-6d0e-4f43-9a52-2b8c1d1e7a90",
+            "type": "content.updated",
+            "created_at": "2026-10-30T14:05:12Z",
+            "data": {
+              "site": {
+                "id": 42,
+                "name": "Jane Smith",
+                "url": "https://jane.biostatistician.page",
+                "api_url": "https://academic.page/api/v1/content/sites/42"
+              },
+              "content_version": "118.1793397100",
+              "content_updated_at": "2026-10-30T14:04:00Z"
+            }
+          }
+        ]
+      },
+      "WebhookPing": {
+        "type": "object",
+        "description": "The body of a ping, sent by the test button.",
+        "required": [
+          "id",
+          "type",
+          "created_at",
+          "data"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The delivery ID, the same as the Academic-Page-Delivery header. Retries keep it."
+          },
+          "type": {
+            "type": "string",
+            "const": "ping"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this attempt was sent, in UTC."
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "site"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "site": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "url"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "description": "The site's ID, as in /content/sites/{site}."
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The site's public address: its custom domain once active, otherwise its .page subdomain."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "examples": [
+          {
+            "id": "0b7d2f4c-91e3-4a6b-8c5d-3e2f1a0b9c8d",
+            "type": "ping",
+            "created_at": "2026-10-30T14:00:00Z",
+            "data": {
+              "site": {
+                "id": 42,
+                "name": "Jane Smith",
+                "url": "https://jane.biostatistician.page"
+              }
+            }
+          }
+        ]
       }
     }
   }

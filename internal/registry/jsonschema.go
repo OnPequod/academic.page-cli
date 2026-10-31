@@ -15,8 +15,9 @@ const (
 	OptPublish = "publish"
 )
 
-// MarkdownOption and FileOption name the options that fill a rich-text or
-// text field from Markdown or a file, such as content_markdown and bibtex_file.
+// MarkdownOption names a Tiptap field's Markdown sibling, and FileOption the
+// option that fills a text field from a file, such as content_file and
+// bibtex_file.
 func MarkdownOption(field string) string { return RichPrefix(field) + "_markdown" }
 
 // FileOption is described with MarkdownOption.
@@ -52,10 +53,6 @@ func (c *Command) InputSchema() map[string]any {
 			s["description"] = fmt.Sprintf("Advanced: the editor's Tiptap JSON document. Use %s instead unless you need exact control.", MarkdownOption(f.Name))
 		}
 		props[f.OptionName()] = s
-	}
-	for _, name := range c.Rich {
-		props[MarkdownOption(name)] = map[string]any{"type": "string", "description": fmt.Sprintf("%s as Markdown (the normal way to write it). Paragraphs, headings (#, ##, ###), bold, italic, strikethrough, inline code, links, lists, block quotes, code blocks, and horizontal rules are kept; images become links.", RichPrefix(name))}
-		props[FileOption(name)] = map[string]any{"type": "string", "description": fmt.Sprintf("Path of a Markdown file for %s.", RichPrefix(name))}
 	}
 	for _, name := range c.TextFiles {
 		props[FileOption(name)] = map[string]any{"type": "string", "description": fmt.Sprintf("Path of a file whose text is sent as %s.", name)}
@@ -131,9 +128,6 @@ func fieldSchema(f Field) map[string]any {
 	}
 	return s
 }
-
-// IsRich reports whether the body field holds rich text.
-func (c *Command) IsRich(name string) bool { return slices.Contains(c.Rich, name) }
 
 // IsTextFile reports whether the body field can be read from a file.
 func (c *Command) IsTextFile(name string) bool { return slices.Contains(c.TextFiles, name) }

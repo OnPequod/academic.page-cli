@@ -418,11 +418,10 @@ func TestManageFlag(t *testing.T) {
 	}
 }
 
-func TestAssignmentMarkdownFallback(t *testing.T) {
+func TestAssignmentMarkdown(t *testing.T) {
 	setup(t)
-	// Assignments have no content_markdown yet, so the CLI converts.
 	r := run(t, "", "course-assignments", "create", "3", "--title", "Essay", "--content-markdown", "Write **500** words.", "--dry-run", "--json")
-	if r.code != 0 || !strings.Contains(r.stdout, `"content_structured"`) || !strings.Contains(r.stdout, `"type": "doc"`) {
+	if r.code != 0 || !strings.Contains(r.stdout, `"content_markdown": "Write **500** words."`) || strings.Contains(r.stdout, `"content_structured"`) {
 		t.Errorf("code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
 	}
 }

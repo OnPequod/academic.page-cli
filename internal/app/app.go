@@ -22,7 +22,6 @@ import (
 
 	"github.com/OnPequod/academic.page-cli/internal/api"
 	"github.com/OnPequod/academic.page-cli/internal/config"
-	"github.com/OnPequod/academic.page-cli/internal/content"
 	"github.com/OnPequod/academic.page-cli/internal/registry"
 	"github.com/OnPequod/academic.page-cli/internal/spec"
 )
@@ -63,10 +62,8 @@ type Call struct {
 	// Body holds body fields by API name.
 	Body map[string]any
 
-	// Markdown holds Markdown for rich-text fields, by API name.
-	Markdown map[string]string
-	// Files holds file paths for rich-text fields (Markdown) and text
-	// fields, by API name; "-" reads standard input.
+	// Files holds file paths for text fields, such as content_markdown or
+	// bibtex, by API name; "-" reads standard input.
 	Files map[string]string
 	Stdin io.Reader
 
@@ -163,7 +160,7 @@ func (a *App) Execute(ctx context.Context, call Call) (*Result, error) {
 		plan.Multipart = true
 		upload, uploadFields = info, body
 	default:
-		if len(call.Body) > 0 || len(call.Markdown) > 0 || len(call.Files) > 0 || call.Publish {
+		if len(call.Body) > 0 || len(call.Files) > 0 || call.Publish {
 			return nil, Usagef("`%s` only reads; it takes no body fields", cmd.Path())
 		}
 	}
@@ -320,38 +317,18 @@ func (a *App) body(call Call) (map[string]any, error) {
 		body[name] = call.Body[name]
 	}
 
-	for _, name := range sortedKeys(call.Markdown) {
-		if !cmd.IsRich(name) {
-			return nil, Usagef("`%s` has no rich-text field %q", cmd.Path(), name)
-		}
-	}
 	for _, name := range sortedKeys(call.Files) {
-		if !cmd.IsRich(name) && !cmd.IsTextFile(name) {
+		if !cmd.IsTextFile(name) {
 			return nil, Usagef("`%s` cannot read %q from a file", cmd.Path(), name)
 		}
 	}
 	for _, name := range cmd.Tiptap {
-		md := registry.RichPrefix(name) + "_markdown"
+		md := registry.MarkdownOption(name)
 		_, tiptap := body[name]
 		_, markdown := body[md]
 		if tiptap && (markdown || call.Files[md] != "") {
 			return nil, Usagef("give %s (Markdown) or %s (Tiptap JSON), not both", md, name)
 		}
-	}
-	for _, name := range cmd.Rich {
-		md, file := call.Markdown[name], call.Files[name]
-		if md == "" && file == "" {
-			continue
-		}
-		if _, inBody := body[name]; (md != "" && file != "") || inBody {
-			prefix := strings.ReplaceAll(registry.RichPrefix(name), "_", "-")
-			return nil, Usagef("give one of --%s-markdown, --%s-file, or %s in --data", prefix, prefix, name)
-		}
-		doc, err := richDoc(md, file, call.Stdin)
-		if err != nil {
-			return nil, err
-		}
-		body[name] = doc
 	}
 	for _, name := range cmd.TextFiles {
 		file := call.Files[name]
@@ -386,20 +363,6 @@ func (a *App) body(call Call) (map[string]any, error) {
 		}
 	}
 	return body, nil
-}
-
-func richDoc(markdown, file string, stdin io.Reader) (any, error) {
-	if markdown != "" {
-		return content.FromMarkdown([]byte(markdown)), nil
-	}
-	if ext := strings.ToLower(filepath.Ext(file)); ext == ".json" || ext == ".html" || ext == ".htm" {
-		return nil, Usagef("%s: this option takes Markdown; to send the editor's JSON, put it in --data", file)
-	}
-	data, err := readInput(file, stdin)
-	if err != nil {
-		return nil, err
-	}
-	return content.FromMarkdown(data), nil
 }
 
 // readInput reads a file, or standard input for "-".

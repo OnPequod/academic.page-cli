@@ -33,7 +33,6 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 		drafts, all, dryRun, publish, unpublish, yes bool
 		data                                         string
 		nulls                                        []string
-		markdown                                     = map[string]*string{}
 		files                                        = map[string]*string{}
 	)
 
@@ -82,11 +81,6 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 			flags.StringSliceVar(&nulls, "null", nil, "Clear these fields (set them to null): "+strings.Join(nullable, ", "))
 		}
 	}
-	for _, name := range rc.Rich {
-		prefix := strings.ReplaceAll(registry.RichPrefix(name), "_", "-")
-		markdown[name] = flags.String(prefix+"-markdown", "", strings.ReplaceAll(registry.RichPrefix(name), "_", " ")+" as Markdown")
-		files[name] = flags.String(prefix+"-file", "", strings.ReplaceAll(registry.RichPrefix(name), "_", " ")+" from a Markdown file, or - for stdin")
-	}
 	for _, name := range rc.TextFiles {
 		files[name] = flags.String(strings.ReplaceAll(registry.FileOption(name), "_", "-"), "", name+" from a file, or - for stdin")
 	}
@@ -104,12 +98,7 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 		call := app.Call{
 			Command: rc, Drafts: drafts, All: all, DryRun: dryRun, Publish: publish, Stdin: c.Stdin,
 			Query: map[string]string{}, Body: map[string]any{},
-			Markdown: map[string]string{}, Files: map[string]string{},
-		}
-		for name, v := range markdown {
-			if *v != "" {
-				call.Markdown[name] = *v
-			}
+			Files: map[string]string{},
 		}
 		for name, v := range files {
 			if *v != "" {

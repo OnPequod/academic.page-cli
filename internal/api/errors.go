@@ -75,6 +75,8 @@ func (e *Error) Hint() string {
 		return "This matches a preprint or published version already on the site (see match). Pass --on-match suggest to propose linking them, or create_anyway to keep both."
 	case "ignored_before":
 		return "This publication was ignored on an earlier import. Pass --on-match create_anyway to add it anyway."
+	case "media_processing_failed":
+		return "The file could not be processed (for example, an image that cannot be read). Check the file and upload it again."
 	case "tag_in_use":
 		return "The tag is still attached to records. Remove it from them first."
 	case "section_not_enabled":

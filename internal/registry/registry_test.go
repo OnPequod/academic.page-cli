@@ -48,7 +48,7 @@ func TestCommandShapes(t *testing.T) {
 	r := load(t)
 
 	create := r.Find("posts", "create")
-	if create.Kind != KindWrite || !create.IsTextFile("content_markdown") || create.IsRich("content_structured") || !create.Publishable || create.Arg != nil {
+	if create.Kind != KindWrite || !create.IsTextFile("content_markdown") || !create.Publishable || create.Arg != nil {
 		t.Errorf("posts create: %+v", create)
 	}
 	if r.Find("posts", "get").ManageFlag != "drafts" || r.Find("publications", "get").ManageFlag != "manage" {

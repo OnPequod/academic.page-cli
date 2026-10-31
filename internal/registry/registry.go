@@ -70,14 +70,10 @@ type Command struct {
 	Text bool
 	// Publishable writes accept --publish and default to drafts.
 	Publishable bool
-	// Tiptap lists body fields that take the editor's Tiptap JSON. Most have
+	// Tiptap lists body fields that take the editor's Tiptap JSON. Each has
 	// a Markdown sibling (content_markdown for content_structured) that the
 	// API converts; the Tiptap form stays available through --data.
 	Tiptap []string
-	// Rich lists Tiptap fields with no Markdown sibling. The CLI converts
-	// Markdown for these itself, through --<prefix>-markdown and
-	// --<prefix>-file (see RichPrefix).
-	Rich []string
 	// TextFiles lists string body fields that can be read from a file with
 	// --<field>-file, such as the BibTeX of an import.
 	TextFiles []string
@@ -215,6 +211,7 @@ var table = []entry{
 	{group: "publications", name: "list", short: "List publications (CSL-JSON, formatted citation, DOI)", op: "listPublications", draftsOp: "manageListPublications"},
 	{group: "publications", name: "get", short: "Show a publication", op: "getPublication", draftsOp: "manageGetPublication"},
 	{group: "publications", name: "bibtex", short: "Export every publication as BibTeX", op: "exportPublicationsBibtex", text: true},
+	{group: "publications", name: "bibtex-entry", short: "Export one publication as BibTeX", op: "exportPublicationBibtex", text: true},
 	{group: "publications", name: "create", short: "Add a publication (skips matches unless --on-match says otherwise)", op: "manageCreatePublication", kind: KindWrite},
 	{group: "publications", name: "update", short: "Update a publication", op: "manageUpdatePublication", kind: KindWrite},
 	{group: "publications", name: "delete", short: "Delete a publication", op: "manageDeletePublication", kind: KindDelete},
@@ -441,11 +438,11 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 		}
 	}
 	for _, name := range c.Tiptap {
-		if md := RichPrefix(name) + "_markdown"; hasField(c.Body, md) {
-			c.TextFiles = append(c.TextFiles, md)
-		} else {
-			c.Rich = append(c.Rich, name)
+		md := MarkdownOption(name)
+		if !hasField(c.Body, md) {
+			return nil, fmt.Errorf("%s %s: rich-text field %s has no Markdown sibling %s", e.group, e.name, name, md)
 		}
+		c.TextFiles = append(c.TextFiles, md)
 	}
 	if e.textFile != "" {
 		if !hasField(c.Body, e.textFile) {
