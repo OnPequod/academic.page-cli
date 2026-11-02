@@ -3349,8 +3349,16 @@
             "name": "type",
             "in": "query",
             "required": false,
+            "description": "Only files of this kind.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "image",
+                "video",
+                "document",
+                "audio",
+                "other"
+              ]
             }
           }
         ],
@@ -3405,6 +3413,16 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/site"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Any unique string of up to 255 characters, such as a UUID, chosen by the client for this upload. A repeat of the request with the same key within 24 hours answers 201 with the record the first request stored, and the header `Idempotent-Replayed: true`, instead of storing the file again. Send it to retry safely after a lost response.",
+            "schema": {
+              "type": "string",
+              "maxLength": 255
+            }
           }
         ],
         "responses": {
@@ -3437,9 +3455,12 @@
           },
           "422": {
             "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
           }
         },
-        "description": "A file that does not fit is refused with 422 and the same codes as a multipart upload: `upload_too_large` (larger than the plan's per-file limit), `storage_quota_exceeded` (the site's allowance is full), or `bucket_quota_exceeded` (the platform's storage is full). An image the image library cannot read, such as a damaged file, answers 422 `media_processing_failed` and nothing of it is kept. A request without a file answers 422 `validation_failed`; any other failure to store the file, 422 `media_upload_failed`.",
+        "description": "A file that does not fit is refused with 422 and the same codes as a multipart upload: `upload_too_large` (larger than the plan's per-file limit), `storage_quota_exceeded` (the site's allowance is full), or `bucket_quota_exceeded` (the platform's storage is full). An image the image library cannot read, such as a damaged file, answers 422 `media_processing_failed` and nothing of it is kept. A request without a file answers 422 `validation_failed`; any other failure to store the file, 422 `media_upload_failed`. Every refusal leaves nothing in the library, so the upload can be sent again. With an `Idempotency-Key` that an unfinished request is still using, or that was used for a different file, the answer is 409 `idempotency_key_conflict`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -3745,7 +3766,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "The assembled file is checked against the same limits as a single upload: `upload_too_large`, `storage_quota_exceeded`, or `bucket_quota_exceeded`. A file sent as an image (its `content_type` at init) that the image library cannot read, such as a damaged file, answers 422 `media_processing_failed`: the stored parts and anything added to the library are removed, and the site's storage is as it was. Start a new upload to try again. An unknown or expired upload answers 404 `multipart_upload_not_found`, and only then does starting a new upload help. A part list that does not match the parts storage holds, such as a wrong ETag or a part that never arrived, answers 422 `multipart_upload_invalid_parts`: the upload is still open, so send the right list or upload the missing part again. Repeating the same list does not help. A part number listed twice answers 422 `validation_failed`.",
+        "description": "The assembled file is checked against the same limits as a single upload: `upload_too_large`, `storage_quota_exceeded`, or `bucket_quota_exceeded`. A file sent as an image (its `content_type` at init) that the image library cannot read, such as a damaged file, answers 422 `media_processing_failed`: the stored parts and anything added to the library are removed, and the site's storage is as it was. Start a new upload to try again. An unknown or expired upload answers 404 `multipart_upload_not_found`, and only then does starting a new upload help. A part list that does not match the parts storage holds, such as a wrong ETag or a part that never arrived, answers 422 `multipart_upload_invalid_parts`: the upload is still open, so send the right list or upload the missing part again. Repeating the same list does not help. A part number listed twice answers 422 `validation_failed`. Completing an upload that already completed, within 24 hours, answers 201 with the same record and stores nothing more.",
         "requestBody": {
           "required": true,
           "content": {
@@ -8634,7 +8655,7 @@
           },
           "code": {
             "type": "string",
-            "description": "section_not_enabled (404) means the site does not have the section: on the content endpoints, the public site does not show it; on the management endpoints, the admin does not let this site type edit it. One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, media_processing_failed, media_upload_failed, multipart_upload_not_found, multipart_upload_invalid_parts, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
+            "description": "section_not_enabled (404) means the site does not have the section: on the content endpoints, the public site does not show it; on the management endpoints, the admin does not let this site type edit it. One of: missing_api_token, missing_ability, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, media_processing_failed, media_upload_failed, idempotency_key_conflict, multipart_upload_not_found, multipart_upload_invalid_parts, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
           },
           "errors": {
             "type": "object",
@@ -8881,7 +8902,7 @@
           "url": {
             "type": "string",
             "format": "uri",
-            "description": "The site's public address: its custom domain once active, otherwise its .page subdomain."
+            "description": "The site's public address, as the admin and GET /me name it: its custom domain once active, a mounted site's path under its parent's address, otherwise its .page subdomain. Record URLs start with it."
           },
           "custom_domain": {
             "type": [
@@ -8990,7 +9011,7 @@
           "url": {
             "type": "string",
             "format": "uri",
-            "description": "The site's public address: its custom domain once active, otherwise its .page subdomain."
+            "description": "The site's public address, as the admin and GET /me name it: its custom domain once active, a mounted site's path under its parent's address, otherwise its .page subdomain. Record URLs start with it."
           },
           "custom_domain": {
             "type": [
@@ -10795,25 +10816,29 @@
             "description": "Absolute public URL. Like path, it has no trailing slash except at the site root."
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "On a course site, the course the site is about is titled with the site's name, as Course Info shows it."
           },
           "instructor_name": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Instructor, as Course Info shows it."
           },
           "primary_institution": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Primary Institution, as Course Info shows it."
           },
           "excerpt": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "The Short Introduction."
           },
           "content": {
             "oneOf": [
@@ -12225,7 +12250,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Made from the title, unique on the site, when the page is published without one. Another page with the same parent cannot use the same slug."
           },
           "excerpt": {
             "type": [
@@ -13664,7 +13690,8 @@
                     },
                     "url": {
                       "type": "string",
-                      "format": "uri"
+                      "format": "uri",
+                      "description": "The site's public address, the same as the content API's site url."
                     },
                     "team_id": {
                       "type": "integer"
@@ -13770,8 +13797,8 @@
             "enum": [
               "image",
               "video",
-              "audio",
               "document",
+              "audio",
               "other",
               null
             ],
@@ -15104,14 +15131,14 @@
               "integer",
               "null"
             ],
-            "description": "A library file's site media ID, of any type up to 50 MB, to attach as the slides file. The file moves out of the library into the talk; the slides file it replaces is deleted. Null removes the slides file."
+            "description": "A library file's site media ID, of any type up to 50 MB or the plan's per-file limit, whichever is lower, to attach as the slides file. The file moves out of the library into the talk; the slides file it replaces is deleted. Null removes the slides file."
           },
           "paper_media_id": {
             "type": [
               "integer",
               "null"
             ],
-            "description": "A library file's site media ID, of any type up to 50 MB, to attach as the paper file. The file moves out of the library into the talk; the paper file it replaces is deleted. Null removes the paper file."
+            "description": "A library file's site media ID, of any type up to 50 MB or the plan's per-file limit, whichever is lower, to attach as the paper file. The file moves out of the library into the talk; the paper file it replaces is deleted. Null removes the paper file."
           },
           "is_featured": {
             "type": "boolean"
@@ -15165,11 +15192,13 @@
       },
       "ManagementCourse": {
         "type": "object",
-        "description": "A course, draft or published. Its lessons are at /courses/{courseId}/lessons.",
+        "description": "A course, draft or published. Its lessons are at /courses/{courseId}/lessons. On a course site, the site's first course is the one Course Info edits: title, instructor_name, primary_institution, excerpt, and content_structured are its Course Title, Instructor, Primary Institution, Short Introduction, and Full Description.",
         "required": [
           "id",
           "site_id",
           "title",
+          "instructor_name",
+          "primary_institution",
           "slug",
           "uri",
           "excerpt",
@@ -15202,7 +15231,22 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Course Title. For a course site's own course, the site's name."
+          },
+          "instructor_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Instructor."
+          },
+          "primary_institution": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Primary Institution."
           },
           "slug": {
             "type": [
@@ -15220,7 +15264,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "Short Introduction."
           },
           "content_structured": {
             "type": [
@@ -15418,19 +15463,39 @@
       },
       "ManagementCourseInput": {
         "type": "object",
-        "description": "A PATCH changes only the fields sent; instances, when sent, replaces the whole list. Publishing needs a title. The slug is made from the title.",
+        "description": "A PATCH changes only the fields sent; instances, when sent, replaces the whole list. Publishing needs a title. The slug is made from the title. On a course site, the site's own course is the one Course Info edits: its title is the site's name, so saving the title renames the site, and the title cannot be emptied.",
         "properties": {
           "title": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "maxLength": 255,
+            "description": "Course Title. For a course site's own course, it is also the site's name and cannot be empty; a new one starts with the site's name."
+          },
+          "instructor_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Instructor. Empty clears it."
+          },
+          "primary_institution": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Primary Institution. Empty clears it."
           },
           "excerpt": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "maxLength": 500,
+            "description": "Short Introduction."
           },
           "content_structured": {
             "type": [
@@ -16492,7 +16557,7 @@
               "integer",
               "null"
             ],
-            "description": "A library file's site media ID, of any type within the plan's per-file limit. The file moves out of the library into the material; a Word file (doc, docx) is converted to PDF and the original deleted. Null removes the file. Needs file uploads on the plan."
+            "description": "A library file's site media ID, of any type within the plan's per-file limit. The file moves out of the library into the material; a Word file (doc, docx) is converted to PDF and the original deleted. Null removes the file."
           },
           "edit_version": {
             "type": [
@@ -16684,7 +16749,7 @@
               "integer",
               "null"
             ],
-            "description": "A library file's site media ID to attach: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, csv, html, htm, within the plan's per-file limit. The file moves out of the library into the assignment; the file it replaces is deleted. Null removes the file. Needs file uploads on the plan."
+            "description": "A library file's site media ID to attach: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, csv, html, htm, within the plan's per-file limit. The file moves out of the library into the assignment; the file it replaces is deleted. Null removes the file."
           },
           "published_at": {
             "type": [
