@@ -117,5 +117,13 @@ func Describe(err error) ErrorBody {
 		b.Code = "network"
 		b.Hint = "Check your connection and the base URL (--base-url or " + "ACADEMIC_PAGE_BASE_URL)."
 	}
+	var retry *RetryableUploadError
+	if errors.As(err, &retry) {
+		if b.Details == nil {
+			b.Details = map[string]json.RawMessage{}
+		}
+		b.Details["idempotency_key"], _ = json.Marshal(retry.Key)
+		b.Hint = fmt.Sprintf("The file may have been stored. Retry with --idempotency-key %s (idempotency_key for MCP): within 24 hours the API returns the stored record instead of a duplicate.", retry.Key)
+	}
 	return b
 }

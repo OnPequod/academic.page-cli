@@ -49,6 +49,9 @@ func (c *Command) InputSchema() map[string]any {
 	for _, f := range c.Query {
 		props[f.OptionName()] = fieldSchema(f)
 	}
+	for _, f := range c.Headers {
+		props[f.OptionName()] = fieldSchema(f)
+	}
 	for _, f := range c.Body {
 		s := fieldSchema(f)
 		if slices.Contains(c.Tiptap, f.Name) {

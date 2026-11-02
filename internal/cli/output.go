@@ -21,6 +21,14 @@ func (c *CLI) printResult(rc *registry.Command, call app.Call, res *app.Result) 
 			return c.printJSON(res.Plan)
 		}
 		fmt.Fprintf(c.Stdout, "Dry run, nothing sent.\n%s %s\n", res.Plan.Method, res.Plan.URL)
+		names := make([]string, 0, len(res.Plan.Headers))
+		for name := range res.Plan.Headers {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			fmt.Fprintf(c.Stdout, "%s: %s\n", name, res.Plan.Headers[name])
+		}
 		if res.Plan.File != nil {
 			fmt.Fprintf(c.Stdout, "File: %s (%d bytes)\n", res.Plan.File.Path, res.Plan.File.Size)
 		}

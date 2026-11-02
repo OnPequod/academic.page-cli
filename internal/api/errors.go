@@ -83,6 +83,8 @@ func (e *Error) Hint() string {
 		return "Storage could not assemble the upload. Run it again; if it keeps failing, report it with the time."
 	case "media_processing_failed":
 		return "The file could not be processed (for example, an image that cannot be read). Check the file and upload it again."
+	case "idempotency_key_conflict":
+		return "That Idempotency-Key belongs to an upload that is still running, or to a different file. Wait a minute and run `academic-page media list` to see whether the first upload finished. To upload a different file, use a new key, or leave the key out and the CLI makes one."
 	case "tag_in_use":
 		return "The tag is still attached to records. Remove it from them first."
 	case "section_not_enabled":

@@ -2,6 +2,7 @@ package mcpserver
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -86,6 +87,49 @@ func TestCallTool(t *testing.T) {
 	}
 	text := res.Content[0].(*mcp.TextContent).Text
 	if res.IsError || !strings.Contains(text, `"dry_run":true`) || !strings.Contains(text, `"published_at":null`) {
+		t.Errorf("dry run = %s", text)
+	}
+}
+
+// Tool input schemas, as an MCP client lists them, carry the spec's enums,
+// nested ones included, and the upload's idempotency_key option.
+func TestToolSchemasCarryEnumsAndHeaders(t *testing.T) {
+	reg, _ := registry.Load()
+	session := connect(t, app.New(reg, config.Settings{BaseURL: "http://unused"}, "test"))
+	tools, err := session.ListTools(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	byName := map[string]map[string]any{}
+	for _, tool := range tools.Tools {
+		data, _ := json.Marshal(tool.InputSchema)
+		var s map[string]any
+		_ = json.Unmarshal(data, &s)
+		byName[tool.Name], _ = s["properties"].(map[string]any)
+	}
+	enum := func(prop any) []any {
+		e, _ := prop.(map[string]any)["enum"].([]any)
+		return e
+	}
+	if e := enum(byName["lesson_materials_create"]["type"]); len(e) != 8 {
+		t.Errorf("lesson_materials_create type enum = %v", e)
+	}
+	term := byName["courses_update"]["instances"].(map[string]any)["items"].(map[string]any)["properties"].(map[string]any)["term"]
+	if e := enum(term); len(e) != 9 {
+		t.Errorf("courses_update instances[].term enum = %v", e)
+	}
+	key, ok := byName["media_upload"]["idempotency_key"].(map[string]any)
+	if !ok || key["maxLength"] != float64(255) {
+		t.Errorf("media_upload idempotency_key = %v", byName["media_upload"]["idempotency_key"])
+	}
+
+	res, err := session.CallTool(context.Background(), &mcp.CallToolParams{Name: "media_upload", Arguments: map[string]any{
+		"file": "server_test.go", "idempotency_key": "cli-audit-key", "dry_run": true, "site": 7,
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text := res.Content[0].(*mcp.TextContent).Text; res.IsError || !strings.Contains(text, `"Idempotency-Key":"cli-audit-key"`) {
 		t.Errorf("dry run = %s", text)
 	}
 }

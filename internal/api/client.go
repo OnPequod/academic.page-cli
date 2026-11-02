@@ -47,6 +47,22 @@ type Request struct {
 	ContentType string
 	// Accept overrides application/json, e.g. for BibTeX.
 	Accept string
+	// Headers are extra request headers, such as Idempotency-Key.
+	Headers map[string]string
+	// Retry marks a non-GET request that is safe to send again after a
+	// network error or a server error, such as signing a multipart part.
+	// A request with an Idempotency-Key header is always treated so.
+	Retry bool
+}
+
+// IdempotencyKeyHeader names the header that makes a repeated write return
+// the first result instead of doing the work again.
+const IdempotencyKeyHeader = "Idempotency-Key"
+
+// retryable reports whether the request may be sent again after a network
+// or server error.
+func (r Request) retryable() bool {
+	return r.Method == http.MethodGet || r.Retry || r.Headers[IdempotencyKeyHeader] != ""
 }
 
 // Response is a completed call.
@@ -76,7 +92,7 @@ func (c *Client) do(ctx context.Context, method, rawURL string, r Request) (*Res
 	}
 	for attempt := 0; ; attempt++ {
 		resp, err := c.once(ctx, method, rawURL, r)
-		retryable, wait := c.shouldRetry(method, resp, err, attempt)
+		retryable, wait := c.shouldRetry(r, resp, err, attempt)
 		if !retryable {
 			if err != nil {
 				return nil, err
@@ -92,14 +108,14 @@ func (c *Client) do(ctx context.Context, method, rawURL string, r Request) (*Res
 	}
 }
 
-func (c *Client) shouldRetry(method string, resp *Response, err error, attempt int) (bool, time.Duration) {
+func (c *Client) shouldRetry(r Request, resp *Response, err error, attempt int) (bool, time.Duration) {
 	if attempt >= c.MaxRetries {
 		return false, 0
 	}
 	backoff := time.Duration(1<<attempt) * time.Second
 	if err != nil {
 		var netErr *NetworkError
-		return method == http.MethodGet && errors.As(err, &netErr), backoff
+		return r.retryable() && errors.As(err, &netErr), backoff
 	}
 	switch {
 	case resp.Status == http.StatusTooManyRequests:
@@ -107,7 +123,11 @@ func (c *Client) shouldRetry(method string, resp *Response, err error, attempt i
 			return true, time.Duration(s) * time.Second
 		}
 		return true, backoff
-	case resp.Status >= 500 && method == http.MethodGet:
+	case resp.Status >= 500 && r.retryable():
+		return true, backoff
+	case resp.Status == http.StatusConflict && attempt > 0 && r.Headers[IdempotencyKeyHeader] != "" && parseError(resp).Code == "idempotency_key_conflict":
+		// A retry of our own request found the first attempt still
+		// running. Wait for it; the next answer replays its record.
 		return true, backoff
 	}
 	return false, 0
@@ -133,6 +153,9 @@ func (c *Client) once(ctx context.Context, method, rawURL string, r Request) (*R
 	}
 	if r.ContentType != "" {
 		req.Header.Set("Content-Type", r.ContentType)
+	}
+	for k, v := range r.Headers {
+		req.Header.Set(k, v)
 	}
 	res, err := c.HTTP.Do(req)
 	if err != nil {

@@ -57,6 +57,7 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 	}
 	flags := cmd.Flags()
 	query := addFields(flags, rc.Query)
+	headers := addFields(flags, rc.Headers)
 	body := addFields(flags, rc.Body)
 
 	if rc.DraftsOp != nil {
@@ -99,7 +100,7 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 		call := app.Call{
 			Command: rc, Drafts: drafts, All: all, DryRun: dryRun, Publish: publish, Stdin: c.Stdin,
 			Query: map[string]string{}, Body: map[string]any{},
-			Files: map[string]string{},
+			Files: map[string]string{}, Headers: map[string]string{},
 		}
 		for name, v := range files {
 			if *v != "" {
@@ -132,6 +133,11 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 		for _, f := range query {
 			if f.changed() {
 				call.Query[f.field.Name] = fmt.Sprint(f.value())
+			}
+		}
+		for _, f := range headers {
+			if f.changed() {
+				call.Headers[f.field.Header] = fmt.Sprint(f.value())
 			}
 		}
 		for _, f := range body {
@@ -174,6 +180,9 @@ func longHelp(rc *registry.Command) string {
 	}
 	if rc.Publishable && rc.Arg == nil {
 		b.WriteString("\n\nCreates a draft unless you pass --publish or --published-at.")
+	}
+	if rc.Kind == registry.KindUpload {
+		b.WriteString("\n\nThe file goes straight to storage in parts when the site's storage supports it; signing, part uploads and completion are retried on network and server errors, and completing twice returns the same record. Otherwise it goes in one request with an Idempotency-Key, which the CLI reuses when it retries, so a retry after a lost response returns the stored record instead of a second copy. If every retry fails, the error names the key: pass it back with --idempotency-key within 24 hours.")
 	}
 	var nested []string
 	for _, f := range rc.Body {
@@ -263,6 +272,9 @@ func addFields(flags *pflag.FlagSet, fields []registry.Field) []boundFlag {
 		if field.DraftsOnly {
 			desc += " [management read only]"
 		}
+		// pflag reads the first `quoted` word as the value's name; the
+		// spec's descriptions quote codes and headers that way.
+		desc = strings.ReplaceAll(desc, "`", "")
 		if field.PublishedOnly {
 			desc += " [published read only]"
 		}

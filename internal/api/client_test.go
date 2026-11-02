@@ -126,3 +126,51 @@ func TestMissingToken(t *testing.T) {
 		t.Errorf("err = %v", err)
 	}
 }
+
+func TestRetriesIdempotentWrites(t *testing.T) {
+	var calls atomic.Int32
+	var keys []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		keys = append(keys, r.Header.Get(IdempotencyKeyHeader))
+		switch calls.Add(1) {
+		case 1:
+			w.WriteHeader(503)
+		case 2:
+			// The first attempt is still running on the server.
+			w.WriteHeader(409)
+			fmt.Fprint(w, `{"message":"In use.","code":"idempotency_key_conflict"}`)
+		default:
+			w.Header().Set("Idempotent-Replayed", "true")
+			w.WriteHeader(201)
+			fmt.Fprint(w, `{"data":{"id":1}}`)
+		}
+	}))
+	defer srv.Close()
+	resp, err := newClient(srv.URL).Do(context.Background(), Request{Method: "POST", Path: "/x", Headers: map[string]string{IdempotencyKeyHeader: "k1"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if calls.Load() != 3 || strings.Join(keys, ",") != "k1,k1,k1" || resp.Header.Get("Idempotent-Replayed") != "true" {
+		t.Errorf("calls = %d, keys = %v", calls.Load(), keys)
+	}
+}
+
+// A conflict on the first attempt means the key was used for another file;
+// waiting will not help.
+func TestIdempotencyConflictOnFirstAttemptIsNotRetried(t *testing.T) {
+	var calls atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		w.WriteHeader(409)
+		fmt.Fprint(w, `{"message":"Used for a different file.","code":"idempotency_key_conflict"}`)
+	}))
+	defer srv.Close()
+	_, err := newClient(srv.URL).Do(context.Background(), Request{Method: "POST", Path: "/x", Headers: map[string]string{IdempotencyKeyHeader: "k1"}})
+	var apiErr *Error
+	if !errors.As(err, &apiErr) || apiErr.Code != "idempotency_key_conflict" || calls.Load() != 1 {
+		t.Fatalf("err = %v, calls = %d", err, calls.Load())
+	}
+	if !strings.Contains(apiErr.Hint(), "still running") {
+		t.Errorf("hint = %q", apiErr.Hint())
+	}
+}

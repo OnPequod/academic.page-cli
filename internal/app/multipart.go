@@ -90,7 +90,7 @@ func (a *App) uploadParts(ctx context.Context, session string, info *FileInfo, p
 		}
 
 		signBody, _ := json.Marshal(map[string]int{"part_number": number})
-		resp, err := a.Client.Do(ctx, api.Request{Method: "POST", Path: session + "/sign", Body: signBody, ContentType: "application/json"})
+		resp, err := a.Client.Do(ctx, api.Request{Method: "POST", Path: session + "/sign", Body: signBody, ContentType: "application/json", Retry: true})
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +113,9 @@ func (a *App) uploadParts(ctx context.Context, session string, info *FileInfo, p
 		complete[k] = v
 	}
 	body, _ := json.Marshal(complete)
-	resp, err := a.Client.Do(ctx, api.Request{Method: "POST", Path: session + "/complete", Body: body, ContentType: "application/json"})
+	// Completing again within 24 hours returns the same record, so a lost
+	// response is safe to retry.
+	resp, err := a.Client.Do(ctx, api.Request{Method: "POST", Path: session + "/complete", Body: body, ContentType: "application/json", Retry: true})
 	if err != nil {
 		return nil, err
 	}

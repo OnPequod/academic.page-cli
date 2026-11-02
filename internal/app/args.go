@@ -11,7 +11,7 @@ import (
 // CallFromArgs builds a Call from JSON arguments shaped by
 // Command.InputSchema, as MCP tools receive them.
 func CallFromArgs(cmd *registry.Command, raw json.RawMessage) (Call, error) {
-	call := Call{Command: cmd, Query: map[string]string{}, Body: map[string]any{}, Files: map[string]string{}, Parents: make([]string, len(cmd.Parents))}
+	call := Call{Command: cmd, Query: map[string]string{}, Body: map[string]any{}, Files: map[string]string{}, Headers: map[string]string{}, Parents: make([]string, len(cmd.Parents))}
 	args := map[string]any{}
 	if len(raw) > 0 && string(raw) != "null" {
 		if err := json.Unmarshal(raw, &args); err != nil {
@@ -22,6 +22,10 @@ func CallFromArgs(cmd *registry.Command, raw json.RawMessage) (Call, error) {
 	query := map[string]string{}
 	for _, f := range cmd.Query {
 		query[f.OptionName()] = f.Name
+	}
+	headers := map[string]string{}
+	for _, f := range cmd.Headers {
+		headers[f.OptionName()] = f.Header
 	}
 	files := map[string]string{}
 	for _, name := range cmd.TextFiles {
@@ -46,6 +50,8 @@ func CallFromArgs(cmd *registry.Command, raw json.RawMessage) (Call, error) {
 			call.DryRun, err = toBool(name, v)
 		case name == registry.OptPublish:
 			call.Publish, err = toBool(name, v)
+		case headers[name] != "":
+			call.Headers[headers[name]], err = toString(name, v)
 		case files[name] != "":
 			call.Files[files[name]], err = toString(name, v)
 			if call.Files[files[name]] == "-" {

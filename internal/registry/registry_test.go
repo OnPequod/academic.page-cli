@@ -81,6 +81,9 @@ func TestCommandShapes(t *testing.T) {
 	if upload.FileArg == nil || upload.Kind != KindUpload {
 		t.Errorf("media upload: %+v", upload)
 	}
+	if len(upload.Headers) != 1 || upload.Headers[0].Header != "Idempotency-Key" || upload.Headers[0].Name != "idempotency_key" || upload.Headers[0].Flag != "idempotency-key" {
+		t.Errorf("media upload headers: %+v", upload.Headers)
+	}
 
 	if r.Find("sites", "list").NeedsSite() || r.Find("key", "show").NeedsSite() {
 		t.Error("sites list and key show should not need a site")

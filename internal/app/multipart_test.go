@@ -1,10 +1,14 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -34,6 +38,18 @@ type storage struct {
 	failPart    int
 	// initCode makes init fail with this 422 code.
 	initCode string
+	// singleFailures makes the first single uploads answer 503 (after
+	// storing the file, as a lost response would), and completeFailures the
+	// first completes.
+	singleFailures, completeFailures int
+	// dropSingle closes the connection on every single upload, as a
+	// network failure does.
+	dropSingle bool
+	// keys records the Idempotency-Key of each single upload; stored maps
+	// a key to the record it created.
+	keys   []string
+	stored map[string]string
+	single map[string]any
 }
 
 func newStorage(t *testing.T, supported bool) *storage {
@@ -80,18 +96,49 @@ func newStorage(t *testing.T, supported bool) *storage {
 			w.Header().Set("ETag", fmt.Sprintf(`"etag-%d"`, n))
 		case strings.HasSuffix(r.URL.Path, "/multipart/u1/complete"):
 			_ = json.Unmarshal(body, &s.complete)
+			if s.completeFailures > 0 {
+				s.completeFailures--
+				w.WriteHeader(502)
+				return
+			}
 			w.WriteHeader(201)
 			fmt.Fprint(w, `{"data":{"id":5,"filename":"big.bin"}}`)
 		case strings.HasSuffix(r.URL.Path, "/multipart/u1/abort"):
 			w.WriteHeader(204)
 		case strings.HasSuffix(r.URL.Path, "/media"):
+			key := r.Header.Get("Idempotency-Key")
+			s.keys = append(s.keys, key)
+			if s.dropSingle {
+				conn, _, _ := w.(http.Hijacker).Hijack()
+				_ = conn.Close()
+				return
+			}
+			if s.stored == nil {
+				s.stored = map[string]string{}
+			}
+			if rec, ok := s.stored[key]; ok && key != "" {
+				w.Header().Set("Idempotent-Replayed", "true")
+				w.WriteHeader(201)
+				fmt.Fprint(w, rec)
+				return
+			}
 			if s.singleLimit > 0 && len(body) > s.singleLimit {
 				w.WriteHeader(413)
 				fmt.Fprint(w, "<html><body>413 Request Entity Too Large</body></html>")
 				return
 			}
+			rec := fmt.Sprintf(`{"data":{"id":%d,"size":%d}}`, 6+len(s.stored), len(body))
+			s.stored[key] = rec
+			if mr, err := multipartReader(r, body); err == nil {
+				s.single = mr
+			}
+			if s.singleFailures > 0 {
+				s.singleFailures--
+				w.WriteHeader(503)
+				return
+			}
 			w.WriteHeader(201)
-			fmt.Fprintf(w, `{"data":{"id":6,"size":%d}}`, len(body))
+			fmt.Fprint(w, rec)
 		default:
 			w.WriteHeader(404)
 		}
@@ -114,6 +161,10 @@ func bigFile(t *testing.T, size int64) string {
 }
 
 func uploadCall(t *testing.T, s *storage, path string) (*Result, error) {
+	return uploadWith(t, s, path, nil)
+}
+
+func uploadWith(t *testing.T, s *storage, path string, headers map[string]string) (*Result, error) {
 	reg, err := registry.Load()
 	if err != nil {
 		t.Fatal(err)
@@ -123,8 +174,30 @@ func uploadCall(t *testing.T, s *storage, path string) (*Result, error) {
 	return a.Execute(context.Background(), Call{
 		Command: reg.Find("media", "upload"),
 		File:    path,
-		Body:    map[string]any{"alt_text": "Alt"},
+		Body:    map[string]any{"alt_text": "Alt", "description": "Desc"},
+		Headers: headers,
 	})
+}
+
+// multipartReader returns the text fields of a multipart/form-data body.
+func multipartReader(r *http.Request, body []byte) (map[string]any, error) {
+	_, params, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil {
+		return nil, err
+	}
+	mr := multipart.NewReader(bytes.NewReader(body), params["boundary"])
+	out := map[string]any{}
+	for {
+		part, err := mr.NextPart()
+		if err != nil {
+			break
+		}
+		if part.FileName() == "" {
+			data, _ := io.ReadAll(part)
+			out[part.FormName()] = string(data)
+		}
+	}
+	return out, nil
 }
 
 func TestMultipartUpload(t *testing.T) {
@@ -223,5 +296,95 @@ func TestSmallFilesUseOnePart(t *testing.T) {
 	want := "POST /sites/7/media/multipart/init,POST /sites/7/media/multipart/u1/sign,PUT /bucket/part/1,POST /sites/7/media/multipart/u1/complete"
 	if got := strings.Join(s.calls, ","); got != want {
 		t.Errorf("calls = %s", got)
+	}
+}
+
+func TestSingleUploadSendsAnIdempotencyKey(t *testing.T) {
+	s := newStorage(t, false)
+	if _, err := uploadCall(t, s, bigFile(t, 1024)); err != nil {
+		t.Fatal(err)
+	}
+	if len(s.keys) != 1 || len(s.keys[0]) != 36 {
+		t.Fatalf("keys = %q", s.keys)
+	}
+	if s.single["alt_text"] != "Alt" || s.single["description"] != "Desc" {
+		t.Errorf("fields = %v", s.single)
+	}
+	if _, err := uploadCall(t, s, bigFile(t, 1024)); err != nil {
+		t.Fatal(err)
+	}
+	if len(s.keys) != 2 || s.keys[0] == s.keys[1] {
+		t.Errorf("each upload should get its own key: %q", s.keys)
+	}
+}
+
+// A server error after the file was stored is retried with the same key,
+// and the API replays the stored record instead of storing a duplicate.
+func TestSingleUploadRetriesWithTheSameKey(t *testing.T) {
+	s := newStorage(t, false)
+	s.singleFailures = 1
+	res, err := uploadCall(t, s, bigFile(t, 1024))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(s.keys) != 2 || s.keys[0] != s.keys[1] || len(s.stored) != 1 {
+		t.Errorf("keys = %q, stored = %v", s.keys, s.stored)
+	}
+	if !strings.Contains(string(res.JSON), `"id":6`) {
+		t.Errorf("result = %s", res.JSON)
+	}
+}
+
+func TestSingleUploadUsesTheGivenKey(t *testing.T) {
+	s := newStorage(t, false)
+	if _, err := uploadWith(t, s, bigFile(t, 1024), map[string]string{"Idempotency-Key": "cli-audit-1"}); err != nil {
+		t.Fatal(err)
+	}
+	res, err := uploadWith(t, s, bigFile(t, 1024), map[string]string{"Idempotency-Key": "cli-audit-1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(s.keys, ",") != "cli-audit-1,cli-audit-1" || len(s.stored) != 1 || !strings.Contains(string(res.JSON), `"id":6`) {
+		t.Errorf("keys = %q, stored = %v, result = %s", s.keys, s.stored, res.JSON)
+	}
+	if _, err := uploadWith(t, s, bigFile(t, 1024), map[string]string{"Idempotency-Key": strings.Repeat("k", 256)}); ExitCode(err) != ExitUsage {
+		t.Errorf("a 256-character key: err = %v", err)
+	}
+}
+
+// When every attempt loses its response, the error names the key, so a
+// later retry can still get the stored record.
+func TestLostUploadNamesTheKey(t *testing.T) {
+	s := newStorage(t, false)
+	s.dropSingle = true
+	_, err := uploadCall(t, s, bigFile(t, 1024))
+	var retry *RetryableUploadError
+	if !errors.As(err, &retry) || retry.Key != s.keys[0] || ExitCode(err) != ExitNetwork {
+		t.Fatalf("err = %v", err)
+	}
+	// Four attempts, or more: net/http also replays a request with an
+	// Idempotency-Key once when a reused connection drops.
+	if len(s.keys) < 4 {
+		t.Errorf("attempts = %d, want at least 4", len(s.keys))
+	}
+	for _, k := range s.keys {
+		if k != retry.Key {
+			t.Errorf("retries used another key: %q", s.keys)
+		}
+	}
+	d := Describe(err)
+	if string(d.Details["idempotency_key"]) != `"`+retry.Key+`"` || !strings.Contains(d.Hint, "--idempotency-key "+retry.Key) {
+		t.Errorf("describe = %+v", d)
+	}
+}
+
+func TestMultipartCompleteIsRetried(t *testing.T) {
+	s := newStorage(t, true)
+	s.completeFailures = 1
+	if _, err := uploadCall(t, s, bigFile(t, 1024)); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Count(strings.Join(s.calls, ","), "/complete"); got != 2 {
+		t.Errorf("completes = %d", got)
 	}
 }

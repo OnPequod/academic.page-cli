@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/OnPequod/academic.page-cli/internal/api"
 	"github.com/OnPequod/academic.page-cli/internal/spec"
 )
 
@@ -49,6 +50,9 @@ type Field struct {
 	MaxLength  *int           `json:"max_length,omitempty"`
 	// Param is the path parameter a positional argument fills.
 	Param string `json:"-"`
+	// Header is the HTTP header a header field fills, such as
+	// Idempotency-Key.
+	Header string `json:"header,omitempty"`
 	// DraftsOnly and PublishedOnly mark query flags that only one of the two
 	// operations behind a read command accepts.
 	DraftsOnly    bool `json:"drafts_only,omitempty"`
@@ -90,6 +94,9 @@ type Command struct {
 	// FileArg is the positional file argument of an upload.
 	FileArg *Field
 	Query   []Field
+	// Headers are the operation's header parameters, such as the
+	// Idempotency-Key of an upload, named in snake case (idempotency_key).
+	Headers []Field
 	Body    []Field
 }
 
@@ -424,6 +431,15 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 	}
 
 	c.Query = queryFields(s, op, c.DraftsOp)
+	for _, f := range params(s, op, "header") {
+		f.Header = f.Name
+		f.Name = strings.ToLower(strings.ReplaceAll(f.Name, "-", "_"))
+		f.Flag = strings.ReplaceAll(f.Name, "_", "-")
+		if f.Header == api.IdempotencyKeyHeader {
+			f.Description += " Left out, the CLI makes a new key (a UUID) for each call and reuses it on its own retries."
+		}
+		c.Headers = append(c.Headers, f)
+	}
 	inQuery := map[string]bool{}
 	for _, f := range c.Query {
 		inQuery[f.Name] = true

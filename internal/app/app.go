@@ -5,6 +5,7 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -61,6 +62,9 @@ type Call struct {
 	Query map[string]string
 	// Body holds body fields by API name.
 	Body map[string]any
+	// Headers holds header parameters by header name, such as
+	// Idempotency-Key.
+	Headers map[string]string
 
 	// Files holds file paths for text fields, such as content_markdown or
 	// bibtex, by API name; "-" reads standard input.
@@ -89,7 +93,10 @@ type Plan struct {
 	Method string         `json:"method"`
 	URL    string         `json:"url"`
 	Body   map[string]any `json:"body,omitempty"`
-	File   *FileInfo      `json:"file,omitempty"`
+	// Headers are the header parameters the request would send, such as
+	// the Idempotency-Key of an upload.
+	Headers map[string]string `json:"headers,omitempty"`
+	File    *FileInfo         `json:"file,omitempty"`
 	// Multipart is true for uploads: the file goes up in parts through the
 	// multipart endpoints, and the request above is only the fallback.
 	Multipart bool `json:"multipart,omitempty"`
@@ -122,7 +129,11 @@ func (a *App) Execute(ctx context.Context, call Call) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	req := api.Request{Method: op.Method, Path: path, Query: query}
+	headers, err := a.headers(call, op)
+	if err != nil {
+		return nil, err
+	}
+	req := api.Request{Method: op.Method, Path: path, Query: query, Headers: headers}
 	if cmd.Text {
 		req.Accept = "application/x-bibtex, text/plain;q=0.9, */*;q=0.1"
 	}
@@ -130,7 +141,7 @@ func (a *App) Execute(ctx context.Context, call Call) (*Result, error) {
 		return nil, Usagef("`%s` returns one record; --all only applies to list commands", cmd.Path())
 	}
 
-	plan := &Plan{DryRun: true, Method: op.Method, All: call.All}
+	plan := &Plan{DryRun: true, Method: op.Method, All: call.All, Headers: headers}
 	var upload *FileInfo
 	var uploadFields map[string]any
 	switch cmd.Kind {
@@ -194,9 +205,15 @@ func (a *App) Execute(ctx context.Context, call Call) (*Result, error) {
 		resp, err := a.Client.Do(ctx, req)
 		if err != nil {
 			var apiErr *api.Error
+			var netErr *api.NetworkError
 			if errors.As(err, &apiErr) && apiErr.Status == http.StatusRequestEntityTooLarge {
 				apiErr.Code = "file_too_large"
 				apiErr.Message = fmt.Sprintf("%s (%s) is too large to upload in one request, and this site's storage does not accept multipart uploads.", upload.Name, humanBytes(upload.Size))
+			}
+			if key := headers[api.IdempotencyKeyHeader]; key != "" && (errors.As(err, &netErr) || (apiErr != nil && apiErr.Status >= 500)) {
+				// The upload may have been stored. The same key makes a
+				// later retry return that record instead of a duplicate.
+				return nil, &RetryableUploadError{Err: err, Key: key}
 			}
 			return nil, err
 		}
@@ -239,6 +256,66 @@ func (a *App) site(call Call) (int64, error) {
 		return a.Settings.Site, nil
 	}
 	return 0, Usagef("no site chosen: pass --site <id>, set %s, or run `academic-page sites use <id>` (`academic-page sites list` shows the IDs)", config.EnvSite)
+}
+
+// headers fills the operation's header parameters. An Idempotency-Key the
+// caller did not give is made here, once per call, so the client's own
+// retries of the request reuse it.
+func (a *App) headers(call Call, op *spec.Operation) (map[string]string, error) {
+	var out map[string]string
+	for _, p := range op.Params {
+		if p.In != "header" {
+			continue
+		}
+		value := call.Headers[p.Name]
+		if value == "" && p.Name == api.IdempotencyKeyHeader {
+			value = newUUID()
+		}
+		if value == "" {
+			if p.Required {
+				return nil, Usagef("`%s` needs the %s header", call.Command.Path(), p.Name)
+			}
+			continue
+		}
+		if p.Schema != nil && p.Schema.MaxLength != nil && len(value) > *p.Schema.MaxLength {
+			return nil, Usagef("%s must be at most %d characters", p.Name, *p.Schema.MaxLength)
+		}
+		if out == nil {
+			out = map[string]string{}
+		}
+		out[p.Name] = value
+	}
+	for name := range call.Headers {
+		if _, ok := out[name]; !ok && call.Headers[name] != "" {
+			return nil, Usagef("`%s` has no %s option", call.Command.Path(), name)
+		}
+	}
+	return out, nil
+}
+
+// RetryableUploadError is an upload that failed in a way that may have
+// stored the file anyway: the response was lost, or the server failed. It
+// names the Idempotency-Key to retry with.
+type RetryableUploadError struct {
+	Err error
+	Key string
+}
+
+func (e *RetryableUploadError) Error() string {
+	return fmt.Sprintf("%v\nThe file may have been stored. Retry with --idempotency-key %s (idempotency_key for MCP) to get that record instead of a duplicate.", e.Err, e.Key)
+}
+
+func (e *RetryableUploadError) Unwrap() error { return e.Err }
+
+// newUUID returns a random (version 4) UUID.
+func newUUID() string {
+	var b [16]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		panic(err)
+	}
+	b[6] = b[6]&0x0f | 0x40
+	b[8] = b[8]&0x3f | 0x80
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
 func (a *App) path(call Call, op *spec.Operation) (string, error) {
