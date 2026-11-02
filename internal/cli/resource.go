@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -164,8 +165,8 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 func longHelp(rc *registry.Command) string {
 	var b strings.Builder
 	b.WriteString(rc.Short + ".")
-	if rc.Op.Description != "" {
-		b.WriteString("\n\n" + rc.Op.Description)
+	if desc := rc.Description(); desc != "" {
+		b.WriteString("\n\n" + desc)
 	}
 	fmt.Fprintf(&b, "\n\nAPI: %s %s", rc.Op.Method, rc.Op.Path)
 	if rc.DraftsOp != nil {
@@ -174,7 +175,64 @@ func longHelp(rc *registry.Command) string {
 	if rc.Publishable && rc.Arg == nil {
 		b.WriteString("\n\nCreates a draft unless you pass --publish or --published-at.")
 	}
+	var nested []string
+	for _, f := range rc.Body {
+		if f.ItemSchema != nil {
+			nested = append(nested, f.Name+": a list of objects with "+describeProperties(f.ItemSchema))
+		}
+	}
+	if len(nested) > 0 {
+		b.WriteString("\n\nOnly through --data (a JSON object of body fields):\n  " + strings.Join(nested, "\n  "))
+	}
 	return b.String()
+}
+
+// describeProperties lists an object schema's properties for help text, with
+// their choices, such as "term (required; one of: spring, fall)".
+func describeProperties(schema map[string]any) string {
+	props, _ := schema["properties"].(map[string]any)
+	required := map[string]bool{}
+	if req, ok := schema["required"].([]string); ok {
+		for _, name := range req {
+			required[name] = true
+		}
+	}
+	names := make([]string, 0, len(props))
+	for name := range props {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	parts := make([]string, len(names))
+	for i, name := range names {
+		var notes []string
+		if required[name] {
+			notes = append(notes, "required")
+		}
+		if prop, ok := props[name].(map[string]any); ok {
+			if enum, ok := prop["enum"].([]any); ok {
+				notes = append(notes, "one of: "+joinValues(enum))
+			}
+			if max, ok := prop["maxLength"].(int); ok {
+				notes = append(notes, fmt.Sprintf("up to %d characters", max))
+			}
+		}
+		parts[i] = name
+		if len(notes) > 0 {
+			parts[i] += " (" + strings.Join(notes, "; ") + ")"
+		}
+	}
+	return strings.Join(parts, ", ")
+}
+
+// joinValues lists enum values, leaving out null.
+func joinValues(values []any) string {
+	var out []string
+	for _, v := range values {
+		if v != nil {
+			out = append(out, fmt.Sprint(v))
+		}
+	}
+	return strings.Join(out, ", ")
 }
 
 type boundFlag struct {
@@ -197,11 +255,10 @@ func addFields(flags *pflag.FlagSet, fields []registry.Field) []boundFlag {
 			desc += " (" + field.Format + ")"
 		}
 		if len(field.Enum) > 0 {
-			values := make([]string, len(field.Enum))
-			for i, v := range field.Enum {
-				values[i] = fmt.Sprint(v)
-			}
-			desc += " (one of: " + strings.Join(values, ", ") + ")"
+			desc += " (one of: " + joinValues(field.Enum) + ")"
+		}
+		if field.MaxLength != nil {
+			desc += fmt.Sprintf(" (up to %d characters)", *field.MaxLength)
 		}
 		if field.DraftsOnly {
 			desc += " [management read only]"

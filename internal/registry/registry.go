@@ -42,7 +42,11 @@ type Field struct {
 	Option string `json:"option,omitempty"`
 	// Items is an array's item type, such as integer or object.
 	Items string `json:"items,omitempty"`
-	Enum  []any  `json:"enum,omitempty"`
+	// ItemSchema is the JSON Schema of an array's object items, such as a
+	// course offering, with their own enums and limits.
+	ItemSchema map[string]any `json:"item_schema,omitempty"`
+	Enum       []any          `json:"enum,omitempty"`
+	MaxLength  *int           `json:"max_length,omitempty"`
 	// Param is the path parameter a positional argument fills.
 	Param string `json:"-"`
 	// DraftsOnly and PublishedOnly mark query flags that only one of the two
@@ -95,6 +99,20 @@ func (c *Command) Path() string { return c.Group + " " + c.Name }
 // ToolName returns the MCP tool name, such as posts_list.
 func (c *Command) ToolName() string {
 	return strings.ReplaceAll(c.Group, "-", "_") + "_" + strings.ReplaceAll(c.Name, "-", "_")
+}
+
+// Description returns the operation's description followed by its request
+// body's, which is where the API explains write rules such as how a course
+// maps to Course Info.
+func (c *Command) Description() string {
+	desc := c.Op.Description
+	if c.Op.Body != nil && c.Op.Body.Description != "" {
+		if desc != "" {
+			desc += "\n\n"
+		}
+		desc += c.Op.Body.Description
+	}
+	return desc
 }
 
 // NeedsSite reports whether the command's path has a {site} parameter.
@@ -528,6 +546,7 @@ func field(s *spec.Spec, name string, schema *spec.Schema) Field {
 		Description: schema.Description,
 		Nullable:    nullable,
 		Default:     schema.Default,
+		MaxLength:   schema.MaxLength,
 	}
 	for _, v := range schema.Enum {
 		if v != nil {
@@ -541,6 +560,9 @@ func field(s *spec.Spec, name string, schema *spec.Schema) Field {
 				item = s.Resolve(item)
 			}
 			f.Items = item.PrimaryType()
+			if f.Items == "object" && len(item.Properties) > 0 {
+				f.ItemSchema = valueSchema(s, item, 0)
+			}
 		}
 	}
 	if name == "dry_run" {

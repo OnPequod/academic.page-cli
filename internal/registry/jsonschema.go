@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/OnPequod/academic.page-cli/internal/spec"
 )
 
 // Option names shared by the MCP tools and the schema output. Body and query
@@ -102,6 +104,9 @@ func fieldSchema(f Field) map[string]any {
 			items = "string"
 		}
 		s["items"] = map[string]any{"type": items}
+		if f.ItemSchema != nil {
+			s["items"] = f.ItemSchema
+		}
 	}
 	if len(f.Enum) > 0 {
 		enum := f.Enum
@@ -112,6 +117,9 @@ func fieldSchema(f Field) map[string]any {
 	}
 	if f.Format != "" {
 		s["format"] = f.Format
+	}
+	if f.MaxLength != nil {
+		s["maxLength"] = *f.MaxLength
 	}
 	desc := f.Description
 	if f.DraftsOnly {
@@ -131,3 +139,76 @@ func fieldSchema(f Field) map[string]any {
 
 // IsTextFile reports whether the body field can be read from a file.
 func (c *Command) IsTextFile(name string) bool { return slices.Contains(c.TextFiles, name) }
+
+// valueSchema converts a spec schema into the JSON Schema an input takes:
+// references resolved, read-only properties left out, and enums and limits
+// kept, so nested values such as a course offering's term list their choices.
+func valueSchema(s *spec.Spec, schema *spec.Schema, depth int) map[string]any {
+	if s != nil {
+		schema = s.Resolve(schema)
+	}
+	out := map[string]any{}
+	types, nullable := schema.Types()
+	t := "object"
+	if len(types) > 0 {
+		t = types[0]
+	}
+	if nullable {
+		out["type"] = []string{t, "null"}
+	} else {
+		out["type"] = t
+	}
+	if schema.Description != "" {
+		out["description"] = schema.Description
+	}
+	if schema.Format != "" {
+		out["format"] = schema.Format
+	}
+	if schema.MaxLength != nil {
+		out["maxLength"] = *schema.MaxLength
+	}
+	if schema.Default != nil {
+		out["default"] = schema.Default
+	}
+	if len(schema.Enum) > 0 {
+		enum := append([]any{}, schema.Enum...)
+		if nullable && !slices.Contains(enum, nil) {
+			enum = append(enum, nil)
+		}
+		out["enum"] = enum
+	}
+	if depth >= 4 {
+		return out
+	}
+	switch t {
+	case "array":
+		if item := schema.ItemSchema(); item != nil {
+			out["items"] = valueSchema(s, item, depth+1)
+		}
+	case "object":
+		if len(schema.Properties) == 0 {
+			break
+		}
+		props := map[string]any{}
+		for name, prop := range schema.Properties {
+			if s != nil {
+				prop = s.Resolve(prop)
+			}
+			if prop.ReadOnly {
+				continue
+			}
+			props[name] = valueSchema(s, prop, depth+1)
+		}
+		out["properties"] = props
+		var required []string
+		for _, name := range schema.Required {
+			if _, ok := props[name]; ok {
+				required = append(required, name)
+			}
+		}
+		if len(required) > 0 {
+			out["required"] = required
+		}
+	}
+	return out
+}

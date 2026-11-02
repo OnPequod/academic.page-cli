@@ -4,6 +4,7 @@ package mcpserver
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -44,8 +45,8 @@ func Tool(cmd *registry.Command) *mcp.Tool {
 	destructive := cmd.Kind == registry.KindDelete || cmd.Kind == registry.KindWrite
 	openWorld := true
 	desc := cmd.Short + ". API: " + cmd.Op.Method + " " + cmd.Op.Path + "."
-	if cmd.Op.Description != "" {
-		desc += " " + cmd.Op.Description
+	if d := cmd.Description(); d != "" {
+		desc += " " + strings.ReplaceAll(d, "\n\n", " ")
 	}
 	return &mcp.Tool{
 		Name:        cmd.ToolName(),

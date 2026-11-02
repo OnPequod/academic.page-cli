@@ -450,3 +450,47 @@ func TestRichTextIsMarkdownFirst(t *testing.T) {
 		t.Errorf("profile summary: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
 	}
 }
+
+func TestHelpShowsChoicesAndLimits(t *testing.T) {
+	r := run(t, "", "lesson-materials", "create", "--help")
+	if !strings.Contains(r.stdout, "one of: reading, slides, data_set, code_file, external_link, resource, no_file, other") {
+		t.Errorf("material type choices missing from help:\n%s", r.stdout)
+	}
+	r = run(t, "", "courses", "update", "--help")
+	for _, want := range []string{
+		"--instructor-name", "--primary-institution", "(up to 255 characters)", "(up to 500 characters)",
+		"term (required; one of: spring, summer, fall, winter, q1, q2, q3, q4, other)",
+		"Course Info",
+	} {
+		if !strings.Contains(r.stdout, want) {
+			t.Errorf("courses update --help lacks %q", want)
+		}
+	}
+}
+
+func TestCoursePartialUpdate(t *testing.T) {
+	f := setup(t)
+	r := run(t, "", "courses", "update", "4", "--instructor-name", "Ada Lovelace", "--null", "primary_institution", "--edit-version", "3", "--dry-run", "--json")
+	if r.code != 0 {
+		t.Fatalf("code %d: %s", r.code, r.stderr)
+	}
+	var plan struct {
+		Method string         `json:"method"`
+		Body   map[string]any `json:"body"`
+	}
+	if err := json.Unmarshal([]byte(r.stdout), &plan); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]any{"instructor_name": "Ada Lovelace", "primary_institution": nil, "edit_version": float64(3)}
+	if plan.Method != "PATCH" || len(plan.Body) != len(want) {
+		t.Fatalf("plan = %+v", plan)
+	}
+	for k, v := range want {
+		if got, ok := plan.Body[k]; !ok || got != v {
+			t.Errorf("body[%s] = %v, want %v", k, got, v)
+		}
+	}
+	if len(f.requests) != 0 {
+		t.Error("a dry run sent a request")
+	}
+}

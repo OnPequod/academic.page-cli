@@ -108,7 +108,7 @@ func describeCommand(root *cobra.Command, rc *registry.Command) commandSchema {
 	cs := commandSchema{
 		Command:     rc.Path(),
 		Summary:     rc.Short,
-		Description: rc.Op.Description,
+		Description: rc.Description(),
 		Kind:        rc.Kind,
 		API:         apiRef{rc.Op.Method, rc.Op.Path, rc.Op.ID},
 		MCPTool:     rc.ToolName(),

@@ -2,8 +2,11 @@ package registry
 
 import (
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
+
+	"github.com/OnPequod/academic.page-cli/internal/spec"
 )
 
 func load(t *testing.T) *Registry {
@@ -166,5 +169,139 @@ func TestInputSchema(t *testing.T) {
 	req := load(t).Find("course-lessons", "get").InputSchema()["required"].([]string)
 	if len(req) != 2 || req[0] != "course_id" || req[1] != "id" {
 		t.Errorf("course-lessons get required = %v", req)
+	}
+}
+
+// Every enum in a request body (nested ones included) or query parameter
+// must reach the command's input schema, which the schema command and the
+// MCP tools share. This fails if a spec refresh adds choices the CLI drops.
+func TestEnumsReachInputSchemas(t *testing.T) {
+	r := load(t)
+	checked := 0
+	for _, c := range r.Commands {
+		props := c.InputSchema()["properties"].(map[string]any)
+		for _, f := range c.Query {
+			for _, p := range append(append([]spec.Param{}, c.Op.Params...), draftsParams(c)...) {
+				if p.Name == f.Name && p.In == "query" && len(p.Schema.Enum) > 0 {
+					checked++
+					assertEnum(t, c.Path()+" --"+f.Flag, props[f.OptionName()], p.Schema.Enum)
+				}
+			}
+		}
+		if c.Op.Body == nil {
+			continue
+		}
+		for _, f := range c.Body {
+			walkEnums(t, r.Spec, c.Path()+" "+f.Name, r.Spec.Resolve(c.Op.Body.Properties[f.Name]), props[f.OptionName()], &checked, 0)
+		}
+	}
+	if checked < 10 {
+		t.Fatalf("only %d enums checked; the walk is broken", checked)
+	}
+}
+
+func draftsParams(c *Command) []spec.Param {
+	if c.DraftsOp == nil {
+		return nil
+	}
+	return c.DraftsOp.Params
+}
+
+func walkEnums(t *testing.T, s *spec.Spec, where string, schema *spec.Schema, got any, checked *int, depth int) {
+	t.Helper()
+	if schema == nil || schema.ReadOnly || depth > 4 {
+		return
+	}
+	if len(schema.Enum) > 0 {
+		*checked++
+		assertEnum(t, where, got, schema.Enum)
+	}
+	gotMap, _ := got.(map[string]any)
+	switch schema.PrimaryType() {
+	case "array":
+		if item := schema.ItemSchema(); item != nil {
+			walkEnums(t, s, where+"[]", s.Resolve(item), gotMap["items"], checked, depth+1)
+		}
+	case "object":
+		gotProps, _ := gotMap["properties"].(map[string]any)
+		for name, prop := range schema.Properties {
+			walkEnums(t, s, where+"."+name, s.Resolve(prop), gotProps[name], checked, depth+1)
+		}
+	}
+}
+
+func assertEnum(t *testing.T, where string, got any, want []any) {
+	t.Helper()
+	m, ok := got.(map[string]any)
+	if !ok {
+		t.Errorf("%s: missing from the input schema", where)
+		return
+	}
+	enum, _ := m["enum"].([]any)
+	for _, v := range want {
+		if !slices.Contains(enum, v) {
+			t.Errorf("%s: input schema enum %v lacks %v", where, enum, v)
+		}
+	}
+}
+
+// The values the CLI/API audit (CLI-05) found missing, read from the spec so
+// they cannot drift from it.
+func TestAuditedEnums(t *testing.T) {
+	r := load(t)
+	enumOf := func(group, name, option string) []any {
+		c := r.Find(group, name)
+		prop, _ := c.InputSchema()["properties"].(map[string]any)[option].(map[string]any)
+		enum, _ := prop["enum"].([]any)
+		return enum
+	}
+	cases := []struct {
+		group, name, option string
+		want                []any
+	}{
+		{"lesson-materials", "create", "type", []any{"reading", "slides", "data_set", "code_file", "external_link", "resource", "no_file", "other"}},
+		{"course-references", "create", "kind", []any{"textbook", "book", "purchased_resource", "reference_site", "data_set", "file_archive", "other"}},
+		{"media", "list", "type", []any{"image", "video", "document", "audio", "other"}},
+		{"talks", "create", "talk_type", nil},
+		{"profile-links", "create", "service", nil},
+		{"publications", "create", "type", nil},
+		{"publications", "create", "on_match", nil},
+	}
+	for _, tc := range cases {
+		got := enumOf(tc.group, tc.name, tc.option)
+		if len(got) == 0 {
+			t.Errorf("%s %s %s: no enum", tc.group, tc.name, tc.option)
+		}
+		for _, v := range tc.want {
+			if !slices.Contains(got, v) {
+				t.Errorf("%s %s %s: enum %v lacks %v", tc.group, tc.name, tc.option, got, v)
+			}
+		}
+	}
+
+	instances := r.Find("courses", "update").InputSchema()["properties"].(map[string]any)["instances"].(map[string]any)
+	term := instances["items"].(map[string]any)["properties"].(map[string]any)["term"].(map[string]any)
+	if enum, _ := term["enum"].([]any); len(enum) != 9 || !slices.Contains(enum, "q4") {
+		t.Errorf("courses update instances[].term enum = %v", term["enum"])
+	}
+	if _, ok := instances["items"].(map[string]any)["properties"].(map[string]any)["is_current"]; ok {
+		t.Error("read-only offering fields should not be inputs")
+	}
+}
+
+// CLI-03: course writes carry the Course Info fields with their limits.
+func TestCourseInfoFields(t *testing.T) {
+	for _, name := range []string{"create", "update"} {
+		props := load(t).Find("courses", name).InputSchema()["properties"].(map[string]any)
+		for field, max := range map[string]int{"title": 255, "instructor_name": 255, "primary_institution": 255, "excerpt": 500} {
+			p, ok := props[field].(map[string]any)
+			if !ok {
+				t.Errorf("courses %s lacks %s", name, field)
+				continue
+			}
+			if p["maxLength"] != max {
+				t.Errorf("courses %s %s maxLength = %v, want %d", name, field, p["maxLength"], max)
+			}
+		}
 	}
 }

@@ -33,6 +33,9 @@ type Schema struct {
 	Maximum     *float64           `json:"maximum,omitempty"`
 	Default     any                `json:"default,omitempty"`
 	Enum        []any              `json:"enum,omitempty"`
+	MaxLength   *int               `json:"maxLength,omitempty"`
+	// ReadOnly properties appear in responses only; inputs leave them out.
+	ReadOnly bool `json:"readOnly,omitempty"`
 }
 
 // Types returns the schema's types, with "null" removed and nullable reported
