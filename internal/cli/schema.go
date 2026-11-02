@@ -90,7 +90,9 @@ With command words, describe one command:
 				"errors":     "With --json, errors are printed to stderr as {\"error\": {code, message, status, fields, hint, exit_code}}.",
 				"notes": []string{
 					"Reads return published content; --drafts on posts, pages, projects and media reads includes drafts (management key).",
-					"Writes exist for posts, pages, projects and media. Creates are drafts unless --publish.",
+					"Writes exist for every group except key and sites. Creates of records with drafts are drafts unless --publish.",
+					"Fields with fixed values list them as enum in input_schema, nested ones included (such as instances[].term on courses).",
+					"media upload sends an Idempotency-Key on single-request uploads and reuses it on its own retries; pass --idempotency-key to retry a failed upload without a duplicate.",
 					"Rich text (content, abstract, bio, and so on) is written in Markdown with --<field>-markdown or --<field>-file. The editor's Tiptap JSON is accepted through --data for exact control.",
 					"Every command accepts --dry-run, which prints the request without sending it.",
 					"Other commands: auth login|logout|status|profiles|use, sites use, mcp, version.",
