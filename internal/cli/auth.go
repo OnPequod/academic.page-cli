@@ -89,14 +89,14 @@ The key is checked against the API before it is saved, and is never printed.`,
 			}
 			switch {
 			case p.Site != 0:
-				fmt.Fprintf(c.Stdout, "Default site: %d", p.Site)
+				label := fmt.Sprintf("ID %d", p.Site)
 				for _, site := range sites {
-					if site.ID == p.Site && site.Name != "" {
-						fmt.Fprintf(c.Stdout, " (%s)", site.Name)
+					if site.ID == p.Site {
+						label = site.label()
 						break
 					}
 				}
-				fmt.Fprintln(c.Stdout, ".")
+				fmt.Fprintf(c.Stdout, "Default site: %s.\n", label)
 			case len(sites) > 1:
 				fmt.Fprintln(c.Stdout, "Choose a default site with `academic-page sites use <id>`; `academic-page sites list` shows the IDs.")
 			}
@@ -134,8 +134,35 @@ func (c *CLI) readToken(fromStdin bool) (string, error) {
 }
 
 type siteSummary struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name,omitempty"`
+	ID           int64  `json:"id"`
+	Name         string `json:"name,omitempty"`
+	URL          string `json:"url,omitempty"`
+	CustomDomain string `json:"custom_domain,omitempty"`
+}
+
+// address is the site's host as people know it: its custom domain when one
+// is active, otherwise the host of its address on Academic.page.
+func (s siteSummary) address() string {
+	if s.CustomDomain != "" {
+		return s.CustomDomain
+	}
+	if u, err := url.Parse(s.URL); err == nil && u.Host != "" {
+		return u.Host
+	}
+	return ""
+}
+
+// label names a site for people first and for commands second, such as
+// "lab.academic.page (Civic Data Lab, ID 7)". `sites use` takes the ID.
+func (s siteSummary) label() string {
+	details := fmt.Sprintf("ID %d", s.ID)
+	if s.Name != "" {
+		details = s.Name + ", " + details
+	}
+	if addr := s.address(); addr != "" {
+		return addr + " (" + details + ")"
+	}
+	return details
 }
 
 func listSites(cmd *cobra.Command, client *api.Client) ([]siteSummary, error) {

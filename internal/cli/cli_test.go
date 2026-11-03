@@ -45,7 +45,7 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 		}
 		switch {
 		case r.URL.Path == "/content/sites":
-			fmt.Fprint(w, `{"data":[{"id":7,"name":"Lab"}],"links":{"next":null},"meta":{"current_page":1,"last_page":1,"total":1}}`)
+			fmt.Fprint(w, `{"data":[{"id":7,"name":"Lab","url":"https://lab.academic.page","custom_domain":null}],"links":{"next":null},"meta":{"current_page":1,"last_page":1,"total":1}}`)
 		case r.URL.Path == "/content/sites/7/posts":
 			fmt.Fprint(w, `{"data":[{"id":1,"title":"Hello","slug":"hello","published_at":"2026-01-01T00:00:00Z"}],"links":{"next":null},"meta":{"current_page":1,"last_page":1,"total":1}}`)
 		case r.URL.Path == "/content/sites/7/posts/404":
@@ -287,7 +287,7 @@ func TestLoginStoresKeyAndPicksOnlySite(t *testing.T) {
 	if r.code != 0 {
 		t.Fatalf("code %d: %s", r.code, r.stderr)
 	}
-	if !strings.Contains(r.stdout, "The key can read 1 site.") || !strings.Contains(r.stdout, "Default site: 7 (Lab).") {
+	if !strings.Contains(r.stdout, "The key can read 1 site.") || !strings.Contains(r.stdout, "Default site: lab.academic.page (Lab, ID 7).") {
 		t.Errorf("login summary: %q", r.stdout)
 	}
 	if strings.Contains(r.stdout+r.stderr, "good-key") {
@@ -569,5 +569,18 @@ func TestHumanErrorsOmitDebugTraceAndKeepActionableDetails(t *testing.T) {
 	}
 	if json.Unmarshal(out.Bytes(), &body) != nil || len(body.Error.Details) != 5 {
 		t.Fatalf("JSON error lost diagnostics: %s", out.String())
+	}
+}
+
+func TestSiteLabelPrefersTheCustomDomain(t *testing.T) {
+	cases := map[string]siteSummary{
+		"jane.example.org (Jane Doe, ID 3)":   {ID: 3, Name: "Jane Doe", URL: "https://jane.academic.page", CustomDomain: "jane.example.org"},
+		"jane.academic.page (Jane Doe, ID 3)": {ID: 3, Name: "Jane Doe", URL: "https://jane.academic.page"},
+		"Jane Doe, ID 3":                      {ID: 3, Name: "Jane Doe"},
+	}
+	for want, site := range cases {
+		if got := site.label(); got != want {
+			t.Errorf("label() = %q, want %q", got, want)
+		}
 	}
 }
