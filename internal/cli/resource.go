@@ -87,9 +87,9 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 		files[name] = flags.String(strings.ReplaceAll(registry.FileOption(name), "_", "-"), "", name+" from a file, or - for stdin")
 	}
 	if rc.Publishable {
-		flags.BoolVar(&publish, "publish", false, "Publish now (sets published_at to the current time)")
+		flags.BoolVar(&publish, "publish", false, "Publish now")
 		if rc.Arg != nil {
-			flags.BoolVar(&unpublish, "unpublish", false, "Return to draft (clears published_at)")
+			flags.BoolVar(&unpublish, "unpublish", false, "Return to draft")
 		}
 	}
 	if rc.Kind == registry.KindDelete {
@@ -152,7 +152,11 @@ func (c *CLI) resourceCommand(rc *registry.Command) *cobra.Command {
 			if publish {
 				return app.Usagef("give --publish or --unpublish, not both")
 			}
-			call.Body["published_at"] = nil
+			if rc.PublishingField() == "published" {
+				call.Body["published"] = false
+			} else {
+				call.Body["published_at"] = nil
+			}
 		}
 
 		a, err := c.app()

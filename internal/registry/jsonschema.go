@@ -80,7 +80,9 @@ func (c *Command) InputSchema() map[string]any {
 	}
 	if c.Publishable {
 		props[OptPublish] = map[string]any{"type": "boolean", "description": "Publish now. Without it, creates are drafts."}
-		props["published_at"] = map[string]any{"type": []string{"string", "null"}, "format": "date-time", "description": "Publish time; null makes it a draft."}
+		if c.PublishingField() == "published_at" {
+			props["published_at"] = map[string]any{"type": []string{"string", "null"}, "format": "date-time", "description": "Publish time; null makes it a draft."}
+		}
 	}
 
 	schema := map[string]any{"type": "object", "properties": props, "additionalProperties": false}

@@ -615,3 +615,39 @@ func TestTextListFlagsKeepCommas(t *testing.T) {
 		t.Errorf("copresenters were split: %s", r.stdout)
 	}
 }
+
+func TestProjectsUseBooleanPublishingAndTitledLinks(t *testing.T) {
+	setup(t)
+	for _, tc := range []struct {
+		args      []string
+		published bool
+	}{
+		{[]string{"projects", "create", "--title", "Research"}, false},
+		{[]string{"projects", "create", "--title", "Research", "--publish"}, true},
+		{[]string{"projects", "update", "9", "--unpublish"}, false},
+	} {
+		args := append(tc.args, "--dry-run", "--json", "--data", `{"links":[{"title":"Data","url":"https://example.org/data"}]}`)
+		result := run(t, "", args...)
+		if result.code != 0 {
+			t.Fatalf("%v: %s", args, result.stderr)
+		}
+		var plan app.Plan
+		if err := json.Unmarshal([]byte(result.stdout), &plan); err != nil {
+			t.Fatal(err)
+		}
+		if plan.Body["published"] != tc.published {
+			t.Fatalf("body: %v", plan.Body)
+		}
+		if _, exists := plan.Body["published_at"]; exists {
+			t.Fatalf("retired timestamp in body: %v", plan.Body)
+		}
+		links, ok := plan.Body["links"].([]any)
+		if !ok || len(links) != 1 || links[0].(map[string]any)["title"] != "Data" {
+			t.Fatalf("links: %v", plan.Body["links"])
+		}
+	}
+	result := run(t, "", "projects", "create", "--title", "Research", "--project-url", "https://example.org")
+	if result.code == 0 {
+		t.Fatal("retired project URL flag was accepted")
+	}
+}

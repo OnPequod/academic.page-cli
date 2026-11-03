@@ -425,20 +425,29 @@ func (a *App) body(call Call) (map[string]any, error) {
 		body[name] = string(data)
 	}
 
+	field := cmd.PublishingField()
 	if call.Publish {
 		if !cmd.Publishable {
 			return nil, Usagef("`%s` cannot be published", cmd.Path())
 		}
-		if _, ok := body["published_at"]; ok {
-			return nil, Usagef("give --publish or --published-at, not both")
+		if _, ok := body[field]; ok {
+			return nil, Usagef("give --publish or --%s, not both", strings.ReplaceAll(field, "_", "-"))
 		}
-		body["published_at"] = a.Now().UTC().Format(time.RFC3339)
+		if field == "published" {
+			body[field] = true
+		} else {
+			body[field] = a.Now().UTC().Format(time.RFC3339)
+		}
 	} else if cmd.Publishable && cmd.Arg == nil {
-		// Creates are drafts unless asked otherwise.
-		if _, ok := body["published_at"]; !ok {
-			body["published_at"] = nil
+		if _, ok := body[field]; !ok {
+			if field == "published" {
+				body[field] = false
+			} else {
+				body[field] = nil
+			}
 		}
 	}
+
 	return body, nil
 }
 

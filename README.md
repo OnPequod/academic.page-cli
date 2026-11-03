@@ -145,3 +145,16 @@ Releases: push a `v*` tag. GoReleaser builds the binaries, publishes a GitHub re
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+### Project links and publishing
+
+Projects accept an ordered list of titled URLs through `--data`:
+
+```sh
+academic-page projects create --title "Research toolkit" --data '{"links":[{"title":"Dataset","url":"https://example.org/data"}]}' --publish
+academic-page projects update 42 --unpublish
+```
+
+Projects are published or drafts. They have no publication-date or scheduling
+flag. `--project-url`, `--repository-url`, and `--technologies` have been replaced
+by the `links` list.

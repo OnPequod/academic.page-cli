@@ -77,7 +77,8 @@ type Command struct {
 	// Text commands return a non-JSON body, such as BibTeX.
 	Text bool
 	// Publishable writes accept --publish and default to drafts.
-	Publishable bool
+	Publishable  bool
+	PublishField string
 	// EmptyHint is printed when the list, read without the manage flag,
 	// is empty, for lists whose public form leaves records out.
 	EmptyHint string
@@ -105,6 +106,15 @@ type Command struct {
 
 // Path returns the command's words, such as "posts list".
 func (c *Command) Path() string { return c.Group + " " + c.Name }
+
+// PublishingField names the API field for publishing, with the timestamp
+// default retained for commands constructed directly by callers.
+func (c *Command) PublishingField() string {
+	if c.PublishField != "" {
+		return c.PublishField
+	}
+	return "published_at"
+}
 
 // ToolName returns the MCP tool name, such as posts_list.
 func (c *Command) ToolName() string {
@@ -481,8 +491,9 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 			if f.Type == "object" && (strings.HasSuffix(name, "_structured") || strings.Contains(prop.Description, "Tiptap")) {
 				c.Tiptap = append(c.Tiptap, name)
 			}
-			if name == "published_at" {
+			if name == "published_at" || name == "published" {
 				c.Publishable = true
+				c.PublishField = name
 			}
 			c.Body = append(c.Body, f)
 		}

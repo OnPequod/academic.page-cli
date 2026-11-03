@@ -111,7 +111,9 @@ func (c *CLI) printWriteSummary(rc *registry.Command, call app.Call, raw, data j
 		line += fmt.Sprintf(" %q", title)
 	}
 	if rc.Publishable {
-		if p, ok := record["published_at"]; ok && p != nil {
+		if p, ok := record["published"].(bool); ok && p {
+			line += " (published)"
+		} else if p, ok := record["published_at"]; ok && p != nil {
 			line += fmt.Sprintf(" (published %v)", p)
 		} else {
 			line += " (draft)"

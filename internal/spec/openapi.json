@@ -10733,9 +10733,7 @@
           "excerpt",
           "content",
           "status",
-          "project_url",
-          "repository_url",
-          "technologies",
+          "links",
           "start_date",
           "end_date",
           "display_order",
@@ -10743,7 +10741,6 @@
           "gallery",
           "tags",
           "seo",
-          "published_at",
           "created_at",
           "updated_at"
         ],
@@ -10801,24 +10798,10 @@
               "null"
             ]
           },
-          "project_url": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uri"
-          },
-          "repository_url": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uri"
-          },
-          "technologies": {
+          "links": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ProjectLink"
             }
           },
           "start_date": {
@@ -10879,13 +10862,6 @@
                 ]
               }
             }
-          },
-          "published_at": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
           },
           "created_at": {
             "type": [
@@ -13005,6 +12981,24 @@
         },
         "additionalProperties": false
       },
+      "ProjectLink": {
+        "type": "object",
+        "required": [
+          "title",
+          "url"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048
+          }
+        }
+      },
       "ManagementProject": {
         "type": "object",
         "description": "A project, draft or published.",
@@ -13048,25 +13042,11 @@
             ],
             "description": "content_structured as Markdown. Images are written as Markdown images with their URL."
           },
-          "technologies": {
+          "links": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ProjectLink"
             }
-          },
-          "project_url": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uri"
-          },
-          "repository_url": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uri"
           },
           "status": {
             "type": [
@@ -13100,12 +13080,8 @@
               "null"
             ]
           },
-          "published_at": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
+          "published": {
+            "type": "boolean"
           },
           "created_at": {
             "type": [
@@ -13173,25 +13149,11 @@
             ],
             "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
-          "technologies": {
+          "links": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ProjectLink"
             }
-          },
-          "project_url": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uri"
-          },
-          "repository_url": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "uri"
           },
           "status": {
             "type": "string",
@@ -13227,12 +13189,8 @@
               "null"
             ]
           },
-          "published_at": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date-time"
+          "published": {
+            "type": "boolean"
           },
           "edit_version": {
             "type": [
