@@ -358,6 +358,8 @@ func TestLostUploadNamesTheKey(t *testing.T) {
 	s := newStorage(t, false)
 	s.dropSingle = true
 	_, err := uploadCall(t, s, bigFile(t, 1024))
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	var retry *RetryableUploadError
 	if !errors.As(err, &retry) || retry.Key != s.keys[0] || ExitCode(err) != ExitNetwork {
 		t.Fatalf("err = %v", err)
