@@ -61,6 +61,20 @@ Content is written as Markdown, and the API converts it to the editor's format. 
 
 Fields that take fixed values list them, in `--help` ("one of: reading, slides, …"), in `schema`, and as `enum` in the MCP tool input schemas. That covers values nested in lists too, such as the `term` of each course offering, which `--help` lists under the fields that only `--data` takes. Length limits show the same way. The values come from the API's OpenAPI document, so they match what the API accepts, and a rejected value's error names the accepted ones.
 
+### Publication and talk order
+
+Years always appear newest first. Within each year, choose date order or custom order:
+
+```sh
+academic-page publications get-order
+academic-page publications set-order --order custom
+academic-page publications update 12 --year-order 1
+academic-page publications update 15 --year-order 2
+academic-page talks set-order --order date
+```
+
+In custom order, records without a position appear first in date order, followed by records with `year_order`, lowest first. Switching to date order clears the saved positions. `set-order --reset` clears positions while keeping the current mode. The same commands and `--year-order` field work for talks.
+
 ### Courses and Course Info
 
 On a course site, the site's first course is the one the admin's Course Info page edits. Its `title`, `instructor_name`, `primary_institution`, `excerpt`, and content are Course Info's Course Title, Instructor, Primary Institution, Short Introduction, and Full Description. Its title is also the site's name: changing it renames the site, and it cannot be emptied. `courses update` sends only the fields you give, so `--instructor-name` alone leaves the rest as they are; `--null instructor_name` clears one. Pass `--edit-version` as with any update.

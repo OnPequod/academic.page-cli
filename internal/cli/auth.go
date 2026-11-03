@@ -38,7 +38,7 @@ published content; management keys can also read drafts and write.
 The key is read from a hidden prompt, or from stdin with --token-stdin:
 
   academic-page auth login
-  pbcopy-or-similar | academic-page auth login --token-stdin --profile work
+  pbpaste | academic-page auth login --token-stdin --profile work
 
 The key is checked against the API before it is saved, and is never printed.`,
 		Args: noArgs,
@@ -85,11 +85,18 @@ The key is checked against the API before it is saved, and is never printed.`,
 			}
 			fmt.Fprintf(c.Stdout, "Saved the key to profile %q in %s.\n", s.Profile, cfg.File())
 			if !noVerify {
-				fmt.Fprintf(c.Stdout, "The key can read %d site(s).\n", len(sites))
+				fmt.Fprintf(c.Stdout, "The key can read %s.\n", siteCount(len(sites)))
 			}
 			switch {
 			case p.Site != 0:
-				fmt.Fprintf(c.Stdout, "Default site: %d.\n", p.Site)
+				fmt.Fprintf(c.Stdout, "Default site: %d", p.Site)
+				for _, site := range sites {
+					if site.ID == p.Site && site.Name != "" {
+						fmt.Fprintf(c.Stdout, " (%s)", site.Name)
+						break
+					}
+				}
+				fmt.Fprintln(c.Stdout, ".")
 			case len(sites) > 1:
 				fmt.Fprintln(c.Stdout, "Choose a default site with `academic-page sites use <id>`; `academic-page sites list` shows the IDs.")
 			}
@@ -233,7 +240,7 @@ func (c *CLI) statusCommand() *cobra.Command {
 					fmt.Fprintln(c.Stdout, "Site:     none; run `academic-page sites use <id>`")
 				}
 				if sites, ok := status["sites"].([]siteSummary); ok {
-					fmt.Fprintf(c.Stdout, "Check:    OK, the key can read %d site(s)\n", len(sites))
+					fmt.Fprintf(c.Stdout, "Check:    OK, the key can read %s\n", siteCount(len(sites)))
 				}
 			}
 			if s.Token == "" {
@@ -372,3 +379,10 @@ func (c *CLI) versionCommand() *cobra.Command {
 }
 
 func stdinIsTerminal() bool { return term.IsTerminal(int(os.Stdin.Fd())) }
+
+func siteCount(n int) string {
+	if n == 1 {
+		return "1 site"
+	}
+	return fmt.Sprintf("%d sites", n)
+}

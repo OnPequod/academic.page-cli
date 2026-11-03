@@ -1,0 +1,344 @@
+[
+  {
+    "site": 18,
+    "command": "sites get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 18,
+    "command": "profile get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 18,
+    "command": "media list --manage",
+    "exit_code": 0,
+    "result": "4 records"
+  },
+  {
+    "site": 18,
+    "command": "pages list --drafts",
+    "exit_code": 0,
+    "result": "4 records"
+  },
+  {
+    "site": 18,
+    "command": "posts list --drafts",
+    "exit_code": 0,
+    "result": "4 records"
+  },
+  {
+    "site": 18,
+    "command": "projects list --drafts",
+    "exit_code": 0,
+    "result": "9 records"
+  },
+  {
+    "site": 18,
+    "command": "publications list --manage",
+    "exit_code": 0,
+    "result": "19 records"
+  },
+  {
+    "site": 18,
+    "command": "talks list --drafts",
+    "exit_code": 0,
+    "result": "20 records"
+  },
+  {
+    "site": 18,
+    "command": "courses list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use courses."
+  },
+  {
+    "site": 18,
+    "command": "lab-members list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use lab members."
+  },
+  {
+    "site": 19,
+    "command": "sites get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 19,
+    "command": "profile get",
+    "exit_code": 5,
+    "result": "Course sites have no profile."
+  },
+  {
+    "site": 19,
+    "command": "media list --manage",
+    "exit_code": 0,
+    "result": "10 records"
+  },
+  {
+    "site": 19,
+    "command": "pages list --drafts",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 19,
+    "command": "posts list --drafts",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 19,
+    "command": "projects list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use projects."
+  },
+  {
+    "site": 19,
+    "command": "publications list --manage",
+    "exit_code": 5,
+    "result": "This site does not use publications."
+  },
+  {
+    "site": 19,
+    "command": "talks list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use talks."
+  },
+  {
+    "site": 19,
+    "command": "courses list --drafts",
+    "exit_code": 0,
+    "result": "1 records"
+  },
+  {
+    "site": 19,
+    "command": "lab-members list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use lab members."
+  },
+  {
+    "site": 20,
+    "command": "sites get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 20,
+    "command": "profile get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 20,
+    "command": "media list --manage",
+    "exit_code": 0,
+    "result": "1 records"
+  },
+  {
+    "site": 20,
+    "command": "pages list --drafts",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 20,
+    "command": "posts list --drafts",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 20,
+    "command": "projects list --drafts",
+    "exit_code": 0,
+    "result": "1 records"
+  },
+  {
+    "site": 20,
+    "command": "publications list --manage",
+    "exit_code": 0,
+    "result": "3 records"
+  },
+  {
+    "site": 20,
+    "command": "talks list --drafts",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 20,
+    "command": "courses list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use courses."
+  },
+  {
+    "site": 20,
+    "command": "lab-members list --drafts",
+    "exit_code": 0,
+    "result": "6 records"
+  },
+  {
+    "site": 21,
+    "command": "sites get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 21,
+    "command": "profile get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 21,
+    "command": "media list --manage",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 21,
+    "command": "pages list --drafts",
+    "exit_code": 0,
+    "result": "2 records"
+  },
+  {
+    "site": 21,
+    "command": "posts list --drafts",
+    "exit_code": 0,
+    "result": "1 records"
+  },
+  {
+    "site": 21,
+    "command": "projects list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use projects."
+  },
+  {
+    "site": 21,
+    "command": "publications list --manage",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 21,
+    "command": "talks list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use talks."
+  },
+  {
+    "site": 21,
+    "command": "courses list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use courses."
+  },
+  {
+    "site": 21,
+    "command": "lab-members list --drafts",
+    "exit_code": 0,
+    "result": "3 records"
+  },
+  {
+    "site": 22,
+    "command": "sites get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 22,
+    "command": "profile get",
+    "exit_code": 5,
+    "result": "Course sites have no profile."
+  },
+  {
+    "site": 22,
+    "command": "media list --manage",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 22,
+    "command": "pages list --drafts",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 22,
+    "command": "posts list --drafts",
+    "exit_code": 0,
+    "result": "0 records"
+  },
+  {
+    "site": 22,
+    "command": "projects list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use projects."
+  },
+  {
+    "site": 22,
+    "command": "publications list --manage",
+    "exit_code": 5,
+    "result": "This site does not use publications."
+  },
+  {
+    "site": 22,
+    "command": "talks list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use talks."
+  },
+  {
+    "site": 22,
+    "command": "courses list --drafts",
+    "exit_code": 0,
+    "result": "1 records"
+  },
+  {
+    "site": 22,
+    "command": "lab-members list --drafts",
+    "exit_code": 5,
+    "result": "This site does not use lab members."
+  },
+  {
+    "site": 21,
+    "command": "study get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 18,
+    "command": "profile-cv get",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 18,
+    "command": "profile-degrees list",
+    "exit_code": 0,
+    "result": "5 records"
+  },
+  {
+    "site": 18,
+    "command": "profile-positions list",
+    "exit_code": 0,
+    "result": "13 records"
+  },
+  {
+    "site": 18,
+    "command": "profile-links list",
+    "exit_code": 0,
+    "result": "5 records"
+  },
+  {
+    "site": 18,
+    "command": "publications get-order",
+    "exit_code": 0,
+    "result": "record"
+  },
+  {
+    "site": 18,
+    "command": "talks get-order",
+    "exit_code": 0,
+    "result": "record"
+  }
+]

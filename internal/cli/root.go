@@ -184,6 +184,11 @@ func (c *CLI) printError(err error) {
 	}
 	sort.Strings(details)
 	for _, k := range details {
+		switch k {
+		case "trace", "exception", "file", "line":
+			// Laravel debug details remain available with --json.
+			continue
+		}
 		var compact bytes.Buffer
 		if json.Compact(&compact, body.Details[k]) != nil {
 			compact.Write(body.Details[k])

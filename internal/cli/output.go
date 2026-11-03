@@ -100,7 +100,10 @@ func (c *CLI) printWriteSummary(rc *registry.Command, call app.Call, raw, data j
 		// record's worth; show the response.
 		return c.printJSON(json.RawMessage(raw))
 	}
-	line := fmt.Sprintf("%s %s %v", verb, singular(rc.Group), record["id"])
+	line := fmt.Sprintf("%s %s", verb, singular(rc.Group))
+	if id := record["id"]; id != nil {
+		line += fmt.Sprintf(" %v", id)
+	}
 	if title := label(record); title != "" {
 		line += fmt.Sprintf(" %q", title)
 	}
@@ -112,6 +115,12 @@ func (c *CLI) printWriteSummary(rc *registry.Command, call app.Call, raw, data j
 		}
 	}
 	fmt.Fprintln(c.Stdout, line+".")
+	if url, ok := record["url"].(string); ok && url != "" {
+		fmt.Fprintf(c.Stdout, "URL: %s\n", url)
+	}
+	if version := record["edit_version"]; version != nil {
+		fmt.Fprintf(c.Stdout, "Edit version: %v (pass --edit-version %v on your next update).\n", version, version)
+	}
 	return nil
 }
 
@@ -148,7 +157,7 @@ func columns(row map[string]any) []string {
 			break
 		}
 	}
-	for _, k := range []string{"slug", "published_at", "updated_at"} {
+	for _, k := range []string{"site_type", "url", "slug", "published_at", "updated_at"} {
 		if _, ok := row[k]; ok {
 			cols = append(cols, k)
 		}
@@ -202,7 +211,7 @@ func cell(row map[string]any, col string) string {
 		s = string(b)
 	}
 	s = strings.ReplaceAll(s, "\n", " ")
-	if r := []rune(s); len(r) > 60 {
+	if r := []rune(s); len(r) > 60 && col != "url" {
 		s = string(r[:59]) + "…"
 	}
 	return s

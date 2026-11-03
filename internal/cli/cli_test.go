@@ -14,6 +14,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/OnPequod/academic.page-cli/internal/api"
 	"github.com/OnPequod/academic.page-cli/internal/app"
 	"github.com/OnPequod/academic.page-cli/internal/config"
 	"github.com/OnPequod/academic.page-cli/internal/registry"
@@ -80,6 +81,8 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 		case r.URL.Path == "/sites/7/publications/import", r.URL.Path == "/sites/7/profile/degrees/order",
 			r.URL.Path == "/sites/7/talks", r.URL.Path == "/sites/7/courses/3/lessons/5":
 			fmt.Fprint(w, `{"data":{"id":5,"title":"Echo"}}`)
+		case strings.HasPrefix(r.URL.Path, "/sites/7/section-order/"):
+			fmt.Fprint(w, `{"data":{"section":"publications","order":"custom"}}`)
 		case r.URL.Path == "/content/sites/7/publications.bib":
 			fmt.Fprint(w, "@article{a, title={A}}\n")
 		default:
@@ -283,6 +286,9 @@ func TestLoginStoresKeyAndPicksOnlySite(t *testing.T) {
 	r := run(t, "good-key\n", "auth", "login", "--token-stdin")
 	if r.code != 0 {
 		t.Fatalf("code %d: %s", r.code, r.stderr)
+	}
+	if !strings.Contains(r.stdout, "The key can read 1 site.") || !strings.Contains(r.stdout, "Default site: 7 (Lab).") {
+		t.Errorf("login summary: %q", r.stdout)
 	}
 	if strings.Contains(r.stdout+r.stderr, "good-key") {
 		t.Error("the key was printed")
@@ -492,5 +498,76 @@ func TestCoursePartialUpdate(t *testing.T) {
 	}
 	if len(f.requests) != 0 {
 		t.Error("a dry run sent a request")
+	}
+}
+
+func TestSectionOrderCommands(t *testing.T) {
+	for _, section := range []string{"publications", "talks"} {
+		t.Run(section, func(t *testing.T) {
+			f := setup(t)
+			r := run(t, "", section, "get-order", "--json")
+			if r.code != 0 || f.last().Method != "GET" || f.last().Path != "/sites/7/section-order/"+section {
+				t.Fatalf("get order: %+v, request %+v", r, f.last())
+			}
+			r = run(t, "", section, "set-order", "--order", "custom", "--reset", "--json")
+			var body map[string]any
+			_ = json.Unmarshal(f.last().Body, &body)
+			if r.code != 0 || f.last().Method != "PUT" || body["order"] != "custom" || body["reset"] != true {
+				t.Fatalf("set order: %+v, request %+v", r, f.last())
+			}
+			r = run(t, "", section, "update", "12", "--year-order", "2", "--dry-run", "--json")
+			if r.code != 0 || !strings.Contains(r.stdout, `"year_order": 2`) {
+				t.Fatalf("year position: %+v", r)
+			}
+		})
+	}
+}
+
+func TestWriteSummaryShowsURLAndVersionWithoutMissingID(t *testing.T) {
+	var out bytes.Buffer
+	c := &CLI{Stdout: &out}
+	rc := &registry.Command{Group: "profile", Name: "update", Kind: registry.KindWrite}
+	data := json.RawMessage(`{"name":"Erik","url":"https://example.org/","edit_version":4}`)
+	if err := c.printWriteSummary(rc, app.Call{}, nil, data); err != nil {
+		t.Fatal(err)
+	}
+	want := "Updated profile \"Erik\".\nURL: https://example.org/\nEdit version: 4 (pass --edit-version 4 on your next update).\n"
+	if out.String() != want {
+		t.Fatalf("summary = %q, want %q", out.String(), want)
+	}
+}
+
+func TestSiteTableKeepsAddressesAndTypes(t *testing.T) {
+	var out bytes.Buffer
+	c := &CLI{Stdout: &out}
+	url := "https://a-long-site-name.example.org/courses/a-long-course-path-for-testing"
+	c.printTable([]map[string]any{{"id": 7, "name": "Lab", "site_type": "lab", "url": url}})
+	if !strings.Contains(out.String(), "SITE_TYPE") || !strings.Contains(out.String(), url) {
+		t.Fatalf("site table: %s", out.String())
+	}
+}
+
+func TestHumanErrorsOmitDebugTraceAndKeepActionableDetails(t *testing.T) {
+	var out bytes.Buffer
+	c := &CLI{Stderr: &out}
+	err := &api.Error{Status: 500, Code: "server_error", Message: "Request failed.", Details: map[string]json.RawMessage{
+		"trace":                json.RawMessage(`[{"function":"internalMethod"}]`),
+		"exception":            json.RawMessage(`"InternalException"`),
+		"file":                 json.RawMessage(`"/srv/app/internal.php"`),
+		"line":                 json.RawMessage(`99`),
+		"current_edit_version": json.RawMessage(`4`),
+	}}
+	c.printError(err)
+	if strings.Contains(out.String(), "internalMethod") || strings.Contains(out.String(), "InternalException") || strings.Contains(out.String(), "/srv/") || !strings.Contains(out.String(), "current_edit_version: 4") {
+		t.Fatalf("human error: %s", out.String())
+	}
+	out.Reset()
+	c.json = true
+	c.printError(err)
+	var body struct {
+		Error app.ErrorBody `json:"error"`
+	}
+	if json.Unmarshal(out.Bytes(), &body) != nil || len(body.Error.Details) != 5 {
+		t.Fatalf("JSON error lost diagnostics: %s", out.String())
 	}
 }
