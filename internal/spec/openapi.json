@@ -12331,7 +12331,9 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+            "description": "Unique on this site, including deleted records. Generated from the title when publishing without a slug."
           },
           "excerpt": {
             "type": [
@@ -12691,7 +12693,9 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+            "description": "Unique on this site, including deleted records. Generated from the title when publishing without a slug."
           },
           "excerpt": {
             "type": [
@@ -12732,9 +12736,11 @@
             "format": "uri"
           },
           "status": {
-            "type": [
-              "string",
-              "null"
+            "type": "string",
+            "enum": [
+              "in-progress",
+              "completed",
+              "archived"
             ]
           },
           "start_date": {

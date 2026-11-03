@@ -18,8 +18,12 @@ SPEC_URL ?= https://academic.page/api/v1/openapi.json
 PRODUCTION_API := https://academic.page/api/v1
 
 spec:
-	curl -fsS -H 'Accept: application/json' '$(SPEC_URL)' | jq --arg url '$(PRODUCTION_API)' '.servers = [{"url": $$url}]' > internal/spec/openapi.json.tmp
-	mv internal/spec/openapi.json.tmp internal/spec/openapi.json
+	@set -e; \
+	raw=$$(mktemp); rendered=$$(mktemp); \
+	trap 'rm -f "$$raw" "$$rendered"' EXIT; \
+	curl -fsS -H 'Accept: application/json' '$(SPEC_URL)' -o "$$raw"; \
+	jq -e --arg url '$(PRODUCTION_API)' '.servers = [{"url": $$url}] | select(.openapi and .paths and .components)' "$$raw" > "$$rendered"; \
+	mv "$$rendered" internal/spec/openapi.json
 
 snapshot:
 	goreleaser release --snapshot --clean --skip=publish
