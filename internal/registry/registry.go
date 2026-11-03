@@ -235,6 +235,7 @@ var table = []entry{
 
 	{group: "publications", name: "get-order", short: "Show how publications are ordered within each year", op: "manageGetPublicationsOrder"},
 	{group: "publications", name: "set-order", short: "Order publications by date or by hand within each year", op: "manageUpdatePublicationsOrder", kind: KindWrite},
+	{group: "publications", name: "reorder", short: "Put publications in the order given within their years", op: "manageReorderPublications", kind: KindWrite},
 	{group: "publications", name: "list", short: "List publications (CSL-JSON, formatted citation, DOI)", op: "listPublications", draftsOp: "manageListPublications"},
 	{group: "publications", name: "get", short: "Show a publication", op: "getPublication", draftsOp: "manageGetPublication"},
 	{group: "publications", name: "bibtex", short: "Export every publication as BibTeX", op: "exportPublicationsBibtex", text: true},
@@ -248,6 +249,7 @@ var table = []entry{
 
 	{group: "talks", name: "get-order", short: "Show how talks are ordered within each year", op: "manageGetTalksOrder"},
 	{group: "talks", name: "set-order", short: "Order talks by date or by hand within each year", op: "manageUpdateTalksOrder", kind: KindWrite},
+	{group: "talks", name: "reorder", short: "Put talks in the order given within their years", op: "manageReorderTalks", kind: KindWrite},
 	{group: "talks", name: "list", short: "List talks", op: "listTalks", draftsOp: "manageListTalks"},
 	{group: "talks", name: "get", short: "Show a talk", op: "getTalk", draftsOp: "manageGetTalk"},
 	{group: "talks", name: "create", short: "Create a talk (a draft unless --publish)", op: "manageCreateTalk", kind: KindWrite},

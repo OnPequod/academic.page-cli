@@ -4421,6 +4421,63 @@
         }
       }
     },
+    "/sites/{site}/publications/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put publications in the order given within their years, and switch publications to custom order",
+        "operationId": "manageReorderPublications",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementYearOrder"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Within each year, the listed publications take the listed order and the year's other publications keep their places. List every publication of a year to set that whole year. Publications of different years can be sent together. Answers 422 when an ID is not a publication on this site.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/YearReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/publications/{publicationId}/suggestion/apply": {
       "post": {
         "tags": [
@@ -6753,6 +6810,63 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ManagementSectionOrderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/talks/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put talks in the order given within their years, and switch talks to custom order",
+        "operationId": "manageReorderTalks",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementYearOrder"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Within each year, the listed talks take the listed order and the year's other talks keep their places. List every talk of a year to set that whole year. Talks of different years can be sent together. Answers 422 when an ID is not a talk on this site.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/YearReorderInput"
               }
             }
           }
@@ -14487,6 +14601,76 @@
           "reset": {
             "type": "boolean",
             "description": "true clears every year_order in the section, so each year reads in date order."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementYearOrder": {
+        "type": "object",
+        "description": "The section's order after a reorder, and each year it touched in its new order, newest year first.",
+        "required": [
+          "section",
+          "order",
+          "years"
+        ],
+        "properties": {
+          "section": {
+            "type": "string",
+            "enum": [
+              "talks",
+              "publications"
+            ]
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "date",
+              "custom"
+            ]
+          },
+          "years": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "year",
+                "ids"
+              ],
+              "properties": {
+                "year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "The year, or null for items with no date."
+                },
+                "ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "description": "Every item of that year, in order."
+                }
+              }
+            }
+          }
+        }
+      },
+      "YearReorderInput": {
+        "type": "object",
+        "description": "IDs in the order you want them, from one year or several.",
+        "required": [
+          "ids"
+        ],
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "minItems": 1,
+            "description": "Talk or publication IDs, in the order you want them"
           }
         },
         "additionalProperties": false

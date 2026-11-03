@@ -63,17 +63,25 @@ Fields that take fixed values list them, in `--help` ("one of: reading, slides, 
 
 ### Publication and talk order
 
-Years always appear newest first. Within each year, choose date order or custom order:
+Years always appear newest first. Within each year, talks and publications follow date order until you set your own. To set your own, list the IDs in the order you want:
+
+```sh
+academic-page talks reorder --ids 318,302,311
+academic-page publications reorder --ids 911,904
+```
+
+`reorder` switches the section to custom order and places each ID within its own year, so one command can cover several years. In each year, the listed records take the order given and the year's other records keep their places; list every record of a year to set the whole year. The output shows each year it changed, in its new order.
+
+The setting itself:
 
 ```sh
 academic-page publications get-order
 academic-page publications set-order --order custom
-academic-page publications update 12 --year-order 1
-academic-page publications update 15 --year-order 2
 academic-page talks set-order --order date
+academic-page talks set-order --reset
 ```
 
-In custom order, records without a position appear first in date order, followed by records with `year_order`, lowest first. Switching to date order clears the saved positions. `set-order --reset` clears positions while keeping the current mode. The same commands and `--year-order` field work for talks.
+Switching to date order clears the saved positions. `--reset` clears them while keeping custom order. To place one record, update it with `--year-order`; in custom order, records without a position come first in date order.
 
 ### Courses and Course Info
 
