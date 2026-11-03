@@ -21,7 +21,7 @@ API access needs a Pro plan. Create a key at [Account › API](https://academic.
 ```sh
 academic-page auth login          # paste the key; it is checked, then saved
 academic-page sites list
-academic-page sites use 42        # default site for this profile
+academic-page sites use jane.academic.page   # default site for this profile, by its address
 ```
 
 A content key reads published content. A management key can also read drafts and edit the site.

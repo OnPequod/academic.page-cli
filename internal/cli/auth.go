@@ -98,7 +98,7 @@ The key is checked against the API before it is saved, and is never printed.`,
 				}
 				fmt.Fprintf(c.Stdout, "Default site: %s.\n", label)
 			case len(sites) > 1:
-				fmt.Fprintln(c.Stdout, "Choose a default site with `academic-page sites use <id>`; `academic-page sites list` shows the IDs.")
+				fmt.Fprintln(c.Stdout, "Choose a default site with `academic-page sites use <address>`; `academic-page sites list` shows them.")
 			}
 			return nil
 		},
@@ -155,14 +155,35 @@ func (s siteSummary) address() string {
 // label names a site for people first and for commands second, such as
 // "lab.academic.page (Civic Data Lab, ID 7)". `sites use` takes the ID.
 func (s siteSummary) label() string {
-	details := fmt.Sprintf("ID %d", s.ID)
-	if s.Name != "" {
-		details = s.Name + ", " + details
+	addr := s.address()
+	switch {
+	case addr != "" && s.Name != "":
+		return addr + " (" + s.Name + ")"
+	case addr != "":
+		return addr
+	case s.Name != "":
+		return s.Name
 	}
-	if addr := s.address(); addr != "" {
-		return addr + " (" + details + ")"
+	return fmt.Sprintf("site %d", s.ID)
+}
+
+// matches reports whether what someone typed names this site: its address,
+// its custom domain, or its address on Academic.page, with or without the
+// scheme and any trailing slash.
+func (s siteSummary) matches(typed string) bool {
+	typed = strings.ToLower(strings.TrimSuffix(strings.TrimPrefix(strings.TrimPrefix(strings.TrimSpace(typed), "https://"), "http://"), "/"))
+	if typed == "" {
+		return false
 	}
-	return details
+	for _, candidate := range []string{s.address(), s.CustomDomain} {
+		if candidate != "" && strings.EqualFold(candidate, typed) {
+			return true
+		}
+	}
+	if u, err := url.Parse(s.URL); err == nil && strings.EqualFold(u.Host, typed) {
+		return true
+	}
+	return false
 }
 
 func listSites(cmd *cobra.Command, client *api.Client) ([]siteSummary, error) {
@@ -357,22 +378,45 @@ func (c *CLI) useProfileCommand() *cobra.Command {
 
 func (c *CLI) sitesUseCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:   "use <site>",
-		Short: "Set the profile's default site",
+		Use:   "use <address>",
+		Short: "Set the profile's default site, by its address",
+		Long: `Set the profile's default site, by its address, such as
+jane.academic.page or a custom domain. A site's numeric ID also works.
+
+  academic-page sites use jane.academic.page`,
 		Args: func(_ *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return app.Usagef("`sites use` needs a site ID; `academic-page sites list` shows them")
+				return app.Usagef("`sites use` needs a site address; `academic-page sites list` shows them")
 			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var site int64
-			if _, err := fmt.Sscan(args[0], &site); err != nil || site < 1 {
-				return app.Usagef("site must be a numeric ID, got %q", args[0])
-			}
 			cfg, s, err := c.settings()
 			if err != nil {
 				return err
+			}
+			var site int64
+			var chosen *siteSummary
+			if _, scanErr := fmt.Sscan(args[0], &site); scanErr != nil || site < 1 || fmt.Sprint(site) != strings.TrimSpace(args[0]) {
+				site = 0
+				a, appErr := c.app()
+				if appErr != nil {
+					return appErr
+				}
+				sites, listErr := listSites(cmd, a.Client)
+				if listErr != nil {
+					return listErr
+				}
+				for i := range sites {
+					if sites[i].matches(args[0]) {
+						chosen = &sites[i]
+						site = sites[i].ID
+						break
+					}
+				}
+				if chosen == nil {
+					return app.Usagef("no site with the address %q is on this key; `academic-page sites list` shows the ones it can reach", args[0])
+				}
 			}
 			cfg.Profile(s.Profile).Site = site
 			if cfg.CurrentProfile == "" {
@@ -384,7 +428,11 @@ func (c *CLI) sitesUseCommand() *cobra.Command {
 			if c.json {
 				return c.printJSON(map[string]any{"profile": s.Profile, "site": site})
 			}
-			fmt.Fprintf(c.Stdout, "Profile %q now uses site %d.\n", s.Profile, site)
+			if chosen != nil {
+				fmt.Fprintf(c.Stdout, "Profile %q now uses %s.\n", s.Profile, chosen.label())
+			} else {
+				fmt.Fprintf(c.Stdout, "Profile %q now uses site %d.\n", s.Profile, site)
+			}
 			return nil
 		},
 	}

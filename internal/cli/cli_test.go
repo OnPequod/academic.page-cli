@@ -287,7 +287,7 @@ func TestLoginStoresKeyAndPicksOnlySite(t *testing.T) {
 	if r.code != 0 {
 		t.Fatalf("code %d: %s", r.code, r.stderr)
 	}
-	if !strings.Contains(r.stdout, "The key can read 1 site.") || !strings.Contains(r.stdout, "Default site: lab.academic.page (Lab, ID 7).") {
+	if !strings.Contains(r.stdout, "The key can read 1 site.") || !strings.Contains(r.stdout, "Default site: lab.academic.page (Lab).") {
 		t.Errorf("login summary: %q", r.stdout)
 	}
 	if strings.Contains(r.stdout+r.stderr, "good-key") {
@@ -574,9 +574,9 @@ func TestHumanErrorsOmitDebugTraceAndKeepActionableDetails(t *testing.T) {
 
 func TestSiteLabelPrefersTheCustomDomain(t *testing.T) {
 	cases := map[string]siteSummary{
-		"jane.example.org (Jane Doe, ID 3)":   {ID: 3, Name: "Jane Doe", URL: "https://jane.academic.page", CustomDomain: "jane.example.org"},
-		"jane.academic.page (Jane Doe, ID 3)": {ID: 3, Name: "Jane Doe", URL: "https://jane.academic.page"},
-		"Jane Doe, ID 3":                      {ID: 3, Name: "Jane Doe"},
+		"jane.example.org (Jane Doe)":   {ID: 3, Name: "Jane Doe", URL: "https://jane.academic.page", CustomDomain: "jane.example.org"},
+		"jane.academic.page (Jane Doe)": {ID: 3, Name: "Jane Doe", URL: "https://jane.academic.page"},
+		"Jane Doe":                      {ID: 3, Name: "Jane Doe"},
 	}
 	for want, site := range cases {
 		if got := site.label(); got != want {
@@ -649,5 +649,20 @@ func TestProjectsUseBooleanPublishingAndTitledLinks(t *testing.T) {
 	result := run(t, "", "projects", "create", "--title", "Research", "--project-url", "https://example.org")
 	if result.code == 0 {
 		t.Fatal("retired project URL flag was accepted")
+	}
+}
+
+func TestSitesUseTakesAnAddress(t *testing.T) {
+	setup(t)
+	r := run(t, "", "sites", "use", "https://lab.academic.page/")
+	if r.code != 0 {
+		t.Fatalf("code %d: %s", r.code, r.stderr)
+	}
+	if !strings.Contains(r.stdout, "now uses lab.academic.page (Lab).") || strings.Contains(r.stdout, "ID") {
+		t.Errorf("sites use output: %q", r.stdout)
+	}
+
+	if r := run(t, "", "sites", "use", "nobody.academic.page"); r.code != app.ExitUsage {
+		t.Errorf("an unknown address: code %d, %s", r.code, r.stderr)
 	}
 }
