@@ -2925,6 +2925,72 @@
         }
       }
     },
+    "/sites/{site}/pages/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put the pages under one parent in the order given",
+        "operationId": "manageReorderPages",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementPage"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Pages form a tree, so one request orders one set of siblings. Send parent_page_id (null or left out for top-level pages) and the ID of every page with that parent, drafts included, once each. sort_order is numbered again from 1 among them. IDs that are not pages on this site, or are under another parent, or a list that leaves a page out, are refused and nothing changes. To move a page to another parent, PATCH its parent_page_id. The response lists the siblings in their new order.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/pages/{pageId}": {
       "get": {
         "tags": [
@@ -3175,6 +3241,72 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ManagementProjectInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/projects/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put published projects in the order given",
+        "operationId": "manageReorderProjects",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementProject"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send every published project's ID once, in the order the Projects page should show them. Drafts have no place in the order and are refused, as are IDs that are not projects on this site; nothing changes then. The response lists the published projects in their new order. A project published later goes to the end.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
               }
             }
           }
@@ -6043,6 +6175,72 @@
         }
       }
     },
+    "/sites/{site}/courses/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put published courses in the order given",
+        "operationId": "manageReorderCourses",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourse"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send every published course's ID once, in the order the Courses page should show them. Drafts have no place in the order and are refused, as are IDs that are not courses on this site; nothing changes then. The response lists the published courses in their new order. A course published later goes to the end.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/courses/{courseId}": {
       "get": {
         "tags": [
@@ -6296,6 +6494,72 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ManagementLabMemberInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/lab-members/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every lab member in the order given",
+        "operationId": "manageReorderLabMembers",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementLabMember"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send every member's ID once, drafts, current members, and alumni together. The members page still groups people, current members before alumni and then by member_type, so the order sets who comes first within each group; the response lists everyone in the order the page shows them. IDs that are not members on this site, or a list that leaves someone out, are refused and nothing changes. Sites without lab members or a study team answer 404 section_not_enabled.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
               }
             }
           }
@@ -7943,6 +8207,75 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ManagementCourseAssignmentInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/assignments/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every assignment of the course in the order given",
+        "operationId": "manageReorderCourseAssignments",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementCourseAssignment"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send every assignment's ID once, drafts included, in the order the Assignments page should show them. sort_order is numbered again from 1. IDs that are not assignments of this course, or a list that leaves one out, are refused and nothing changes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
               }
             }
           }
@@ -12595,6 +12928,10 @@
             ],
             "format": "date-time"
           },
+          "sort_order": {
+            "type": "integer",
+            "description": "The page's place among pages with the same parent. Set it with PUT /pages/order."
+          },
           "edit_version": {
             "type": "integer",
             "description": "Goes up each time the record is saved. Send it back on PATCH to refuse the write if the record changed since you read it."
@@ -12783,6 +13120,13 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "published_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The project's place on the Projects page, from 1. Null for a draft. Set it with PUT /projects/order."
           },
           "edit_version": {
             "type": "integer",
@@ -14691,6 +15035,30 @@
         },
         "additionalProperties": false
       },
+      "PageReorderInput": {
+        "type": "object",
+        "description": "One set of sibling pages, in the new order.",
+        "required": [
+          "ids"
+        ],
+        "properties": {
+          "parent_page_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The parent whose child pages are ordered. Null or left out for top-level pages."
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Every page with that parent, drafts included, once each, in the new order."
+          }
+        },
+        "additionalProperties": false
+      },
       "ManagementProfile": {
         "type": "object",
         "description": "The profile as My Info (Lab Info on a lab site) edits it.",
@@ -15793,6 +16161,7 @@
           "meta_title",
           "meta_description",
           "published_at",
+          "published_order",
           "edit_version",
           "created_at",
           "updated_at",
@@ -15950,6 +16319,13 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "published_order": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The course's place on the Courses page, from 1. Null for a draft. Set it with PUT /courses/order."
           },
           "edit_version": {
             "type": "integer",

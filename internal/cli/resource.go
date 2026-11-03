@@ -295,7 +295,9 @@ func addFields(flags *pflag.FlagSet, fields []registry.Field) []boundFlag {
 				v := flags.Int64Slice(field.Flag, nil, desc+" (comma-separated or repeated)")
 				value = func() any { return *v }
 			default:
-				v := flags.StringSlice(field.Flag, nil, desc+" (comma-separated or repeated)")
+				// One value per flag, repeated for more: names such as
+				// "Cai, C.X." contain commas, so commas are never split.
+				v := flags.StringArray(field.Flag, nil, desc+" (repeat the flag for each; commas stay in the value)")
 				value = func() any { return *v }
 			}
 		case "object":

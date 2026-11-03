@@ -604,3 +604,14 @@ func TestEmptyTagListPointsToManage(t *testing.T) {
 		t.Errorf("with --manage, output = %q", out.String())
 	}
 }
+
+func TestTextListFlagsKeepCommas(t *testing.T) {
+	setup(t)
+	r := run(t, "", "talks", "update", "5", "--copresenters", "Cai, C.X.", "--copresenters", "Doe, J.", "--dry-run")
+	if r.code != 0 {
+		t.Fatalf("code %d: %s", r.code, r.stderr)
+	}
+	if !strings.Contains(r.stdout, `"Cai, C.X.",`) || !strings.Contains(r.stdout, `"Doe, J."`) {
+		t.Errorf("copresenters were split: %s", r.stdout)
+	}
+}

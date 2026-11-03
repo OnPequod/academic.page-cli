@@ -230,12 +230,14 @@ var table = []entry{
 	{group: "pages", name: "get", short: "Show a page", op: "getPage", draftsOp: "manageGetPage"},
 	{group: "pages", name: "create", short: "Create a page (a draft unless --publish)", op: "manageCreatePage", kind: KindWrite},
 	{group: "pages", name: "update", short: "Update a page", op: "manageUpdatePage", kind: KindWrite},
+	{group: "pages", name: "reorder", short: "Put the pages under one parent in the order given", op: "manageReorderPages", kind: KindWrite},
 	{group: "pages", name: "delete", short: "Delete a page", op: "manageDeletePage", kind: KindDelete},
 
 	{group: "projects", name: "list", short: "List projects", op: "listProjects", draftsOp: "manageListProjects"},
 	{group: "projects", name: "get", short: "Show a project", op: "getProject", draftsOp: "manageGetProject"},
 	{group: "projects", name: "create", short: "Create a project (a draft unless --publish)", op: "manageCreateProject", kind: KindWrite},
 	{group: "projects", name: "update", short: "Update a project", op: "manageUpdateProject", kind: KindWrite},
+	{group: "projects", name: "reorder", short: "Put published projects in the order given", op: "manageReorderProjects", kind: KindWrite},
 	{group: "projects", name: "delete", short: "Delete a project", op: "manageDeleteProject", kind: KindDelete},
 
 	{group: "publications", name: "get-order", short: "Show how publications are ordered within each year", op: "manageGetPublicationsOrder"},
@@ -265,6 +267,7 @@ var table = []entry{
 	{group: "courses", name: "get", short: "Show a course", op: "getCourse", draftsOp: "manageGetCourse"},
 	{group: "courses", name: "create", short: "Create a course (a draft unless --publish)", op: "manageCreateCourse", kind: KindWrite},
 	{group: "courses", name: "update", short: "Update a course", op: "manageUpdateCourse", kind: KindWrite},
+	{group: "courses", name: "reorder", short: "Put published courses in the order given", op: "manageReorderCourses", kind: KindWrite},
 	{group: "courses", name: "delete", short: "Delete a course", op: "manageDeleteCourse", kind: KindDelete},
 
 	{group: "course-lessons", name: "list", short: "List a course's lessons", op: "manageListCourseLessons", parents: course},
@@ -285,6 +288,7 @@ var table = []entry{
 	{group: "course-assignments", name: "get", short: "Show an assignment", op: "manageGetCourseAssignment", parents: course},
 	{group: "course-assignments", name: "create", short: "Add an assignment to a course", op: "manageCreateCourseAssignment", kind: KindWrite, parents: course},
 	{group: "course-assignments", name: "update", short: "Update an assignment", op: "manageUpdateCourseAssignment", kind: KindWrite, parents: course},
+	{group: "course-assignments", name: "reorder", short: "Set the order of a course's assignments", op: "manageReorderCourseAssignments", kind: KindWrite, parents: course},
 	{group: "course-assignments", name: "delete", short: "Delete an assignment", op: "manageDeleteCourseAssignment", kind: KindDelete, parents: course},
 
 	{group: "course-references", name: "list", short: "List a course's references (readings)", op: "manageListCourseReferences", parents: course},
@@ -298,6 +302,7 @@ var table = []entry{
 	{group: "lab-members", name: "get", short: "Show a lab member", op: "getLabMember", draftsOp: "manageGetLabMember"},
 	{group: "lab-members", name: "create", short: "Add a lab member (a draft unless --publish)", op: "manageCreateLabMember", kind: KindWrite},
 	{group: "lab-members", name: "update", short: "Update a lab member", op: "manageUpdateLabMember", kind: KindWrite},
+	{group: "lab-members", name: "reorder", short: "Set the order of the lab members", op: "manageReorderLabMembers", kind: KindWrite},
 	{group: "lab-members", name: "delete", short: "Delete a lab member", op: "manageDeleteLabMember", kind: KindDelete},
 
 	{group: "study", name: "get", short: "Show study details", op: "getStudy", draftsOp: "manageGetStudy"},
