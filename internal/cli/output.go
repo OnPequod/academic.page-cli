@@ -70,6 +70,9 @@ func (c *CLI) printResult(rc *registry.Command, call app.Call, res *app.Result) 
 	var rows []map[string]any
 	if len(envelope.Data) > 0 && envelope.Data[0] == '[' && json.Unmarshal(envelope.Data, &rows) == nil {
 		c.printTable(rows)
+		if len(rows) == 0 && rc.EmptyHint != "" && !call.Drafts {
+			fmt.Fprintln(c.Stdout, rc.EmptyHint)
+		}
 		if m := envelope.Meta; m != nil && m.LastPage > 1 {
 			fmt.Fprintf(c.Stdout, "\nPage %d of %d, %d in all. Use --page or --all for more.\n", m.CurrentPage, m.LastPage, m.Total)
 		}

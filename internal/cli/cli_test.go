@@ -584,3 +584,23 @@ func TestSiteLabelPrefersTheCustomDomain(t *testing.T) {
 		}
 	}
 }
+
+func TestEmptyTagListPointsToManage(t *testing.T) {
+	rc := &registry.Command{Group: "tags", Name: "list", Kind: registry.KindRead, EmptyHint: "Add --manage to list every tag."}
+	var out bytes.Buffer
+	c := &CLI{Stdout: &out}
+	if err := c.printResult(rc, app.Call{}, &app.Result{JSON: []byte(`{"data":[]}`)}); err != nil {
+		t.Fatal(err)
+	}
+	if out.String() != "No records.\nAdd --manage to list every tag.\n" {
+		t.Errorf("output = %q", out.String())
+	}
+
+	out.Reset()
+	if err := c.printResult(rc, app.Call{Drafts: true}, &app.Result{JSON: []byte(`{"data":[]}`)}); err != nil {
+		t.Fatal(err)
+	}
+	if out.String() != "No records.\n" {
+		t.Errorf("with --manage, output = %q", out.String())
+	}
+}

@@ -78,6 +78,9 @@ type Command struct {
 	Text bool
 	// Publishable writes accept --publish and default to drafts.
 	Publishable bool
+	// EmptyHint is printed when the list, read without the manage flag,
+	// is empty, for lists whose public form leaves records out.
+	EmptyHint string
 	// Tiptap lists body fields that take the editor's Tiptap JSON. Each has
 	// a Markdown sibling (content_markdown for content_structured) that the
 	// API converts; the Tiptap form stays available through --data.
@@ -141,6 +144,8 @@ type entry struct {
 	parents []string
 	// textFile is a string body field that --<field>-file can fill.
 	textFile string
+	// emptyHint is printed when the default list comes back empty.
+	emptyHint string
 }
 
 // RichPrefix returns the flag and option prefix of a rich-text field:
@@ -298,7 +303,7 @@ var table = []entry{
 	{group: "study", name: "get", short: "Show study details", op: "getStudy", draftsOp: "manageGetStudy"},
 	{group: "study", name: "update", short: "Update study details", op: "manageUpdateStudy", kind: KindWrite},
 
-	{group: "tags", name: "list", short: "List tags", op: "listTags", draftsOp: "manageListTags"},
+	{group: "tags", name: "list", short: "List tags used by published content (--manage lists every tag)", op: "listTags", draftsOp: "manageListTags", emptyHint: "No published content uses a tag yet. Add --manage to list every tag, including unused ones."},
 	{group: "tags", name: "get", short: "Show a tag", op: "getTag", draftsOp: "manageGetTag"},
 	{group: "tags", name: "create", short: "Create a tag", op: "manageCreateTag", kind: KindWrite},
 	{group: "tags", name: "update", short: "Rename a tag", op: "manageUpdateTag", kind: KindWrite},
@@ -411,7 +416,7 @@ func build(s *spec.Spec, e entry) (*Command, error) {
 	if kind == "" {
 		kind = KindRead
 	}
-	c := &Command{Group: e.group, Name: e.name, Short: e.short, Kind: kind, Op: op, Text: e.text}
+	c := &Command{Group: e.group, Name: e.name, Short: e.short, Kind: kind, Op: op, Text: e.text, EmptyHint: e.emptyHint}
 	if e.draftsOp != "" {
 		if c.DraftsOp, ok = s.Operations[e.draftsOp]; !ok {
 			return nil, fmt.Errorf("%s %s: operation %s is not in the spec", e.group, e.name, e.draftsOp)
