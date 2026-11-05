@@ -174,6 +174,7 @@ var Groups = []Group{
 	{"profile-degrees", "Degrees on the profile"},
 	{"profile-positions", "Positions on the profile"},
 	{"profile-links", "Links on the profile"},
+	{"navigation", "The header and footer menus"},
 	{"posts", "Blog posts"},
 	{"pages", "Pages"},
 	{"projects", "Projects"},
@@ -204,6 +205,9 @@ var table = []entry{
 
 	{group: "profile", name: "get", short: "Show the profile", op: "getProfile", draftsOp: "manageGetProfile"},
 	{group: "profile", name: "update", short: "Update the profile (saves like the Save button)", op: "manageUpdateProfile", kind: KindWrite},
+
+	{group: "navigation", name: "get", short: "Show the header or footer menu", op: "manageGetNavigation"},
+	{group: "navigation", name: "update", short: "Replace the header or footer menu (send the whole menu with --data)", op: "manageUpdateNavigation", kind: KindWrite},
 
 	{group: "profile-cv", name: "get", short: "Show the CV file attached to the profile", op: "manageGetProfileCv"},
 	{group: "profile-cv", name: "set", short: "Attach a media file as the profile's CV", op: "manageSetProfileCv", kind: KindWrite},

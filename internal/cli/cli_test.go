@@ -666,3 +666,21 @@ func TestSitesUseTakesAnAddress(t *testing.T) {
 		t.Errorf("an unknown address: code %d, %s", r.code, r.stderr)
 	}
 }
+
+func TestNavigationUpdateSendsTheWholeMenu(t *testing.T) {
+	setup(t)
+
+	menu := `{"items":[{"target":"home"},{"label":"Software","children":[{"target":"project:12"},{"url":"https://github.com/jane","label":"GitHub"}]}]}`
+	r := run(t, menu, "navigation", "update", "header", "--data", "-", "--dry-run")
+	if r.code != 0 {
+		t.Fatalf("code %d: %s", r.code, r.stderr)
+	}
+	for _, want := range []string{"PUT", "/sites/7/navigation/header", `"label": "Software"`, `"target": "project:12"`, `"url": "https://github.com/jane"`} {
+		if !strings.Contains(r.stdout, want) {
+			t.Errorf("dry run lacks %s:\n%s", want, r.stdout)
+		}
+	}
+	if r := run(t, "", "navigation", "get", "footer", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/navigation/footer") {
+		t.Fatalf("navigation get: %d %s %s", r.code, r.stdout, r.stderr)
+	}
+}

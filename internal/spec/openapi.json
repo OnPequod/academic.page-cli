@@ -4829,6 +4829,113 @@
         }
       }
     },
+    "/sites/{site}/navigation/{menu}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get the header or footer menu, with each item's target and submenu",
+        "operationId": "manageGetNavigation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/menu"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementNavigation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Replace the header or footer menu, as the dashboard's menu editor builds it",
+        "operationId": "manageUpdateNavigation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/menu"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementNavigation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Sends the whole menu. Items are written in the order given, and anything left out is removed; the pages they link to stay. Nothing is written unless every item is valid. The footer shows only when the site turns on footer navigation.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementNavigationInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/profile/degrees": {
       "get": {
         "tags": [
@@ -9090,6 +9197,19 @@
           "minimum": 1
         }
       },
+      "menu": {
+        "name": "menu",
+        "in": "path",
+        "required": true,
+        "description": "Which menu: header or footer.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "header",
+            "footer"
+          ]
+        }
+      },
       "uploadId": {
         "name": "uploadId",
         "in": "path",
@@ -12741,6 +12861,20 @@
               "type": "integer"
             },
             "description": "The IDs of the record's tags."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The featured image's library file ID."
+          },
+          "featured_image_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
           }
         }
       },
@@ -12812,6 +12946,13 @@
               "type": "integer"
             },
             "description": "Tag IDs from this site, replacing the record's tags. Leave out to keep them; send [] to remove them all."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
           }
         },
         "additionalProperties": false
@@ -12911,6 +13052,20 @@
           "edit_version": {
             "type": "integer",
             "description": "Goes up each time the record is saved. Send it back on PATCH to refuse the write if the record changed since you read it."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The featured image's library file ID."
+          },
+          "featured_image_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
           }
         }
       },
@@ -12977,6 +13132,13 @@
             ],
             "minimum": 0,
             "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
           }
         },
         "additionalProperties": false
@@ -13114,6 +13276,20 @@
               "type": "integer"
             },
             "description": "The IDs of the record's tags."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The featured image's library file ID."
+          },
+          "featured_image_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
           }
         }
       },
@@ -13209,6 +13385,13 @@
               "type": "integer"
             },
             "description": "Tag IDs from this site, replacing the record's tags. Leave out to keep them; send [] to remove them all."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
           }
         },
         "additionalProperties": false
@@ -14860,6 +15043,203 @@
               "boolean",
               "null"
             ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementNavigation": {
+        "type": "object",
+        "description": "A menu as the site shows it, top level first, each item with its submenu.",
+        "required": [
+          "menu",
+          "items"
+        ],
+        "properties": {
+          "menu": {
+            "type": "string",
+            "enum": [
+              "header",
+              "footer"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "label",
+                "target",
+                "url",
+                "address",
+                "hidden",
+                "children"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, such as project:12. Null for a group or a link to another website."
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uri",
+                  "description": "Another website the item goes to. Null otherwise."
+                },
+                "address": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The full address the item opens. Null for a group."
+                },
+                "hidden": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Why the public site does not show the item right now, such as a section with nothing published. Null when it shows."
+                },
+                "children": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "label",
+                      "target",
+                      "url",
+                      "address",
+                      "hidden"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, such as project:12. Null for a group or a link to another website."
+                      },
+                      "url": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uri",
+                        "description": "Another website the item goes to. Null otherwise."
+                      },
+                      "address": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "The full address the item opens. Null for a group."
+                      },
+                      "hidden": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "Why the public site does not show the item right now, such as a section with nothing published. Null when it shows."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ManagementNavigationInput": {
+        "type": "object",
+        "description": "The whole menu, in order. Each item sends target, url, or neither (a group, which needs a label).",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "description": "The top level of the menu, in order. An empty list empties the menu.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 255,
+                  "description": "The name in the menu. Left out, a link takes its page's title or the website's address. A group needs one."
+                },
+                "target": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, such as project:12."
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Another website, such as https://github.com/jane. Send target or url, not both."
+                },
+                "children": {
+                  "type": "array",
+                  "description": "The item's submenu, one level deep: a dropdown in the header, a column in the footer.",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "maxLength": 255,
+                        "description": "The name in the menu. Left out, a link takes its page's title or the website's address. A group needs one."
+                      },
+                      "target": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, such as project:12."
+                      },
+                      "url": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "description": "Another website, such as https://github.com/jane. Send target or url, not both."
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "additionalProperties": false
