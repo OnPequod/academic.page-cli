@@ -4936,6 +4936,110 @@
         }
       }
     },
+    "/sites/{site}/appearance": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get the theme, accent color, list view, and footer, with the themes and colors this site can choose",
+        "operationId": "manageGetAppearance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementAppearance"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Change the theme, accent color, list view, or footer, as the Appearance page does",
+        "operationId": "manageUpdateAppearance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementAppearance"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send only what changes. A new theme without an accent_color adopts the accent that theme is designed around. A field this site cannot set, such as default_list_view on a course site, is refused.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementAppearanceInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/profile/degrees": {
       "get": {
         "tags": [
@@ -15240,6 +15344,168 @@
                 }
               }
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementAppearance": {
+        "type": "object",
+        "description": "How the site looks, and what it can choose from.",
+        "required": [
+          "theme",
+          "accent_color",
+          "default_list_view",
+          "footer",
+          "choices"
+        ],
+        "properties": {
+          "theme": {
+            "type": "string",
+            "description": "The theme's value, one of choices.themes."
+          },
+          "accent_color": {
+            "type": "string",
+            "description": "The accent color's value, one of choices.accent_colors."
+          },
+          "default_list_view": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "card",
+              "list",
+              null
+            ],
+            "description": "How lists such as projects and posts first appear. Null on a course site."
+          },
+          "footer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "show_navigation",
+              "show_text",
+              "text",
+              "show_platform_credit"
+            ],
+            "properties": {
+              "show_navigation": {
+                "type": "boolean",
+                "description": "Whether the footer menu shows."
+              },
+              "show_text": {
+                "type": "boolean",
+                "description": "Whether the footer text shows."
+              },
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "show_platform_credit": {
+                "type": [
+                  "boolean",
+                  "null"
+                ],
+                "description": "Whether the Academic.page credit shows. Null where the plan always shows it."
+              }
+            }
+          },
+          "choices": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "themes",
+              "accent_colors"
+            ],
+            "properties": {
+              "themes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "value",
+                    "name",
+                    "description",
+                    "default_accent_color"
+                  ],
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "default_accent_color": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "accent_colors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "value",
+                    "name"
+                  ],
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ManagementAppearanceInput": {
+        "type": "object",
+        "description": "The appearance settings to change. Send only what changes.",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "description": "A theme value from choices.themes."
+          },
+          "accent_color": {
+            "type": "string",
+            "description": "An accent color value from choices.accent_colors."
+          },
+          "default_list_view": {
+            "type": "string",
+            "enum": [
+              "card",
+              "list"
+            ],
+            "description": "Not on a course site."
+          },
+          "show_footer_navigation": {
+            "type": "boolean"
+          },
+          "show_footer_text": {
+            "type": "boolean"
+          },
+          "footer_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "show_platform_credit": {
+            "type": "boolean",
+            "description": "Only on a plan that lets the owner hide the credit."
           }
         },
         "additionalProperties": false

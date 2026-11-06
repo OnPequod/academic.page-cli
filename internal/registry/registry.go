@@ -175,6 +175,7 @@ var Groups = []Group{
 	{"profile-positions", "Positions on the profile"},
 	{"profile-links", "Links on the profile"},
 	{"navigation", "The header and footer menus"},
+	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
 	{"pages", "Pages"},
 	{"projects", "Projects"},
@@ -208,6 +209,9 @@ var table = []entry{
 
 	{group: "navigation", name: "get", short: "Show the header or footer menu", op: "manageGetNavigation"},
 	{group: "navigation", name: "update", short: "Replace the header or footer menu (send the whole menu with --data)", op: "manageUpdateNavigation", kind: KindWrite},
+
+	{group: "appearance", name: "get", short: "Show the theme, accent color, list view, and footer, with the themes and colors this site can choose", op: "manageGetAppearance"},
+	{group: "appearance", name: "update", short: "Change the theme, accent color, list view, or footer (a new theme adopts its own accent unless you set one)", op: "manageUpdateAppearance", kind: KindWrite},
 
 	{group: "profile-cv", name: "get", short: "Show the CV file attached to the profile", op: "manageGetProfileCv"},
 	{group: "profile-cv", name: "set", short: "Attach a media file as the profile's CV", op: "manageSetProfileCv", kind: KindWrite},

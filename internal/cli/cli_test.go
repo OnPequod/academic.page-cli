@@ -684,3 +684,25 @@ func TestNavigationUpdateSendsTheWholeMenu(t *testing.T) {
 		t.Fatalf("navigation get: %d %s %s", r.code, r.stdout, r.stderr)
 	}
 }
+
+func TestAppearanceUpdateSendsOnlyWhatChanges(t *testing.T) {
+	setup(t)
+
+	r := run(t, "", "appearance", "update", "--theme", "pragma", "--show-footer-navigation=false", "--dry-run")
+	if r.code != 0 {
+		t.Fatalf("code %d: %s", r.code, r.stderr)
+	}
+	for _, want := range []string{"PATCH", "/sites/7/appearance", `"theme": "pragma"`, `"show_footer_navigation": false`} {
+		if !strings.Contains(r.stdout, want) {
+			t.Errorf("dry run lacks %s:\n%s", want, r.stdout)
+		}
+	}
+	for _, unwanted := range []string{"accent_color", "footer_text", "default_list_view"} {
+		if strings.Contains(r.stdout, unwanted) {
+			t.Errorf("dry run sends %s, which was not set:\n%s", unwanted, r.stdout)
+		}
+	}
+	if r := run(t, "", "appearance", "get", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/appearance") {
+		t.Fatalf("appearance get: %d %s %s", r.code, r.stdout, r.stderr)
+	}
+}
