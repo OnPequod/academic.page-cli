@@ -308,6 +308,8 @@
                               "path": "/publications",
                               "url": "https://jane.biostatistician.page/publications",
                               "open_in_new_tab": false,
+                              "separator": false,
+                              "dropdown": "none",
                               "children": []
                             },
                             {
@@ -316,7 +318,40 @@
                               "path": "/posts",
                               "url": "https://jane.biostatistician.page/posts",
                               "open_in_new_tab": false,
-                              "children": []
+                              "separator": false,
+                              "dropdown": "recent",
+                              "children": [
+                                {
+                                  "label": "Imputation for repeated measures",
+                                  "description": null,
+                                  "path": "/posts/imputation-for-repeated-measures",
+                                  "url": "https://jane.biostatistician.page/posts/imputation-for-repeated-measures",
+                                  "open_in_new_tab": false,
+                                  "separator": false,
+                                  "dropdown": null,
+                                  "children": []
+                                },
+                                {
+                                  "label": null,
+                                  "description": null,
+                                  "path": null,
+                                  "url": null,
+                                  "open_in_new_tab": false,
+                                  "separator": true,
+                                  "dropdown": null,
+                                  "children": []
+                                },
+                                {
+                                  "label": "Notes from JSM",
+                                  "description": null,
+                                  "path": "/posts/notes-from-jsm",
+                                  "url": "https://jane.biostatistician.page/posts/notes-from-jsm",
+                                  "open_in_new_tab": false,
+                                  "separator": false,
+                                  "dropdown": null,
+                                  "children": []
+                                }
+                              ]
                             }
                           ],
                           "footer": []
@@ -10068,6 +10103,8 @@
                   "path": "/publications",
                   "url": "https://jane.biostatistician.page/publications",
                   "open_in_new_tab": false,
+                  "separator": false,
+                  "dropdown": "none",
                   "children": []
                 },
                 {
@@ -10076,7 +10113,40 @@
                   "path": "/posts",
                   "url": "https://jane.biostatistician.page/posts",
                   "open_in_new_tab": false,
-                  "children": []
+                  "separator": false,
+                  "dropdown": "recent",
+                  "children": [
+                    {
+                      "label": "Imputation for repeated measures",
+                      "description": null,
+                      "path": "/posts/imputation-for-repeated-measures",
+                      "url": "https://jane.biostatistician.page/posts/imputation-for-repeated-measures",
+                      "open_in_new_tab": false,
+                      "separator": false,
+                      "dropdown": null,
+                      "children": []
+                    },
+                    {
+                      "label": null,
+                      "description": null,
+                      "path": null,
+                      "url": null,
+                      "open_in_new_tab": false,
+                      "separator": true,
+                      "dropdown": null,
+                      "children": []
+                    },
+                    {
+                      "label": "Notes from JSM",
+                      "description": null,
+                      "path": "/posts/notes-from-jsm",
+                      "url": "https://jane.biostatistician.page/posts/notes-from-jsm",
+                      "open_in_new_tab": false,
+                      "separator": false,
+                      "dropdown": null,
+                      "children": []
+                    }
+                  ]
                 }
               ],
               "footer": []
@@ -10096,18 +10166,24 @@
       },
       "MenuItem": {
         "type": "object",
-        "description": "A navigation menu item.",
+        "description": "A navigation menu item, as the site shows it.",
         "required": [
           "label",
           "description",
           "path",
           "url",
           "open_in_new_tab",
+          "separator",
+          "dropdown",
           "children"
         ],
         "properties": {
           "label": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The name in the menu. Null for a separator."
           },
           "description": {
             "type": [
@@ -10131,6 +10207,23 @@
           },
           "open_in_new_tab": {
             "type": "boolean"
+          },
+          "separator": {
+            "type": "boolean",
+            "description": "True for a line between links in a dropdown. A separator has no label or address."
+          },
+          "dropdown": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "none",
+              "recent",
+              "chosen",
+              null
+            ],
+            "description": "For a top-level link, where its children come from: recent (the section's most recent items, filled in by the site), chosen (picked by the owner), or none. Null for a group or a child."
           },
           "children": {
             "type": "array",
