@@ -15288,7 +15288,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, or a publication, such as project:12. Null for a group or a link to another website."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -15327,7 +15327,7 @@
                     "chosen",
                     null
                   ],
-                  "description": "What the link's dropdown holds. none: the link alone. recent: the dropdown_limit most recent projects, publications, posts, or talks of the section it links to. chosen: its children. Null for a group, whose children are always its submenu. A header link to projects, publications, posts, or talks that was never set reads recent, and the public site shows that dropdown once the section has two items."
+                  "description": "What the link's dropdown holds. none: the link alone. recent: the dropdown_limit most recent projects, publications, posts, talks, or courses of the section it links to. chosen: its children. Null for a group, whose children are always its submenu. A header link to projects, publications, posts, talks, or courses that was never set reads recent, and the public site shows that dropdown once the section has two items."
                 },
                 "dropdown_limit": {
                   "type": [
@@ -15364,7 +15364,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, or a publication, such as project:12. Null for a group or a link to another website."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -15428,7 +15428,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, or a publication, such as project:12."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
@@ -15448,7 +15448,7 @@
                     "chosen",
                     null
                   ],
-                  "description": "For a link: none (the link alone), recent (the most recent projects, publications, posts, or talks of the section it links to), or chosen (its children). Left out: chosen when it has children, recent for a header link to one of those sections, none otherwise."
+                  "description": "For a link: none (the link alone), recent (the most recent projects, publications, posts, talks, or courses of the section it links to), or chosen (its children). Left out: chosen when it has children, recent for a header link to one of those sections, none otherwise."
                 },
                 "dropdown_limit": {
                   "type": [
@@ -15479,7 +15479,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, or a publication, such as project:12."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
