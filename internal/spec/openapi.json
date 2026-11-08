@@ -15178,6 +15178,9 @@
                 "url",
                 "address",
                 "hidden",
+                "separator",
+                "dropdown",
+                "dropdown_limit",
                 "children"
               ],
               "properties": {
@@ -15192,7 +15195,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, such as project:12. Null for a group or a link to another website."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -15216,6 +15219,32 @@
                   ],
                   "description": "Why the public site does not show the item right now, such as a section with nothing published. Null when it shows."
                 },
+                "separator": {
+                  "type": "boolean",
+                  "description": "True for a line between links in a submenu. A separator has no label, target, or url."
+                },
+                "dropdown": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "none",
+                    "recent",
+                    "chosen",
+                    null
+                  ],
+                  "description": "What the link's dropdown holds. none: the link alone. recent: the dropdown_limit most recent projects, publications, posts, or talks of the section it links to. chosen: its children. Null for a group, whose children are always its submenu. A header link to projects, publications, posts, or talks that was never set reads recent, and the public site shows that dropdown once the section has two items."
+                },
+                "dropdown_limit": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "maximum": 50,
+                  "description": "How many recent items a recent dropdown shows. 6 unless set. Null for a group."
+                },
                 "children": {
                   "type": "array",
                   "items": {
@@ -15227,7 +15256,8 @@
                       "target",
                       "url",
                       "address",
-                      "hidden"
+                      "hidden",
+                      "separator"
                     ],
                     "properties": {
                       "id": {
@@ -15241,7 +15271,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, such as project:12. Null for a group or a link to another website."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -15264,6 +15294,10 @@
                           "null"
                         ],
                         "description": "Why the public site does not show the item right now, such as a section with nothing published. Null when it shows."
+                      },
+                      "separator": {
+                        "type": "boolean",
+                        "description": "True for a line between links in a submenu. A separator has no label, target, or url."
                       }
                     }
                   }
@@ -15301,7 +15335,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, such as project:12."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
@@ -15309,6 +15343,28 @@
                     "null"
                   ],
                   "description": "Another website, such as https://github.com/jane. Send target or url, not both."
+                },
+                "dropdown": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "none",
+                    "recent",
+                    "chosen",
+                    null
+                  ],
+                  "description": "For a link: none (the link alone), recent (the most recent projects, publications, posts, or talks of the section it links to), or chosen (its children). Left out: chosen when it has children, recent for a header link to one of those sections, none otherwise."
+                },
+                "dropdown_limit": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1,
+                  "maximum": 50,
+                  "description": "How many items a recent dropdown shows. 6 when left out."
                 },
                 "children": {
                   "type": "array",
@@ -15330,7 +15386,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, such as project:12."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members), or <kind>:<id> for a published page, post, project, or talk, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
@@ -15338,6 +15394,10 @@
                           "null"
                         ],
                         "description": "Another website, such as https://github.com/jane. Send target or url, not both."
+                      },
+                      "separator": {
+                        "type": "boolean",
+                        "description": "Send {\"separator\": true} for a line between links. It takes no label, target, or url."
                       }
                     }
                   }

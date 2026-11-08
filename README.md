@@ -48,6 +48,7 @@ academic-page publications import --bibtex-file refs.bib --select 0,smith2024
 academic-page course-lessons list 3         # lessons of course 3
 academic-page navigation get header         # the header menu, with each item's target
 academic-page navigation update header --data @menu.json   # replace the whole header menu
+academic-page navigation update header --data '{"items":[{"target":"section:projects","dropdown":"recent","dropdown_limit":6}]}'
 academic-page appearance get                # theme, accent color, footer, and the themes this site can use
 academic-page appearance update --theme pragma              # switch theme (takes its own accent color)
 
