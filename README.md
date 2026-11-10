@@ -22,6 +22,7 @@ API access needs a Pro plan. Create a key at [Account › API](https://academic.
 academic-page auth login          # paste the key; it is checked, then saved
 academic-page sites list
 academic-page sites use jane.academic.page   # default site for this profile, by its address
+academic-page sites create --site-type lab --name "Smith Lab" --slug smith-lab   # a new site; prints its ID
 ```
 
 A content key reads published content. A management key can also read drafts and edit the site.
@@ -51,11 +52,16 @@ academic-page navigation update header --data @menu.json   # replace the whole h
 academic-page navigation update header --data '{"items":[{"target":"section:projects","dropdown":"recent","dropdown_limit":6}]}'
 academic-page appearance get                # theme, accent color, footer, and the themes this site can use
 academic-page appearance update --theme pragma              # switch theme (takes its own accent color)
+academic-page appearance update --footer-about "Methods for missing data." --show-footer-links=false   # footer: text on the left, no link icons
 
 academic-page posts create --title "New paper out" --content-file post.md          # a draft
 academic-page posts update 12 --publish
+academic-page post-settings update --feed-enabled           # publish an RSS feed of the posts at /feed.xml
+academic-page profile-links update 7 --show-in-top-bar      # show a link as an icon at the top right of every page
 academic-page pages create --title "Teaching" --content-markdown "I teach **stats**." --dry-run
 academic-page media upload headshot.jpg --alt-text "Portrait"   # up to 1 GB
+academic-page imports list                  # CV and syllabus imports, newest first
+academic-page imports get 3                 # what an import found, and where it had trouble
 academic-page courses update 4 --instructor-name "Ada Lovelace" --primary-institution "Example University"
 academic-page posts delete 12 --yes
 ```

@@ -177,6 +177,7 @@ var Groups = []Group{
 	{"navigation", "The header and footer menus"},
 	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
+	{"post-settings", "Settings for all posts, such as the RSS feed"},
 	{"pages", "Pages"},
 	{"projects", "Projects"},
 	{"publications", "Publications"},
@@ -189,6 +190,7 @@ var Groups = []Group{
 	{"lab-members", "Lab members (the study team on study sites)"},
 	{"study", "Study details"},
 	{"tags", "Tags"},
+	{"imports", "CV and syllabus imports: what each found, and where it had trouble"},
 	{"media", "Media library files"},
 }
 
@@ -203,6 +205,7 @@ var table = []entry{
 	{group: "sites", name: "list", short: "List the sites this key can read", op: "listSites"},
 	{group: "sites", name: "get", short: "Show a site's settings, domains, sections and navigation", op: "getSite"},
 	{group: "sites", name: "manifest", short: "List every public record's ID and timestamps", op: "getManifest"},
+	{group: "sites", name: "create", short: "Create a site (personal, lab, study, or course) and print its ID", op: "createSite", kind: KindWrite},
 
 	{group: "profile", name: "get", short: "Show the profile", op: "getProfile", draftsOp: "manageGetProfile"},
 	{group: "profile", name: "update", short: "Update the profile (saves like the Save button)", op: "manageUpdateProfile", kind: KindWrite},
@@ -243,6 +246,9 @@ var table = []entry{
 	{group: "posts", name: "create", short: "Create a post (a draft unless --publish)", op: "manageCreatePost", kind: KindWrite},
 	{group: "posts", name: "update", short: "Update a post", op: "manageUpdatePost", kind: KindWrite},
 	{group: "posts", name: "delete", short: "Delete a post", op: "manageDeletePost", kind: KindDelete},
+
+	{group: "post-settings", name: "get", short: "Show the settings for all posts, such as whether the RSS feed is on", op: "manageGetPostSettings"},
+	{group: "post-settings", name: "update", short: "Change the settings for all posts, such as turning the RSS feed on or off", op: "manageUpdatePostSettings", kind: KindWrite},
 
 	{group: "pages", name: "list", short: "List pages", op: "listPages", draftsOp: "manageListPages"},
 	{group: "pages", name: "get", short: "Show a page", op: "getPage", draftsOp: "manageGetPage"},
@@ -331,6 +337,9 @@ var table = []entry{
 	{group: "tags", name: "create", short: "Create a tag", op: "manageCreateTag", kind: KindWrite},
 	{group: "tags", name: "update", short: "Rename a tag", op: "manageUpdateTag", kind: KindWrite},
 	{group: "tags", name: "delete", short: "Delete a tag", op: "manageDeleteTag", kind: KindDelete},
+
+	{group: "imports", name: "list", short: "List the site's imports, newest first", op: "manageListImports"},
+	{group: "imports", name: "get", short: "Show one import: what it found, which suggestions it could not check, and where it had trouble", op: "manageGetImport"},
 
 	{group: "media", name: "list", short: "List media files", op: "listMedia", draftsOp: "manageListMedia"},
 	{group: "media", name: "get", short: "Show a media file", op: "getMediaItem", draftsOp: "manageGetMedia"},

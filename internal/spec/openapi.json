@@ -141,6 +141,76 @@
         }
       }
     },
+    "/sites": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a site",
+        "operationId": "createSite",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/KeySite"
+                    }
+                  }
+                },
+                "examples": {
+                  "example": {
+                    "summary": "A new lab site",
+                    "value": {
+                      "data": {
+                        "id": 57,
+                        "name": "Smith Lab",
+                        "slug": "smith-lab",
+                        "site_type": "lab",
+                        "domain": "biostatistician.page",
+                        "url": "https://smith-lab.biostatistician.page",
+                        "team_id": 3,
+                        "api_access": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Creates a site at its own address on the domain, as the Create Site page does, with the same checks. A site nested under another site's address (such as /courses/...) is made on that page instead. An account at its plan's site limit answers 422 `site_limit_reached`. A lab, study, or course site on a free account, a domain the plan does not offer, or an address that is taken answers 422 `validation_failed` with the field named. A key for the whole account creates the site in that account and reaches it at once. A key for one site cannot create sites and answers 403 `site_key_cannot_create_sites`. An AI app's connection creates it in the owner's current account; one limited to chosen sites has the new site added to them. Read-only keys answer 403. Sites cannot be deleted through the API.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteCreateInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/content/sites": {
       "get": {
         "tags": [
@@ -285,6 +355,7 @@
                         "theme": "classic",
                         "allow_search_indexing": true,
                         "footer_text": null,
+                        "footer_about": null,
                         "favicons": {
                           "favicon-ico": "https://media.academic.page/42/favicon.ico",
                           "favicon-svg": null
@@ -611,7 +682,8 @@
                             "label": "ORCID",
                             "path": null,
                             "url": "https://orcid.org/0000-0002-1825-0097",
-                            "open_in_new_tab": true
+                            "open_in_new_tab": true,
+                            "show_in_top_bar": true
                           }
                         ],
                         "updated_at": "2026-10-12T16:20:00Z"
@@ -5075,6 +5147,110 @@
         }
       }
     },
+    "/sites/{site}/posts/settings": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get the settings for the site's posts as a whole, such as the RSS feed",
+        "operationId": "manageGetPostSettings",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPostSettings"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Change the settings for the site's posts as a whole, as the Posts page does",
+        "operationId": "manageUpdatePostSettings",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPostSettings"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send only what changes. Sites without a posts section answer 404 section_not_enabled.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPostSettingsInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/profile/degrees": {
       "get": {
         "tags": [
@@ -7919,7 +8095,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Takes a PDF or Word file (doc, docx) of at most 10 MB, as the CV page does. The file leaves the media library: a PDF is moved into place, and a Word file is converted to PDF and the original deleted. The CV it replaces is deleted. The public site shows the CV at /cv.\n\nAnswers 422 validation_failed when the file is another type, too large, attached elsewhere, or cannot be converted. Personal sites only; other sites answer 404 section_not_enabled.",
+        "description": "Takes a PDF or Word file (doc, docx) of at most 10 MB, as the CV page does. The file leaves the media library: a PDF is moved into place, and a Word file is converted to PDF and the original deleted. The CV it replaces is deleted.\n\nA CV starts private: saved, but not on the site. Send public: true to show it at /cv, or public: false to take it off the site. public can be sent alone, without file_media_id, to change only that. Replacing a CV keeps it public or private as it was.\n\nAnswers 422 validation_failed when the file is another type, too large, attached elsewhere, or cannot be converted. Personal sites only; other sites answer 404 section_not_enabled.",
         "requestBody": {
           "required": true,
           "content": {
@@ -7975,6 +8151,118 @@
             "$ref": "#/components/responses/Error"
           }
         }
+      }
+    },
+    "/sites/{site}/imports": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List the site's imports, newest first",
+        "operationId": "manageListImports",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementImport"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Imports read a CV, syllabus, or pasted text and suggest items for the person to review. Read only: an import is started and reviewed in Academic.page."
+      }
+    },
+    "/sites/{site}/imports/{importId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get one import: what it found, and where it had trouble",
+        "operationId": "manageGetImport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/importId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementImportReport"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "sections says what each part of the site the import read found. not_double_checked lists suggestions the import could not double-check against the document; holes lists the parts of the document (by page and section heading) that could not be read, or that hold suggestions it could not double-check.\n\nUse it to fill the gaps: read those parts of the person's document yourself and add what is missing with the other tools, after checking with the person. Never invent what the document does not say."
       }
     },
     "/sites/{site}/courses/{courseId}/lessons/{lessonId}/materials": {
@@ -9497,6 +9785,16 @@
           "type": "integer",
           "minimum": 1
         }
+      },
+      "importId": {
+        "name": "importId",
+        "in": "path",
+        "required": true,
+        "description": "An import ID, from imports_list.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
     "responses": {
@@ -9540,7 +9838,7 @@
               "upload_too_large": {
                 "summary": "A file over the plan's limit",
                 "value": {
-                  "message": "This file is larger than your plan allows. Your current limit is 1 GB per file.",
+                  "message": "This file is over the 1 GB limit for one file.",
                   "code": "upload_too_large"
                 }
               }
@@ -9887,6 +10185,7 @@
           "theme",
           "allow_search_indexing",
           "footer_text",
+          "footer_about",
           "favicons",
           "sections",
           "homepage",
@@ -9990,6 +10289,13 @@
               "null"
             ]
           },
+          "footer_about": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Plain text the owner shows on the left of the footer. Line breaks are kept."
+          },
           "favicons": {
             "type": "object",
             "additionalProperties": {
@@ -10080,6 +10386,7 @@
             "theme": "classic",
             "allow_search_indexing": true,
             "footer_text": null,
+            "footer_about": null,
             "favicons": {
               "favicon-ico": "https://media.academic.page/42/favicon.ico",
               "favicon-svg": null
@@ -10577,6 +10884,10 @@
                 },
                 "open_in_new_tab": {
                   "type": "boolean"
+                },
+                "show_in_top_bar": {
+                  "type": "boolean",
+                  "description": "Whether the owner shows this link as an icon at the top right of every page."
                 }
               }
             }
@@ -10699,7 +11010,8 @@
                 "label": "ORCID",
                 "path": null,
                 "url": "https://orcid.org/0000-0002-1825-0097",
-                "open_in_new_tab": true
+                "open_in_new_tab": true,
+                "show_in_top_bar": true
               }
             ],
             "updated_at": "2026-10-12T16:20:00Z"
@@ -14754,36 +15066,7 @@
                 "type": "array",
                 "description": "Every site the key covers that its owner can still reach.",
                 "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "integer"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "slug": {
-                      "type": "string"
-                    },
-                    "site_type": {
-                      "type": "string"
-                    },
-                    "domain": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string",
-                      "format": "uri",
-                      "description": "The site's public address, the same as the content API's site url."
-                    },
-                    "team_id": {
-                      "type": "integer"
-                    },
-                    "api_access": {
-                      "type": "boolean",
-                      "description": "Whether the site's plan includes the API (Pro). Without it, calls for the site answer 403 api_access_requires_pro."
-                    }
-                  }
+                  "$ref": "#/components/schemas/KeySite"
                 }
               }
             }
@@ -14857,6 +15140,99 @@
             "created_at": "2026-06-01T12:00:00Z"
           }
         ]
+      },
+      "KeySite": {
+        "type": "object",
+        "description": "A site, as GET /me lists it and POST /sites returns it.",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "site_type": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "lab",
+              "study",
+              "course"
+            ]
+          },
+          "domain": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The site's public address, the same as the content API's site url."
+          },
+          "team_id": {
+            "type": "integer"
+          },
+          "api_access": {
+            "type": "boolean",
+            "description": "Whether the site's plan includes the API (Pro). Without it, calls for the site answer 403 api_access_requires_pro."
+          }
+        },
+        "examples": [
+          {
+            "id": 57,
+            "name": "Smith Lab",
+            "slug": "smith-lab",
+            "site_type": "lab",
+            "domain": "biostatistician.page",
+            "url": "https://smith-lab.biostatistician.page",
+            "team_id": 3,
+            "api_access": true
+          }
+        ]
+      },
+      "SiteCreateInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "site_type"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The site's name, shown in its header and the browser tab, such as \"Smith Lab\" or \"Biostatistics 101\"."
+          },
+          "site_type": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "lab",
+              "study",
+              "course"
+            ],
+            "description": "personal: a person's own academic site. lab: a research group. study: one research study, project, dataset, or trial. course: a course with lessons, materials, and assignments. Lab, study, and course sites need Pro. The type cannot be changed later."
+          },
+          "domain": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The domain the site's address is on, such as academic.page or biostatistician.page. Free accounts have academic.page only. Leave it out for the domain of the account's main site."
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 2,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$",
+            "description": "The address before the domain: smith-lab gives smith-lab.academic.page. Lowercase letters, digits, and hyphens. Leave it out to make one from the name, with a number added when that address is taken."
+          }
+        },
+        "additionalProperties": false
       },
       "ManagementMedia": {
         "type": "object",
@@ -15327,7 +15703,7 @@
                     "chosen",
                     null
                   ],
-                  "description": "What the link's dropdown holds. none: the link alone. recent: the dropdown_limit most recent projects, publications, posts, talks, or courses of the section it links to. chosen: its children. Null for a group, whose children are always its submenu. A header link to projects, publications, posts, talks, or courses that was never set reads recent, and the public site shows that dropdown once the section has two items."
+                  "description": "What the link's dropdown holds. none: the link alone. recent: the dropdown_limit most recent projects or courses of the section it links to. chosen: its children. Null for a group, whose children are always its submenu. A header link to projects or courses that was never set reads recent, and the public site shows that dropdown once the section has two items. A link to publications, posts, or talks always reads none and cannot be given a dropdown or children: those lists are too long for one."
                 },
                 "dropdown_limit": {
                   "type": [
@@ -15448,7 +15824,7 @@
                     "chosen",
                     null
                   ],
-                  "description": "For a link: none (the link alone), recent (the most recent projects, publications, posts, talks, or courses of the section it links to), or chosen (its children). Left out: chosen when it has children, recent for a header link to one of those sections, none otherwise."
+                  "description": "For a link: none (the link alone), recent (the most recent projects or courses of the section it links to), or chosen (its children). Left out: chosen when it has children, recent for a header link to one of those sections, none otherwise. A link to publications, posts, or talks takes none only."
                 },
                 "dropdown_limit": {
                   "type": [
@@ -15539,6 +15915,8 @@
               "show_navigation",
               "show_text",
               "text",
+              "about",
+              "show_links",
               "show_platform_credit"
             ],
             "properties": {
@@ -15548,13 +15926,25 @@
               },
               "show_text": {
                 "type": "boolean",
-                "description": "Whether the footer text shows."
+                "description": "Whether the line at the bottom of the footer shows."
               },
               "text": {
                 "type": [
                   "string",
                   "null"
-                ]
+                ],
+                "description": "The line at the bottom of the footer. Null shows a copyright notice with the year and the site's name."
+              },
+              "about": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Plain text on the left of the footer, above the link icons. Line breaks are kept. Null shows none."
+              },
+              "show_links": {
+                "type": "boolean",
+                "description": "Whether the footer shows icons for the profile links that have one: GitHub, ORCID, Google Scholar, LinkedIn, Bluesky, and the like."
               },
               "show_platform_credit": {
                 "type": [
@@ -15654,11 +16044,57 @@
               "string",
               "null"
             ],
-            "maxLength": 500
+            "maxLength": 500,
+            "description": "The line at the bottom of the footer. Null shows a copyright notice."
+          },
+          "footer_about": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "description": "Plain text on the left of the footer. Line breaks are kept. Null shows none."
+          },
+          "show_footer_links": {
+            "type": "boolean",
+            "description": "Whether the footer shows icons for the profile links that have one."
           },
           "show_platform_credit": {
             "type": "boolean",
             "description": "Only on a plan that lets the owner hide the credit."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementPostSettings": {
+        "type": "object",
+        "description": "Settings for the site's posts as a whole.",
+        "required": [
+          "feed_enabled",
+          "feed_url"
+        ],
+        "properties": {
+          "feed_enabled": {
+            "type": "boolean",
+            "description": "Whether the site publishes an RSS feed of its published posts. Off by default. When on, every page links to the feed with an RSS icon at the top right."
+          },
+          "feed_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The feed's address, such as https://jane.biostatistician.page/feed.xml. Null when the feed is off."
+          }
+        }
+      },
+      "ManagementPostSettingsInput": {
+        "type": "object",
+        "description": "The post settings to change. Send only what changes.",
+        "properties": {
+          "feed_enabled": {
+            "type": "boolean",
+            "description": "Publish an RSS feed of the site's published posts at /feed.xml."
           }
         },
         "additionalProperties": false
@@ -15828,6 +16264,7 @@
           "show_location",
           "photo_media_id",
           "photo_url",
+          "photo_crop",
           "summary",
           "summary_html",
           "body",
@@ -15876,6 +16313,38 @@
               "null"
             ],
             "format": "uri"
+          },
+          "photo_crop": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ],
+            "description": "Where the photo sits in the square or circle the themes show it in. Null shows the middle of the photo at full size. Personal sites only. The uploaded photo is kept as it is; themes show a copy cut to this square.",
+            "properties": {
+              "x": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "The centre of the square across the photo, from 0 (left edge) to 1 (right edge)."
+              },
+              "y": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "The centre of the square down the photo, from 0 (top) to 1 (bottom)."
+              },
+              "zoom": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 4,
+                "description": "How far the square zooms in. 1 is the largest square the photo holds. Defaults to 1."
+              }
+            }
           },
           "summary": {
             "type": [
@@ -15966,6 +16435,38 @@
               "null"
             ],
             "description": "A library file's ID from the media endpoints. Null removes the file. Assigning moves the file into this place, as the admin's picker does."
+          },
+          "photo_crop": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ],
+            "description": "Where the photo sits in the square or circle the themes show it in. Null shows the middle of the photo at full size. Personal sites only. The uploaded photo is kept as it is; themes show a copy cut to this square.",
+            "properties": {
+              "x": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "The centre of the square across the photo, from 0 (left edge) to 1 (right edge)."
+              },
+              "y": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "The centre of the square down the photo, from 0 (top) to 1 (bottom)."
+              },
+              "zoom": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 4,
+                "description": "How far the square zooms in. 1 is the largest square the photo holds. Defaults to 1."
+              }
+            }
           },
           "summary": {
             "type": [
@@ -16272,6 +16773,7 @@
           "url",
           "resolved_url",
           "open_in_new_tab",
+          "show_in_top_bar",
           "order",
           "edit_version",
           "created_at",
@@ -16320,6 +16822,10 @@
           },
           "open_in_new_tab": {
             "type": "boolean"
+          },
+          "show_in_top_bar": {
+            "type": "boolean",
+            "description": "Whether the link shows as an icon at the top right of every page."
           },
           "order": {
             "type": "integer"
@@ -16390,6 +16896,10 @@
           },
           "open_in_new_tab": {
             "type": "boolean"
+          },
+          "show_in_top_bar": {
+            "type": "boolean",
+            "description": "Show the link as an icon at the top right of every page. Left as it is when not sent; false for a new link."
           },
           "edit_version": {
             "type": [
@@ -16902,6 +17412,7 @@
           "title",
           "instructor_name",
           "primary_institution",
+          "lesson_label",
           "slug",
           "uri",
           "excerpt",
@@ -16951,6 +17462,17 @@
               "null"
             ],
             "description": "Primary Institution."
+          },
+          "lesson_label": {
+            "type": "string",
+            "enum": [
+              "lessons",
+              "modules",
+              "sessions",
+              "weeks",
+              "units"
+            ],
+            "description": "What the course calls its lessons. Themes and the admin show it in place of Lessons (Modules, Sessions, Weeks, or Units) and its singular for one item."
           },
           "slug": {
             "type": [
@@ -17199,6 +17721,17 @@
             ],
             "maxLength": 255,
             "description": "Primary Institution. Empty clears it."
+          },
+          "lesson_label": {
+            "type": "string",
+            "enum": [
+              "lessons",
+              "modules",
+              "sessions",
+              "weeks",
+              "units"
+            ],
+            "description": "What the course calls its lessons: lessons (the default), modules, sessions, weeks, or units. The course homepage's lesson list heading follows it while that heading is still the old name."
           },
           "excerpt": {
             "type": [
@@ -18002,6 +18535,184 @@
         },
         "additionalProperties": false
       },
+      "ManagementImport": {
+        "type": "object",
+        "description": "An import, in brief.",
+        "required": [
+          "id",
+          "source",
+          "file_name",
+          "status",
+          "suggestions",
+          "review_url",
+          "created_at",
+          "completed_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          },
+          "file_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "queued, reading, segmenting, extracting, ready_for_review, ready_with_errors, failed, or cancelled."
+          },
+          "suggestions": {
+            "type": "integer"
+          },
+          "review_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where the person reviews the suggestions in Academic.page."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementImportReport": {
+        "type": "object",
+        "description": "An import: what it found, and where it had trouble.",
+        "required": [
+          "id",
+          "source",
+          "file_name",
+          "status",
+          "suggestions",
+          "review_url",
+          "created_at",
+          "completed_at",
+          "sections",
+          "not_double_checked",
+          "holes"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "source": {
+            "type": "string"
+          },
+          "file_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "queued, reading, segmenting, extracting, ready_for_review, ready_with_errors, failed, or cancelled."
+          },
+          "suggestions": {
+            "type": "integer"
+          },
+          "review_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where the person reviews the suggestions in Academic.page."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "found": {
+                  "type": "string"
+                },
+                "failed": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "not_double_checked": {
+            "type": "array",
+            "description": "Suggestions the import could not double-check against the document.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "item_id": {
+                  "type": "integer"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "review_status": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "holes": {
+            "type": "array",
+            "description": "Parts of the document to check by hand.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "where": {
+                  "type": "string",
+                  "description": "Pages and section heading, such as \"Pages 1–2, Education\"."
+                },
+                "what": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "unread",
+                    "unchecked"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
       "ManagementCv": {
         "type": "object",
         "description": "A personal site's CV. The file fields are null when the site has no CV.",
@@ -18012,6 +18723,7 @@
           "mime_type",
           "size",
           "converted_from_filename",
+          "public",
           "url",
           "file_url",
           "in_navigation",
@@ -18055,13 +18767,17 @@
             ],
             "description": "The Word file this PDF was made from, if it was converted."
           },
+          "public": {
+            "type": "boolean",
+            "description": "Whether visitors can see the CV. False until its owner makes it public: a private CV is not at /cv, and menu links to /cv are hidden."
+          },
           "url": {
             "type": [
               "string",
               "null"
             ],
             "format": "uri",
-            "description": "The public /cv address, which keeps working when the file is replaced."
+            "description": "The /cv address, which keeps working when the file is replaced. It answers 404 while the CV is private."
           },
           "file_url": {
             "type": [
@@ -18090,14 +18806,15 @@
       },
       "ManagementCvInput": {
         "type": "object",
-        "description": "A library file to make the CV.",
-        "required": [
-          "file_media_id"
-        ],
+        "description": "A library file to make the CV, whether visitors can see it, or both.",
         "properties": {
           "file_media_id": {
             "type": "integer",
-            "description": "A library file's site media ID: a PDF or Word file of at most 10 MB."
+            "description": "A library file's site media ID: a PDF or Word file of at most 10 MB. Required unless public is sent."
+          },
+          "public": {
+            "type": "boolean",
+            "description": "true shows the CV on the site at /cv; false keeps it private. A new CV is private until this is sent."
           },
           "edit_version": {
             "type": [
