@@ -5147,6 +5147,110 @@
         }
       }
     },
+    "/sites/{site}/bluesky-handle": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get the Bluesky handle on the site's address and the DID the site answers for it",
+        "operationId": "manageGetBlueskyHandle",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementBlueskyHandle"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Set up or remove a Bluesky handle on the site's address, as the Bluesky tab of Site Settings does",
+        "operationId": "manageUpdateBlueskyHandle",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementBlueskyHandle"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "In Bluesky, Settings, Account, Handle, \"I have my own domain\", and \"No DNS Panel\" show the DID to send here. Once saved, the site answers https://<handle>/.well-known/atproto-did with the DID, and the owner clicks Verify Text File in Bluesky. A did of null removes the file. A site nested under another site's address has no handles and refuses a DID with 422.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementBlueskyHandleInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/posts/settings": {
       "get": {
         "tags": [
@@ -16066,6 +16170,70 @@
         },
         "additionalProperties": false
       },
+      "ManagementBlueskyHandle": {
+        "type": "object",
+        "description": "A Bluesky handle on the site's address, such as @jane.academic.page.",
+        "required": [
+          "handle",
+          "did",
+          "file_url",
+          "handles"
+        ],
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The domain the handle uses: the saved one, or else the first of handles. Null when the site has no address of its own."
+          },
+          "did": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The Bluesky account's DID, such as did:plc:kl3vsthiwyiov5c7n7lt2df3, that the site answers at file_url. Null until it is set up."
+          },
+          "file_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The address Bluesky checks: https://<handle>/.well-known/atproto-did. Null when handle is null."
+          },
+          "handles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The domains this site can use as a handle: its active custom domain, then its platform address. Empty for a site nested under another site's address."
+          }
+        }
+      },
+      "ManagementBlueskyHandleInput": {
+        "type": "object",
+        "description": "The Bluesky handle to set up. Send only what changes.",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "One of handles, as a domain, a handle with its @, or the file address Bluesky shows. Leave it out or send null for the current handle."
+          },
+          "did": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2048,
+            "description": "The DID Bluesky shows under \"That contains the following\", starting with did:plc: or did:web:. Null removes the file. Required while the site has none."
+          }
+        },
+        "additionalProperties": false
+      },
       "ManagementPostSettings": {
         "type": "object",
         "description": "Settings for the site's posts as a whole.",
@@ -17411,8 +17579,11 @@
           "site_id",
           "title",
           "instructor_name",
+          "instructor_url",
           "primary_institution",
           "lesson_label",
+          "description_heading",
+          "show_qr_code",
           "slug",
           "uri",
           "excerpt",
@@ -17456,6 +17627,14 @@
             ],
             "description": "Instructor."
           },
+          "instructor_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Instructor link: where the instructor's name links on the course homepage, such as their personal site. Null for no link."
+          },
           "primary_institution": {
             "type": [
               "string",
@@ -17473,6 +17652,14 @@
               "units"
             ],
             "description": "What the course calls its lessons. Themes and the admin show it in place of Lessons (Modules, Sessions, Weeks, or Units) and its singular for one item."
+          },
+          "description_heading": {
+            "type": "string",
+            "description": "The heading over the course description on the course page and the course homepage. Course Description unless the owner set another."
+          },
+          "show_qr_code": {
+            "type": "boolean",
+            "description": "Whether a course site's homepage shows a QR code at the top, linking to the site, which visitors can open full screen for a class to scan from a projector. The Homepage layout page's QR code setting. Only a course site's own course shows it."
           },
           "slug": {
             "type": [
@@ -17714,6 +17901,15 @@
             "maxLength": 255,
             "description": "Instructor. Empty clears it."
           },
+          "instructor_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Instructor link: an http or https address the instructor's name links to on the course homepage, such as their personal site. Empty or null removes the link."
+          },
           "primary_institution": {
             "type": [
               "string",
@@ -17732,6 +17928,18 @@
               "units"
             ],
             "description": "What the course calls its lessons: lessons (the default), modules, sessions, weeks, or units. The course homepage's lesson list heading follows it while that heading is still the old name."
+          },
+          "description_heading": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 80,
+            "description": "The heading over the course description, such as Workshop Goals. Empty or null goes back to Course Description. The course homepage's Course Description section heading follows it while that heading is still the old one."
+          },
+          "show_qr_code": {
+            "type": "boolean",
+            "description": "Show a QR code at the top of the course site's homepage, linking to the site, for a class to scan from a projector. Only a course site's own course shows it."
           },
           "excerpt": {
             "type": [

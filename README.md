@@ -56,6 +56,7 @@ academic-page appearance update --footer-about "Methods for missing data." --sho
 
 academic-page posts create --title "New paper out" --content-file post.md          # a draft
 academic-page posts update 12 --publish
+academic-page bluesky-handle update --did did:plc:kl3vsthiwyiov5c7n7lt2df3   # use the site's address as your Bluesky handle
 academic-page post-settings update --feed-enabled           # publish an RSS feed of the posts at /feed.xml
 academic-page profile-links update 7 --show-in-top-bar      # show a link as an icon at the top right of every page
 academic-page pages create --title "Teaching" --content-markdown "I teach **stats**." --dry-run

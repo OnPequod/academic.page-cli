@@ -247,6 +247,9 @@ var table = []entry{
 	{group: "posts", name: "update", short: "Update a post", op: "manageUpdatePost", kind: KindWrite},
 	{group: "posts", name: "delete", short: "Delete a post", op: "manageDeletePost", kind: KindDelete},
 
+	{group: "bluesky-handle", name: "get", short: "Show the Bluesky handle on the site's address and the DID the site answers for it", op: "manageGetBlueskyHandle"},
+	{group: "bluesky-handle", name: "update", short: "Set up or remove a Bluesky handle on the site's address", op: "manageUpdateBlueskyHandle", kind: KindWrite},
+
 	{group: "post-settings", name: "get", short: "Show the settings for all posts, such as whether the RSS feed is on", op: "manageGetPostSettings"},
 	{group: "post-settings", name: "update", short: "Change the settings for all posts, such as turning the RSS feed on or off", op: "manageUpdatePostSettings", kind: KindWrite},
 
