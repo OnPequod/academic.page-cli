@@ -5150,6 +5150,109 @@
         }
       }
     },
+    "/sites/{site}/nested-address": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a nested site slug and public URL",
+        "operationId": "manageGetNestedAddress",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementNestedAddress"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Change the slug of a nested site without changing its parent address",
+        "operationId": "manageUpdateNestedAddress",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementNestedAddress"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementNestedAddressInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/bluesky-handle": {
       "get": {
         "tags": [
@@ -16197,6 +16300,39 @@
           "show_platform_credit": {
             "type": "boolean",
             "description": "Only on a plan that lets the owner hide the credit."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementNestedAddress": {
+        "type": "object",
+        "description": "The address of a site nested under a parent site.",
+        "required": [
+          "slug",
+          "url"
+        ],
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "ManagementNestedAddressInput": {
+        "type": "object",
+        "description": "The nested site slug. The parent address and path stay the same.",
+        "required": [
+          "slug"
+        ],
+        "properties": {
+          "slug": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "description": "Lowercase letters, numbers, and hyphens. Subject to availability and address change limits."
           }
         },
         "additionalProperties": false

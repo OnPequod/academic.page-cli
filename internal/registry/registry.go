@@ -247,6 +247,8 @@ var table = []entry{
 	{group: "posts", name: "update", short: "Update a post", op: "manageUpdatePost", kind: KindWrite},
 	{group: "posts", name: "delete", short: "Delete a post", op: "manageDeletePost", kind: KindDelete},
 
+	{group: "nested-address", name: "get", short: "Show the nested site slug and public URL", op: "manageGetNestedAddress"},
+	{group: "nested-address", name: "update", short: "Change the nested site slug", op: "manageUpdateNestedAddress", kind: KindWrite},
 	{group: "bluesky-handle", name: "get", short: "Show the Bluesky handle on the site's address and the DID the site answers for it", op: "manageGetBlueskyHandle"},
 	{group: "bluesky-handle", name: "update", short: "Set up or remove a Bluesky handle on the site's address", op: "manageUpdateBlueskyHandle", kind: KindWrite},
 
