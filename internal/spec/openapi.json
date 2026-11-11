@@ -1972,6 +1972,9 @@
                         "title": "Introduction to Biostatistics",
                         "instructor_name": "Jane Smith",
                         "primary_institution": "Johns Hopkins University",
+                        "level": "Graduate",
+                        "class_size": "30–40 students",
+                        "website_url": "https://biostats-intro.academic.page",
                         "excerpt": "Probability, inference, and regression for public health.",
                         "content": {
                           "html": "<p>An introduction to statistical reasoning for public health.</p>",
@@ -12176,6 +12179,9 @@
           "title",
           "instructor_name",
           "primary_institution",
+          "level",
+          "class_size",
+          "website_url",
           "excerpt",
           "content",
           "offerings",
@@ -12238,6 +12244,28 @@
               "null"
             ],
             "description": "Primary Institution, as Course Info shows it."
+          },
+          "level": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The course's level as visitors read it: Undergraduate, Graduate, or the owner's own name for another level. Null when not given."
+          },
+          "class_size": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Class size, as the owner wrote it, such as 10–20 students. Null when not given."
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The course website the owner linked, shown as a Course website link on the course's page: the address of one of their course sites while it is published, or another address. Null for none."
           },
           "excerpt": {
             "type": [
@@ -12435,6 +12463,9 @@
             "title": "Introduction to Biostatistics",
             "instructor_name": "Jane Smith",
             "primary_institution": "Johns Hopkins University",
+            "level": "Graduate",
+            "class_size": "30–40 students",
+            "website_url": "https://biostats-intro.academic.page",
             "excerpt": "Probability, inference, and regression for public health.",
             "content": {
               "html": "<p>An introduction to statistical reasoning for public health.</p>",
@@ -17580,6 +17611,12 @@
           "title",
           "instructor_name",
           "instructor_url",
+          "course_site_id",
+          "website_url",
+          "level",
+          "level_other",
+          "class_size",
+          "website_link_url",
           "primary_institution",
           "lesson_label",
           "description_heading",
@@ -17634,6 +17671,56 @@
             ],
             "format": "uri",
             "description": "Instructor link: where the instructor's name links on the course homepage, such as their personal site. Null for no link."
+          },
+          "course_site_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Course website: the ID of one of the team's course sites this course links to. Null when the course links to another address or to none. Always null for a course site's own course."
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Course website: an address other than a course site. Null when course_site_id is set or the course links to none."
+          },
+          "level": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "undergraduate",
+              "graduate",
+              "other",
+              null
+            ],
+            "description": "Level: undergraduate, graduate, or other. Null when not given."
+          },
+          "level_other": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The owner's own name for the level when level is other, such as Professional. Null otherwise."
+          },
+          "class_size": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Class size, as the owner wrote it, such as 10–20 students."
+          },
+          "website_link_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Where visitors' Course website link goes: the course site's address while it is published, otherwise website_url. Null when visitors see no link."
           },
           "primary_institution": {
             "type": [
@@ -17909,6 +17996,51 @@
             "format": "uri",
             "maxLength": 2048,
             "description": "Instructor link: an http or https address the instructor's name links to on the course homepage, such as their personal site. Empty or null removes the link."
+          },
+          "course_site_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Link the course to one of the team's course sites as its course website (a site with site_type course; key_show lists them). Clears website_url. Null removes the link. Not accepted for a course site's own course."
+          },
+          "level": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "undergraduate",
+              "graduate",
+              "other",
+              null
+            ],
+            "description": "Level: undergraduate, graduate, or other. Null clears it. Shown with the instructor at the top of the course page."
+          },
+          "level_other": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120,
+            "description": "The name shown for the level when level is other, such as Professional. Ignored and cleared for any other level."
+          },
+          "class_size": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120,
+            "description": "Class size as free text, such as 10–20 students. Empty or null clears it."
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Link the course to another http or https address as its course website, such as a page on the university's site. Clears course_site_id. Empty or null removes it. Not accepted for a course site's own course."
           },
           "primary_institution": {
             "type": [

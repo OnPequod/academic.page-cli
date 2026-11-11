@@ -64,6 +64,8 @@ academic-page media upload headshot.jpg --alt-text "Portrait"   # up to 1 GB
 academic-page imports list                  # CV and syllabus imports, newest first
 academic-page imports get 3                 # what an import found, and where it had trouble
 academic-page courses update 4 --instructor-name "Ada Lovelace" --primary-institution "Example University"
+academic-page courses update 4 --level graduate --class-size "10–20 students"
+academic-page courses update 4 --course-site-id 12        # link a course on a Teaching page to its course site
 academic-page posts delete 12 --yes
 ```
 
@@ -98,6 +100,8 @@ Switching to date order clears the saved positions. `--reset` clears them while 
 ### Courses and Course Info
 
 On a course site, the site's first course is the one the admin's Course Info page edits. Its `title`, `instructor_name`, `primary_institution`, `excerpt`, and content are Course Info's Course Title, Instructor, Primary Institution, Short Introduction, and Full Description. Its title is also the site's name: changing it renames the site, and it cannot be emptied. `courses update` sends only the fields you give, so `--instructor-name` alone leaves the rest as they are; `--null instructor_name` clears one. Pass `--edit-version` as with any update.
+
+A course on a personal site's Teaching page can link to its course website. `--course-site-id` links one of the team's course sites, and `--website-url` links any other address. Setting one clears the other. `--level` is `undergraduate`, `graduate`, or `other`. With `other`, `--level-other` gives the name visitors see, such as Professional. `--class-size` is free text.
 
 ### Uploads and retries
 
