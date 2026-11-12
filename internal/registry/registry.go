@@ -296,7 +296,8 @@ var table = []entry{
 	{group: "courses", name: "get", short: "Show a course", op: "getCourse", draftsOp: "manageGetCourse"},
 	{group: "courses", name: "create", short: "Create a course (a draft unless --publish)", op: "manageCreateCourse", kind: KindWrite},
 	{group: "courses", name: "update", short: "Update a course", op: "manageUpdateCourse", kind: KindWrite},
-	{group: "courses", name: "reorder", short: "Put published courses in the order given", op: "manageReorderCourses", kind: KindWrite},
+	{group: "courses", name: "reorder", short: "Put published courses in the order given, or sort them by when each was last taught", op: "manageReorderCourses", kind: KindWrite},
+	{group: "courses", name: "sort-offerings", short: "Sort a course's offerings by date, latest first", op: "manageSortCourseOfferings", kind: KindWrite},
 	{group: "courses", name: "delete", short: "Delete a course", op: "manageDeleteCourse", kind: KindDelete},
 
 	{group: "course-lessons", name: "list", short: "List a course's lessons", op: "manageListCourseLessons", parents: course},

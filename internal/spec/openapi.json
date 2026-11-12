@@ -6812,7 +6812,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "Put published courses in the order given",
+        "summary": "Put published courses in the order given, or sort them by when each was last taught",
         "operationId": "manageReorderCourses",
         "parameters": [
           {
@@ -6860,13 +6860,76 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Send every published course's ID once, in the order the Courses page should show them. Drafts have no place in the order and are refused, as are IDs that are not courses on this site; nothing changes then. The response lists the published courses in their new order. A course published later goes to the end.",
+        "description": "Send every published course's ID once, in the order the Courses page should show them. Drafts have no place in the order and are refused, as are IDs that are not courses on this site; nothing changes then. Or send sort: last_taught instead of ids to put the most recently taught course first, as the Courses page's Sort by most recently taught button does. The response lists the published courses in their new order. A course published later goes to the end.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReorderInput"
+                "$ref": "#/components/schemas/CourseReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/courses/{courseId}/offerings/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Sort a course's offerings by date, latest first",
+        "operationId": "manageSortCourseOfferings",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/courseId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementCourse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Visitors see a course's offerings in the order of its instances, and new offerings added in the admin go first. This sorts them latest first, as the course editors' Sort by date button does: by start date when two offerings both have one, else by year and then term. Academic quarters follow the school year, so Q3 2026 comes before Summer 2026. Offerings without a year go last, and ties keep their order. To set your own order, send instances in that order with PATCH instead.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseOfferingsSortInput"
               }
             }
           }
@@ -15941,7 +16004,7 @@
                     "chosen",
                     null
                   ],
-                  "description": "What the link's dropdown holds. none: the link alone. recent: the dropdown_limit most recent projects or courses of the section it links to. chosen: its children. Null for a group, whose children are always its submenu. A header link to projects or courses that was never set reads recent, and the public site shows that dropdown once the section has two items. A link to publications, posts, or talks always reads none and cannot be given a dropdown or children: those lists are too long for one."
+                  "description": "What the link's dropdown holds. none: the link alone. recent: the dropdown_limit most recent projects (by publication) or courses (by when each was last taught, from its offerings) of the section it links to. chosen: its children. Null for a group, whose children are always its submenu. A header link to projects or courses that was never set reads recent, and the public site shows that dropdown once the section has two items. A link to publications, posts, or talks always reads none and cannot be given a dropdown or children: those lists are too long for one."
                 },
                 "dropdown_limit": {
                   "type": [
@@ -16062,7 +16125,7 @@
                     "chosen",
                     null
                   ],
-                  "description": "For a link: none (the link alone), recent (the most recent projects or courses of the section it links to), or chosen (its children). Left out: chosen when it has children, recent for a header link to one of those sections, none otherwise. A link to publications, posts, or talks takes none only."
+                  "description": "For a link: none (the link alone), recent (the most recent projects, or the most recently taught courses, of the section it links to), or chosen (its children). Left out: chosen when it has children, recent for a header link to one of those sections, none otherwise. A link to publications, posts, or talks takes none only."
                 },
                 "dropdown_limit": {
                   "type": [
@@ -16559,6 +16622,51 @@
             "items": {
               "type": "integer"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CourseOfferingsSortInput": {
+        "type": "object",
+        "description": "How to sort the offerings.",
+        "required": [
+          "sort"
+        ],
+        "properties": {
+          "sort": {
+            "type": "string",
+            "enum": [
+              "date"
+            ],
+            "description": "date: latest first."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The course's edit_version from your last read. A stale one is refused with 409 edit_conflict. Null or left out skips the check."
+          }
+        },
+        "additionalProperties": false
+      },
+      "CourseReorderInput": {
+        "type": "object",
+        "description": "Send ids to set the order by hand, or sort to have it worked out. Send one of the two.",
+        "properties": {
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Every published course's ID, once each, in the new order."
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "last_taught"
+            ],
+            "description": "last_taught: most recently taught first, from each course's offerings. A course running now comes first. An offering without a year counts the latest year its term text or dates name. Courses that tie keep their current order, and courses with no year go last."
           }
         },
         "additionalProperties": false

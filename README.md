@@ -98,6 +98,25 @@ academic-page talks set-order --reset
 
 Switching to date order clears the saved positions. `--reset` clears them while keeping custom order. To place one record, update it with `--year-order`; in custom order, records without a position come first in date order.
 
+### Course order
+
+Published courses appear on the Teaching page in the order you set. List every published course's ID, or sort them by when each was last taught:
+
+```sh
+academic-page courses reorder --ids 60,57,55
+academic-page courses reorder --sort last_taught
+```
+
+`--sort last_taught` puts a course running now first, then the rest by their latest offering. An offering stored without a year counts the latest year its term text names. Courses with no year go last.
+
+A course's offerings appear in the order you give them. To put the latest first:
+
+```sh
+academic-page courses sort-offerings 60 --sort date
+```
+
+Academic quarters follow the school year, so Q3 2026 sorts before Summer 2026.
+
 ### Courses and Course Info
 
 On a course site, the site's first course is the one the admin's Course Info page edits. Its `title`, `instructor_name`, `primary_institution`, `excerpt`, and content are Course Info's Course Title, Instructor, Primary Institution, Short Introduction, and Full Description. Its title is also the site's name: changing it renames the site, and it cannot be emptied. `courses update` sends only the fields you give, so `--instructor-name` alone leaves the rest as they are; `--null instructor_name` clears one. Pass `--edit-version` as with any update.
