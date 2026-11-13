@@ -175,6 +175,7 @@ var Groups = []Group{
 	{"profile-positions", "Positions on the profile"},
 	{"profile-links", "Links on the profile"},
 	{"profile-honors", "Honors and awards on the profile"},
+	{"profile-service", "Service on the profile: editorial roles, reviewing, committees"},
 	{"navigation", "The header and footer menus"},
 	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
@@ -237,10 +238,17 @@ var table = []entry{
 
 	{group: "profile-honors", name: "list", short: "List honors and awards", op: "manageListProfileHonors"},
 	{group: "profile-honors", name: "get", short: "Show an honor", op: "manageGetProfileHonor"},
-	{group: "profile-honors", name: "create", short: "Add an honor (placed newest first by year; the first one also adds Honors to the menu)", op: "manageCreateProfileHonor", kind: KindWrite},
+	{group: "profile-honors", name: "create", short: "Add an honor (placed newest first by year; shown on the About page)", op: "manageCreateProfileHonor", kind: KindWrite},
 	{group: "profile-honors", name: "update", short: "Update an honor", op: "manageUpdateProfileHonor", kind: KindWrite},
 	{group: "profile-honors", name: "delete", short: "Delete an honor", op: "manageDeleteProfileHonor", kind: KindDelete},
 	{group: "profile-honors", name: "reorder", short: "Set the order of the honors", op: "manageReorderProfileHonors", kind: KindWrite},
+
+	{group: "profile-service", name: "list", short: "List service roles", op: "manageListProfileServiceRoles"},
+	{group: "profile-service", name: "get", short: "Show a service role", op: "manageGetProfileServiceRole"},
+	{group: "profile-service", name: "create", short: "Add a service role (one per journal reviewed for; shown on the About page by kind)", op: "manageCreateProfileServiceRole", kind: KindWrite},
+	{group: "profile-service", name: "update", short: "Update a service role", op: "manageUpdateProfileServiceRole", kind: KindWrite},
+	{group: "profile-service", name: "delete", short: "Delete a service role", op: "manageDeleteProfileServiceRole", kind: KindDelete},
+	{group: "profile-service", name: "reorder", short: "Set the order of the service roles", op: "manageReorderProfileServiceRoles", kind: KindWrite},
 
 	{group: "profile-links", name: "list", short: "List links", op: "manageListProfileLinks"},
 	{group: "profile-links", name: "get", short: "Show a link", op: "manageGetProfileLink"},

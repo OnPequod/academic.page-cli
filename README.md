@@ -54,6 +54,7 @@ academic-page appearance get                # theme, accent color, footer, and t
 academic-page appearance update --theme pragma              # switch theme (takes its own accent color)
 academic-page appearance update --footer-about "Methods for missing data." --show-footer-links=false   # footer: text on the left, no link icons
 academic-page profile-honors create --name "Early Career Award" --organization "Society for Clinical Trials" --year 2024
+academic-page profile-service create --kind reviewing --title Reviewer --organization "Statistics in Medicine" --start-year 2019 --current
 
 academic-page posts create --title "New paper out" --content-file post.md          # a draft
 academic-page posts update 12 --publish
@@ -158,7 +159,7 @@ With `--json`, errors go to stderr as `{"error": {"code", "message", "status", "
 
 ## What the API covers
 
-Reads and writes: the profile (with degrees, positions, honors, and links), posts, pages, projects, publications (including BibTeX import), talks, courses (with Course Info on course sites) and their lessons, materials, assignments, and references, lab members, study details, tags, and media. Reads only: sites, the manifest, and the BibTeX export. Records with drafts take `--drafts` on reads; the others take `--manage` for the management view, which includes `edit_version`. Pass `--edit-version` on updates so a change made elsewhere since you read the record returns a conflict (exit code 10) instead of being overwritten.
+Reads and writes: the profile (with degrees, positions, honors, service, and links), posts, pages, projects, publications (including BibTeX import), talks, courses (with Course Info on course sites) and their lessons, materials, assignments, and references, lab members, study details, tags, and media. Reads only: sites, the manifest, and the BibTeX export. Records with drafts take `--drafts` on reads; the others take `--manage` for the management view, which includes `edit_version`. Pass `--edit-version` on updates so a change made elsewhere since you read the record returns a conflict (exit code 10) instead of being overwritten.
 
 A page published without a slug gets one from its title; a slug another page under the same parent already uses is refused with 422 under `slug`.
 

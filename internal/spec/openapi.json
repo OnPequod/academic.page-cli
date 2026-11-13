@@ -620,7 +620,8 @@
                           "body": "About me",
                           "credentials": "Education",
                           "positions": "Positions",
-                          "honors": "Honors and Awards"
+                          "honors": "Honors and Awards",
+                          "service": "Service"
                         },
                         "location": "Baltimore, MD",
                         "email": null,
@@ -673,6 +674,21 @@
                             "description": null,
                             "url": null,
                             "display": "2024"
+                          }
+                        ],
+                        "service": [
+                          {
+                            "id": 9,
+                            "kind": "editorial",
+                            "kind_label": "Editorial",
+                            "title": "Associate Editor",
+                            "organization": "Statistics in Medicine",
+                            "start_year": 2021,
+                            "end_year": null,
+                            "current": true,
+                            "description": null,
+                            "url": null,
+                            "display": "2021 — present"
                           }
                         ],
                         "positions": [
@@ -6769,6 +6785,330 @@
         }
       }
     },
+    "/sites/{site}/profile/service": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile service roles in display order. Personal sites only. Service shows on the About page, after Honors, grouped by kind, and on the Service page. Reviewing is one role per journal or panel.",
+        "operationId": "manageListProfileServiceRoles",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileServiceRole"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile service role, placed where the admin would place it",
+        "operationId": "manageCreateProfileServiceRole",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileServiceRole"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileServiceRoleInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/service/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile service role in the order given",
+        "operationId": "manageReorderProfileServiceRoles",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileServiceRole"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/service/{serviceRoleId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile service role",
+        "operationId": "manageGetProfileServiceRole",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/serviceRoleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileServiceRole"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile service role",
+        "operationId": "manageUpdateProfileServiceRole",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/serviceRoleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileServiceRole"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileServiceRoleInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile service role",
+        "operationId": "manageDeleteProfileServiceRole",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/serviceRoleId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/sites/{site}/talks": {
       "get": {
         "tags": [
@@ -10325,6 +10665,16 @@
           "minimum": 1
         }
       },
+      "serviceRoleId": {
+        "name": "serviceRoleId",
+        "in": "path",
+        "required": true,
+        "description": "A profile service role ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "talkId": {
         "name": "talkId",
         "in": "path",
@@ -11239,6 +11589,7 @@
           "cv",
           "credentials",
           "honors",
+          "service",
           "positions",
           "links",
           "updated_at"
@@ -11313,6 +11664,12 @@
                 ]
               },
               "honors": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "service": {
                 "type": [
                   "string",
                   "null"
@@ -11470,6 +11827,75 @@
               }
             }
           },
+          "service": {
+            "type": "array",
+            "description": "Service roles, in the owner's order. The site groups them by kind. Empty on sites without service.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "editorial",
+                    "reviewing",
+                    "committee",
+                    "society",
+                    "conference",
+                    "other"
+                  ]
+                },
+                "kind_label": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "organization": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "start_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "end_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "current": {
+                  "type": "boolean"
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The years as the site shows them, such as 2019 — present."
+                }
+              }
+            }
+          },
           "positions": {
             "type": "array",
             "items": {
@@ -11620,7 +12046,8 @@
               "body": "About me",
               "credentials": "Education",
               "positions": "Positions",
-              "honors": "Honors and Awards"
+              "honors": "Honors and Awards",
+              "service": "Service"
             },
             "location": "Baltimore, MD",
             "email": null,
@@ -11673,6 +12100,21 @@
                 "description": null,
                 "url": null,
                 "display": "2024"
+              }
+            ],
+            "service": [
+              {
+                "id": 9,
+                "kind": "editorial",
+                "kind_label": "Editorial",
+                "title": "Associate Editor",
+                "organization": "Statistics in Medicine",
+                "start_year": 2021,
+                "end_year": null,
+                "current": true,
+                "description": null,
+                "url": null,
+                "display": "2021 — present"
               }
             ],
             "positions": [
@@ -16376,7 +16818,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -16452,7 +16894,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -16516,7 +16958,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
@@ -16567,7 +17009,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
@@ -17593,6 +18035,178 @@
             "minimum": 1900,
             "maximum": 2100,
             "description": "The year it was awarded. An honor has one year; a fellowship takes the year it was awarded."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileServiceRole": {
+        "type": "object",
+        "description": "A service role: an editorial role, reviewing for a journal or panel, a committee, a society office, or a conference organized (Service).",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "organization",
+          "start_year",
+          "end_year",
+          "current",
+          "description",
+          "url",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "editorial",
+              "reviewing",
+              "committee",
+              "society",
+              "conference",
+              "other"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "organization": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Null while the role is current."
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileServiceRoleInput": {
+        "type": "object",
+        "description": "A create needs kind and title. A PATCH changes only the fields sent. A new role is placed newest first, a current one at the top.",
+        "required": [
+          "kind",
+          "title"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "editorial",
+              "reviewing",
+              "committee",
+              "society",
+              "conference",
+              "other"
+            ],
+            "description": "editorial (an editorial board or editor role), reviewing (reviewing for one journal or grant panel), committee, society (an office in a professional society), conference (organizing a conference or session), or other. The About page groups roles by kind in this order."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The role, such as Associate Editor, Reviewer, or Member, Graduate Admissions Committee."
+          },
+          "organization": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "The journal, committee's institution, society, or conference. For reviewing, one journal or panel per role."
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "Ignored and cleared when current is true."
+          },
+          "current": {
+            "type": "boolean",
+            "description": "Held now; the site shows the years as 2019 — present."
           },
           "description": {
             "type": [

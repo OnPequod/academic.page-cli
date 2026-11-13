@@ -80,6 +80,7 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 			fmt.Fprint(w, `{"message":"The post was edited since you read it.","code":"edit_conflict","current_edit_version":4}`)
 		case r.URL.Path == "/sites/7/publications/import", r.URL.Path == "/sites/7/profile/degrees/order",
 			r.URL.Path == "/sites/7/profile/honors", r.URL.Path == "/sites/7/profile/honors/order",
+			r.URL.Path == "/sites/7/profile/service", r.URL.Path == "/sites/7/profile/service/order",
 			r.URL.Path == "/sites/7/talks", r.URL.Path == "/sites/7/courses/3/lessons/5":
 			fmt.Fprint(w, `{"data":{"id":5,"title":"Echo"}}`)
 		case strings.HasPrefix(r.URL.Path, "/sites/7/section-order/"):
@@ -418,6 +419,33 @@ func TestProfileHonors(t *testing.T) {
 	// The API refuses a create with no name; the schema tells an agent so first.
 	if r := run(t, "", "schema", "profile-honors", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--name"`) || !strings.Contains(r.stdout, `"required": true`) {
 		t.Errorf("schema profile-honors create: code %d, stdout %s", r.code, r.stdout)
+	}
+}
+
+func TestProfileService(t *testing.T) {
+	f := setup(t)
+
+	r := run(t, "", "profile-service", "create", "--kind", "reviewing", "--title", "Reviewer", "--organization", "Statistics in Medicine", "--start-year", "2019", "--current")
+	var body map[string]any
+	_ = json.Unmarshal(f.last().Body, &body)
+	if r.code != 0 || f.last().Method != "POST" || f.last().Path != "/sites/7/profile/service" {
+		t.Fatalf("service create: code %d, %+v, stderr %q", r.code, f.last(), r.stderr)
+	}
+	if body["kind"] != "reviewing" || body["title"] != "Reviewer" || body["organization"] != "Statistics in Medicine" || fmt.Sprint(body["start_year"]) != "2019" || body["current"] != true {
+		t.Fatalf("service create body: %s", f.last().Body)
+	}
+
+	if r := run(t, "", "profile-service", "update", "4", "--end-year", "2023", "--dry-run", "--json"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/profile/service/4") || !strings.Contains(r.stdout, "PATCH") {
+		t.Errorf("service update: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "profile-service", "reorder", "--ids", "4,2"); r.code != 0 || string(f.last().Body) != `{"ids":[4,2]}` {
+		t.Errorf("service reorder: code %d, body %s, stderr %q", r.code, f.last().Body, r.stderr)
+	}
+	if r := run(t, "", "profile-service", "delete", "4", "--yes", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "DELETE") {
+		t.Errorf("service delete: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "schema", "profile-service", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--kind"`) || !strings.Contains(r.stdout, `"reviewing"`) {
+		t.Errorf("schema profile-service create: code %d, stdout %s", r.code, r.stdout)
 	}
 }
 
