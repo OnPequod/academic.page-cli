@@ -178,6 +178,7 @@ var Groups = []Group{
 	{"profile-service", "Service on the profile: editorial roles, reviewing, committees"},
 	{"profile-memberships", "Professional memberships on the profile"},
 	{"profile-grants", "Grants and research funding (the Grants page)"},
+	{"profile-media-appearances", "Interviews, podcasts, op-eds, and coverage (the In the Media page; not the media library)"},
 	{"navigation", "The header and footer menus"},
 	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
@@ -265,6 +266,13 @@ var table = []entry{
 	{group: "profile-grants", name: "update", short: "Update a grant", op: "manageUpdateProfileGrant", kind: KindWrite},
 	{group: "profile-grants", name: "delete", short: "Delete a grant", op: "manageDeleteProfileGrant", kind: KindDelete},
 	{group: "profile-grants", name: "reorder", short: "Set the order of the grants", op: "manageReorderProfileGrants", kind: KindWrite},
+
+	{group: "profile-media-appearances", name: "list", short: "List media appearances", op: "manageListProfileMediaAppearances"},
+	{group: "profile-media-appearances", name: "get", short: "Show a media appearance", op: "manageGetProfileMediaAppearance"},
+	{group: "profile-media-appearances", name: "create", short: "Add a media appearance (shown on the In the Media page; --date 2024, 2024-05, or 2024-05-14)", op: "manageCreateProfileMediaAppearance", kind: KindWrite},
+	{group: "profile-media-appearances", name: "update", short: "Update a media appearance", op: "manageUpdateProfileMediaAppearance", kind: KindWrite},
+	{group: "profile-media-appearances", name: "delete", short: "Delete a media appearance", op: "manageDeleteProfileMediaAppearance", kind: KindDelete},
+	{group: "profile-media-appearances", name: "reorder", short: "Set the order of the media appearances", op: "manageReorderProfileMediaAppearances", kind: KindWrite},
 
 	{group: "profile-links", name: "list", short: "List links", op: "manageListProfileLinks"},
 	{group: "profile-links", name: "get", short: "Show a link", op: "manageGetProfileLink"},

@@ -623,7 +623,8 @@
                           "honors": "Honors and Awards",
                           "service": "Service",
                           "memberships": "Professional Memberships",
-                          "grants": "Grants"
+                          "grants": "Grants",
+                          "media_appearances": "In the Media"
                         },
                         "location": "Baltimore, MD",
                         "email": null,
@@ -709,6 +710,18 @@
                             "project_path": "/projects/missing-data-methods",
                             "url": null,
                             "display": "2022 — 2027"
+                          }
+                        ],
+                        "media_appearances": [
+                          {
+                            "id": 8,
+                            "kind": "interview",
+                            "kind_label": "Interview",
+                            "title": "Why missing data can mislead a trial",
+                            "outlet": "Baltimore Public Radio",
+                            "date": "2024-05",
+                            "url": "https://example.org/interview",
+                            "display": "May 2024"
                           }
                         ],
                         "memberships": [
@@ -7789,6 +7802,330 @@
         }
       }
     },
+    "/sites/{site}/profile/media-appearances": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile media appearances in display order. Personal sites only. Media appearances show on the In the Media page (/in-the-media), in this order, each linking out to the piece.",
+        "operationId": "manageListProfileMediaAppearances",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileMediaAppearance"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile media appearance, placed where the admin would place it",
+        "operationId": "manageCreateProfileMediaAppearance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMediaAppearance"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileMediaAppearanceInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/media-appearances/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile media appearance in the order given",
+        "operationId": "manageReorderProfileMediaAppearances",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileMediaAppearance"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/media-appearances/{mediaAppearanceId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile media appearance",
+        "operationId": "manageGetProfileMediaAppearance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/mediaAppearanceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMediaAppearance"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile media appearance",
+        "operationId": "manageUpdateProfileMediaAppearance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/mediaAppearanceId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMediaAppearance"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileMediaAppearanceInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile media appearance",
+        "operationId": "manageDeleteProfileMediaAppearance",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/mediaAppearanceId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/sites/{site}/talks": {
       "get": {
         "tags": [
@@ -11375,6 +11712,16 @@
           "minimum": 1
         }
       },
+      "mediaAppearanceId": {
+        "name": "mediaAppearanceId",
+        "in": "path",
+        "required": true,
+        "description": "A profile media appearance ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "talkId": {
         "name": "talkId",
         "in": "path",
@@ -12291,6 +12638,7 @@
           "honors",
           "service",
           "grants",
+          "media_appearances",
           "memberships",
           "positions",
           "links",
@@ -12384,6 +12732,12 @@
                 ]
               },
               "grants": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "media_appearances": {
                 "type": [
                   "string",
                   "null"
@@ -12700,6 +13054,61 @@
               }
             }
           },
+          "media_appearances": {
+            "type": "array",
+            "description": "Media appearances (the \"In the Media\" page): interviews, podcasts, op-eds, coverage, and videos, in the owner's order. Each links out to the piece. Empty on sites without them.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "interview",
+                    "podcast",
+                    "op_ed",
+                    "coverage",
+                    "video",
+                    "other"
+                  ]
+                },
+                "kind_label": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "outlet": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "date": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "A partial ISO date at the precision the owner gave: 2024, 2024-05, or 2024-05-14."
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The date as the site shows it, such as May 2024."
+                }
+              }
+            }
+          },
           "memberships": {
             "type": "array",
             "description": "Professional memberships, in the owner's order. Empty on sites without memberships.",
@@ -12902,7 +13311,8 @@
               "honors": "Honors and Awards",
               "service": "Service",
               "memberships": "Professional Memberships",
-              "grants": "Grants"
+              "grants": "Grants",
+              "media_appearances": "In the Media"
             },
             "location": "Baltimore, MD",
             "email": null,
@@ -12988,6 +13398,18 @@
                 "project_path": "/projects/missing-data-methods",
                 "url": null,
                 "display": "2022 — 2027"
+              }
+            ],
+            "media_appearances": [
+              {
+                "id": 8,
+                "kind": "interview",
+                "kind_label": "Interview",
+                "title": "Why missing data can mislead a trial",
+                "outlet": "Baltimore Public Radio",
+                "date": "2024-05",
+                "url": "https://example.org/interview",
+                "display": "May 2024"
               }
             ],
             "memberships": [
@@ -17703,7 +18125,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -17779,7 +18201,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -17843,7 +18265,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
@@ -17894,7 +18316,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
@@ -19467,6 +19889,139 @@
               "null"
             ],
             "description": "An http or https address, used when no published project is linked."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileMediaAppearance": {
+        "type": "object",
+        "description": "An interview, podcast, op-ed, coverage, or video (In the Media).",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "outlet",
+          "date",
+          "url",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "interview",
+              "podcast",
+              "op_ed",
+              "coverage",
+              "video",
+              "other"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "outlet": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A partial ISO date at the precision the owner gave: 2024, 2024-05, or 2024-05-14."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileMediaAppearanceInput": {
+        "type": "object",
+        "description": "A create needs title. A PATCH changes only the fields sent. A new item is placed newest first by date.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "interview",
+              "podcast",
+              "op_ed",
+              "coverage",
+              "video",
+              "other"
+            ],
+            "description": "interview, podcast, op_ed, coverage (the owner is quoted or featured), video, or other. Defaults to other."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The piece's headline or episode title."
+          },
+          "outlet": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "The newspaper, magazine, show, or channel."
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}(-\\d{2}(-\\d{2})?)?$",
+            "description": "A year (2024), a year and month (2024-05), or a date (2024-05-14). Kept at that precision."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address of the piece. The page links the title to it."
           },
           "edit_version": {
             "type": [

@@ -57,6 +57,7 @@ academic-page profile-honors create --name "Early Career Award" --organization "
 academic-page profile-service create --kind reviewing --title Reviewer --organization "Statistics in Medicine" --start-year 2019 --current
 academic-page profile-memberships create --organization "American Statistical Association" --membership-type Member --start-year 2012 --current
 academic-page profile-grants create --title "Methods for Missing Data in Pragmatic Trials" --funder "National Institutes of Health" --award-number "R01 AG012345" --start-year 2022 --end-year 2027 --project-id 12
+academic-page profile-media-appearances create --kind interview --title "Why missing data can mislead a trial" --outlet "Baltimore Public Radio" --date 2024-05 --url https://example.org/interview
 
 academic-page posts create --title "New paper out" --content-file post.md          # a draft
 academic-page posts update 12 --publish

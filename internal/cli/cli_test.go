@@ -83,6 +83,7 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 			r.URL.Path == "/sites/7/profile/service", r.URL.Path == "/sites/7/profile/service/order",
 			r.URL.Path == "/sites/7/profile/memberships", r.URL.Path == "/sites/7/profile/memberships/order",
 			r.URL.Path == "/sites/7/profile/grants", r.URL.Path == "/sites/7/profile/grants/order",
+			r.URL.Path == "/sites/7/profile/media-appearances", r.URL.Path == "/sites/7/profile/media-appearances/order",
 			r.URL.Path == "/sites/7/talks", r.URL.Path == "/sites/7/courses/3/lessons/5":
 			fmt.Fprint(w, `{"data":{"id":5,"title":"Echo"}}`)
 		case strings.HasPrefix(r.URL.Path, "/sites/7/section-order/"):
@@ -475,6 +476,33 @@ func TestProfileGrants(t *testing.T) {
 	}
 	if r := run(t, "", "schema", "profile-grants", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--title"`) || !strings.Contains(r.stdout, `"required": true`) {
 		t.Errorf("schema profile-grants create: code %d, stdout %s", r.code, r.stdout)
+	}
+}
+
+func TestProfileMediaAppearances(t *testing.T) {
+	f := setup(t)
+
+	r := run(t, "", "profile-media-appearances", "create", "--kind", "interview", "--title", "Why missing data can mislead a trial", "--outlet", "Baltimore Public Radio", "--date", "2024-05", "--url", "https://example.org/interview")
+	var body map[string]any
+	_ = json.Unmarshal(f.last().Body, &body)
+	if r.code != 0 || f.last().Method != "POST" || f.last().Path != "/sites/7/profile/media-appearances" {
+		t.Fatalf("media appearance create: code %d, %+v, stderr %q", r.code, f.last(), r.stderr)
+	}
+	if body["kind"] != "interview" || body["title"] != "Why missing data can mislead a trial" || body["outlet"] != "Baltimore Public Radio" || body["date"] != "2024-05" || body["url"] != "https://example.org/interview" {
+		t.Fatalf("media appearance create body: %s", f.last().Body)
+	}
+
+	if r := run(t, "", "profile-media-appearances", "update", "4", "--date", "2024-05-14", "--dry-run", "--json"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/profile/media-appearances/4") || !strings.Contains(r.stdout, "PATCH") {
+		t.Errorf("media appearance update: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "profile-media-appearances", "reorder", "--ids", "4,2"); r.code != 0 || string(f.last().Body) != `{"ids":[4,2]}` {
+		t.Errorf("media appearance reorder: code %d, body %s, stderr %q", r.code, f.last().Body, r.stderr)
+	}
+	if r := run(t, "", "profile-media-appearances", "delete", "4", "--yes", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "DELETE") {
+		t.Errorf("media appearance delete: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "schema", "profile-media-appearances", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--title"`) || !strings.Contains(r.stdout, `"required": true`) {
+		t.Errorf("schema profile-media-appearances create: code %d, stdout %s", r.code, r.stdout)
 	}
 }
 
