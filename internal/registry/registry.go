@@ -174,6 +174,7 @@ var Groups = []Group{
 	{"profile-degrees", "Degrees on the profile"},
 	{"profile-positions", "Positions on the profile"},
 	{"profile-links", "Links on the profile"},
+	{"profile-honors", "Honors and awards on the profile"},
 	{"navigation", "The header and footer menus"},
 	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
@@ -233,6 +234,13 @@ var table = []entry{
 	{group: "profile-positions", name: "update", short: "Update a position", op: "manageUpdateProfilePosition", kind: KindWrite},
 	{group: "profile-positions", name: "delete", short: "Delete a position", op: "manageDeleteProfilePosition", kind: KindDelete},
 	{group: "profile-positions", name: "reorder", short: "Set the order of the positions", op: "manageReorderProfilePositions", kind: KindWrite},
+
+	{group: "profile-honors", name: "list", short: "List honors and awards", op: "manageListProfileHonors"},
+	{group: "profile-honors", name: "get", short: "Show an honor", op: "manageGetProfileHonor"},
+	{group: "profile-honors", name: "create", short: "Add an honor (placed newest first by year; the first one also adds Honors to the menu)", op: "manageCreateProfileHonor", kind: KindWrite},
+	{group: "profile-honors", name: "update", short: "Update an honor", op: "manageUpdateProfileHonor", kind: KindWrite},
+	{group: "profile-honors", name: "delete", short: "Delete an honor", op: "manageDeleteProfileHonor", kind: KindDelete},
+	{group: "profile-honors", name: "reorder", short: "Set the order of the honors", op: "manageReorderProfileHonors", kind: KindWrite},
 
 	{group: "profile-links", name: "list", short: "List links", op: "manageListProfileLinks"},
 	{group: "profile-links", name: "get", short: "Show a link", op: "manageGetProfileLink"},

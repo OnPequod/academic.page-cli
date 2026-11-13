@@ -619,7 +619,8 @@
                         "headings": {
                           "body": "About me",
                           "credentials": "Education",
-                          "positions": "Positions"
+                          "positions": "Positions",
+                          "honors": "Honors and Awards"
                         },
                         "location": "Baltimore, MD",
                         "email": null,
@@ -661,6 +662,18 @@
                             "end_year": 2017,
                             "in_progress": false,
                             "display": "PhD, Biostatistics, University of Washington, 2017"
+                          }
+                        ],
+                        "honors": [
+                          {
+                            "id": 5,
+                            "name": "Early Career Investigator Award",
+                            "organization": "Society for Clinical Trials",
+                            "year": 2024,
+                            "end_year": null,
+                            "description": null,
+                            "url": null,
+                            "display": "2024"
                           }
                         ],
                         "positions": [
@@ -6433,6 +6446,330 @@
         }
       }
     },
+    "/sites/{site}/profile/honors": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile honors in display order. Personal sites only. The first honor added also puts an Honors link in the header menu, under Professional.",
+        "operationId": "manageListProfileHonors",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileHonor"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile honor, placed where the admin would place it",
+        "operationId": "manageCreateProfileHonor",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileHonor"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileHonorInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/honors/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile honor in the order given",
+        "operationId": "manageReorderProfileHonors",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileHonor"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/honors/{honorId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile honor",
+        "operationId": "manageGetProfileHonor",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/honorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileHonor"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile honor",
+        "operationId": "manageUpdateProfileHonor",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/honorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileHonor"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileHonorInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile honor",
+        "operationId": "manageDeleteProfileHonor",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/honorId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/sites/{site}/talks": {
       "get": {
         "tags": [
@@ -9979,6 +10316,16 @@
           "minimum": 1
         }
       },
+      "honorId": {
+        "name": "honorId",
+        "in": "path",
+        "required": true,
+        "description": "A profile honor ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "talkId": {
         "name": "talkId",
         "in": "path",
@@ -10892,6 +11239,7 @@
           "photo",
           "cv",
           "credentials",
+          "honors",
           "positions",
           "links",
           "updated_at"
@@ -10960,6 +11308,12 @@
                 ]
               },
               "positions": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "honors": {
                 "type": [
                   "string",
                   "null"
@@ -11067,6 +11421,58 @@
                     "string",
                     "null"
                   ]
+                }
+              }
+            }
+          },
+          "honors": {
+            "type": "array",
+            "description": "Honors and awards, in the owner's order. Empty on sites without honors.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "organization": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "end_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The years as the site shows them, such as 2019 or 2015 — 2018."
                 }
               }
             }
@@ -11220,7 +11626,8 @@
             "headings": {
               "body": "About me",
               "credentials": "Education",
-              "positions": "Positions"
+              "positions": "Positions",
+              "honors": "Honors and Awards"
             },
             "location": "Baltimore, MD",
             "email": null,
@@ -11262,6 +11669,18 @@
                 "end_year": 2017,
                 "in_progress": false,
                 "display": "PhD, Biostatistics, University of Washington, 2017"
+              }
+            ],
+            "honors": [
+              {
+                "id": 5,
+                "name": "Early Career Investigator Award",
+                "organization": "Society for Clinical Trials",
+                "year": 2024,
+                "end_year": null,
+                "description": null,
+                "url": null,
+                "display": "2024"
               }
             ],
             "positions": [
@@ -15965,7 +16384,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -16041,7 +16460,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -16105,7 +16524,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
@@ -16156,7 +16575,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
@@ -17072,6 +17491,142 @@
           },
           "in_progress": {
             "type": "boolean"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileHonor": {
+        "type": "object",
+        "description": "An honor or award: a prize, a best-paper or teaching award, a fellowship, or an elected membership (Honors).",
+        "required": [
+          "id",
+          "name",
+          "organization",
+          "year",
+          "end_year",
+          "description",
+          "url",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "organization": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The last year of an honor held over several years, such as a fellowship."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileHonorInput": {
+        "type": "object",
+        "description": "A create needs name. A PATCH changes only the fields sent. A new honor is placed newest first by year.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The honor itself, such as Early Career Award. Degree honors such as magna cum laude belong on the degree."
+          },
+          "organization": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Who gave it: a society, university, or foundation."
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The year received, or the first year of a fellowship."
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The last year of an honor held over several years, such as a fellowship."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address."
           },
           "edit_version": {
             "type": [
