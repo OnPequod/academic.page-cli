@@ -179,6 +179,7 @@ var Groups = []Group{
 	{"profile-memberships", "Professional memberships on the profile"},
 	{"profile-grants", "Grants and research funding (the Grants page)"},
 	{"profile-media-appearances", "Interviews, podcasts, op-eds, and coverage (the In the Media page; not the media library)"},
+	{"profile-mentees", "Students and trainees advised (the Teaching page's Mentoring section)"},
 	{"navigation", "The header and footer menus"},
 	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
@@ -273,6 +274,13 @@ var table = []entry{
 	{group: "profile-media-appearances", name: "update", short: "Update a media appearance", op: "manageUpdateProfileMediaAppearance", kind: KindWrite},
 	{group: "profile-media-appearances", name: "delete", short: "Delete a media appearance", op: "manageDeleteProfileMediaAppearance", kind: KindDelete},
 	{group: "profile-media-appearances", name: "reorder", short: "Set the order of the media appearances", op: "manageReorderProfileMediaAppearances", kind: KindWrite},
+
+	{group: "profile-mentees", name: "list", short: "List mentees", op: "manageListProfileMentees"},
+	{group: "profile-mentees", name: "get", short: "Show a mentee", op: "manageGetProfileMentee"},
+	{group: "profile-mentees", name: "create", short: "Add a mentee (shown on the Teaching page; --show-name=false lists them by level only)", op: "manageCreateProfileMentee", kind: KindWrite},
+	{group: "profile-mentees", name: "update", short: "Update a mentee", op: "manageUpdateProfileMentee", kind: KindWrite},
+	{group: "profile-mentees", name: "delete", short: "Delete a mentee", op: "manageDeleteProfileMentee", kind: KindDelete},
+	{group: "profile-mentees", name: "reorder", short: "Set the order of the mentees", op: "manageReorderProfileMentees", kind: KindWrite},
 
 	{group: "profile-links", name: "list", short: "List links", op: "manageListProfileLinks"},
 	{group: "profile-links", name: "get", short: "Show a link", op: "manageGetProfileLink"},

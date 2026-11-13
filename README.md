@@ -58,6 +58,7 @@ academic-page profile-service create --kind reviewing --title Reviewer --organiz
 academic-page profile-memberships create --organization "American Statistical Association" --membership-type Member --start-year 2012 --current
 academic-page profile-grants create --title "Methods for Missing Data in Pragmatic Trials" --funder "National Institutes of Health" --award-number "R01 AG012345" --start-year 2022 --end-year 2027 --project-id 12
 academic-page profile-media-appearances create --kind interview --title "Why missing data can mislead a trial" --outlet "Baltimore Public Radio" --date 2024-05 --url https://example.org/interview
+academic-page profile-mentees create --name "Priya Halvorsen" --level phd --role primary_advisor --start-year 2016 --end-year 2021
 
 academic-page posts create --title "New paper out" --content-file post.md          # a draft
 academic-page posts update 12 --publish
@@ -162,7 +163,7 @@ With `--json`, errors go to stderr as `{"error": {"code", "message", "status", "
 
 ## What the API covers
 
-Reads and writes: the profile (with degrees, positions, honors, service, memberships, grants, and links), posts, pages, projects, publications (including BibTeX import), talks, courses (with Course Info on course sites) and their lessons, materials, assignments, and references, lab members, study details, tags, and media. Reads only: sites, the manifest, and the BibTeX export. Records with drafts take `--drafts` on reads; the others take `--manage` for the management view, which includes `edit_version`. Pass `--edit-version` on updates so a change made elsewhere since you read the record returns a conflict (exit code 10) instead of being overwritten.
+Reads and writes: the profile (with degrees, positions, honors, service, memberships, grants, media appearances, mentees, and links), posts, pages, projects, publications (including BibTeX import), talks, courses (with Course Info on course sites) and their lessons, materials, assignments, and references, lab members, study details, tags, and media. Reads only: sites, the manifest, and the BibTeX export. Records with drafts take `--drafts` on reads; the others take `--manage` for the management view, which includes `edit_version`. Pass `--edit-version` on updates so a change made elsewhere since you read the record returns a conflict (exit code 10) instead of being overwritten.
 
 A page published without a slug gets one from its title; a slug another page under the same parent already uses is refused with 422 under `slug`.
 

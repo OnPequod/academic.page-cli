@@ -624,7 +624,8 @@
                           "service": "Service",
                           "memberships": "Professional Memberships",
                           "grants": "Grants",
-                          "media_appearances": "In the Media"
+                          "media_appearances": "In the Media",
+                          "mentoring": "Mentoring"
                         },
                         "location": "Baltimore, MD",
                         "email": null,
@@ -734,6 +735,23 @@
                             "current": true,
                             "url": null,
                             "display": "2012 — present"
+                          }
+                        ],
+                        "mentees": [
+                          {
+                            "id": 10,
+                            "name": "Priya Halvorsen",
+                            "display_name": "Priya Halvorsen",
+                            "level": "phd",
+                            "level_label": "PhD",
+                            "role": "primary_advisor",
+                            "role_label": "Primary advisor",
+                            "start_year": 2018,
+                            "end_year": 2023,
+                            "current": false,
+                            "thesis_title": "Measuring Access to Care in Rural Counties",
+                            "next_position": "Assistant Professor, Westmere University",
+                            "display": "2018 — 2023"
                           }
                         ],
                         "positions": [
@@ -8126,6 +8144,330 @@
         }
       }
     },
+    "/sites/{site}/profile/mentees": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile mentees in display order. Personal sites only. Mentees show on the Teaching page (/teaching) under the courses, grouped by level. A mentee with show_name false is listed by level only, such as PhD student; these endpoints always return the name to the owner.",
+        "operationId": "manageListProfileMentees",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileMentee"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile mentee, placed where the admin would place it",
+        "operationId": "manageCreateProfileMentee",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMentee"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileMenteeInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/mentees/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile mentee in the order given",
+        "operationId": "manageReorderProfileMentees",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileMentee"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/mentees/{menteeId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile mentee",
+        "operationId": "manageGetProfileMentee",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/menteeId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMentee"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile mentee",
+        "operationId": "manageUpdateProfileMentee",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/menteeId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMentee"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileMenteeInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile mentee",
+        "operationId": "manageDeleteProfileMentee",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/menteeId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/sites/{site}/talks": {
       "get": {
         "tags": [
@@ -11722,6 +12064,16 @@
           "minimum": 1
         }
       },
+      "menteeId": {
+        "name": "menteeId",
+        "in": "path",
+        "required": true,
+        "description": "A profile mentee ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "talkId": {
         "name": "talkId",
         "in": "path",
@@ -12640,6 +12992,7 @@
           "grants",
           "media_appearances",
           "memberships",
+          "mentees",
           "positions",
           "links",
           "updated_at"
@@ -12738,6 +13091,12 @@
                 ]
               },
               "media_appearances": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mentoring": {
                 "type": [
                   "string",
                   "null"
@@ -13158,6 +13517,79 @@
               }
             }
           },
+          "mentees": {
+            "type": "array",
+            "description": "Mentees as the Teaching page lists them, in the owner's order; the site groups them by level. name is null for a mentee the owner lists without a name, and display_name is then a stand-in such as PhD student. Empty on sites without mentoring.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display_name": {
+                  "type": "string"
+                },
+                "level": {
+                  "type": "string"
+                },
+                "level_label": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "role_label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "start_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "end_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "current": {
+                  "type": "boolean"
+                },
+                "thesis_title": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "next_position": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The years as the site shows them, such as 2018 — 2023 or 2021 — present."
+                }
+              }
+            }
+          },
           "positions": {
             "type": "array",
             "items": {
@@ -13312,7 +13744,8 @@
               "service": "Service",
               "memberships": "Professional Memberships",
               "grants": "Grants",
-              "media_appearances": "In the Media"
+              "media_appearances": "In the Media",
+              "mentoring": "Mentoring"
             },
             "location": "Baltimore, MD",
             "email": null,
@@ -13422,6 +13855,23 @@
                 "current": true,
                 "url": null,
                 "display": "2012 — present"
+              }
+            ],
+            "mentees": [
+              {
+                "id": 10,
+                "name": "Priya Halvorsen",
+                "display_name": "Priya Halvorsen",
+                "level": "phd",
+                "level_label": "PhD",
+                "role": "primary_advisor",
+                "role_label": "Primary advisor",
+                "start_year": 2018,
+                "end_year": 2023,
+                "current": false,
+                "thesis_title": "Measuring Access to Care in Rural Counties",
+                "next_position": "Assistant Professor, Westmere University",
+                "display": "2018 — 2023"
               }
             ],
             "positions": [
@@ -20022,6 +20472,199 @@
               "null"
             ],
             "description": "An http or https address of the piece. The page links the title to it."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileMentee": {
+        "type": "object",
+        "description": "A student or trainee the owner advised or mentored (Mentoring). The name is always returned here, whatever show_name says.",
+        "required": [
+          "id",
+          "name",
+          "show_name",
+          "level",
+          "role",
+          "start_year",
+          "end_year",
+          "current",
+          "thesis_title",
+          "next_position",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "show_name": {
+            "type": "boolean",
+            "description": "False lists the mentee on the site by level only, such as PhD student."
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "postdoc",
+              "phd",
+              "masters",
+              "undergraduate",
+              "other"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "primary_advisor",
+              "co_advisor",
+              "committee_member",
+              "mentor",
+              null
+            ]
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Null while the mentoring is current."
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "thesis_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "next_position": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileMenteeInput": {
+        "type": "object",
+        "description": "A create needs name. A PATCH changes only the fields sent. A new mentee is placed newest first, a current one at the top.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The student's or trainee's name."
+          },
+          "show_name": {
+            "type": "boolean",
+            "description": "Show the name on the site. Defaults to true. False lists the mentee by level only, such as PhD student."
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "postdoc",
+              "phd",
+              "masters",
+              "undergraduate",
+              "other"
+            ],
+            "description": "postdoc, phd, masters, undergraduate, or other. Defaults to phd."
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "primary_advisor",
+              "co_advisor",
+              "committee_member",
+              "mentor",
+              null
+            ],
+            "description": "The owner's role: primary_advisor, co_advisor, committee_member, or mentor."
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "Ignored and cleared when current is true."
+          },
+          "current": {
+            "type": "boolean",
+            "description": "Advising now; the site shows the years as 2021 — present."
+          },
+          "thesis_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "The dissertation, thesis, or project title."
+          },
+          "next_position": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Where the mentee went next, such as Assistant Professor, Westmere University."
           },
           "edit_version": {
             "type": [

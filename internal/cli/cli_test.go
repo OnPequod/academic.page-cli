@@ -84,6 +84,7 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 			r.URL.Path == "/sites/7/profile/memberships", r.URL.Path == "/sites/7/profile/memberships/order",
 			r.URL.Path == "/sites/7/profile/grants", r.URL.Path == "/sites/7/profile/grants/order",
 			r.URL.Path == "/sites/7/profile/media-appearances", r.URL.Path == "/sites/7/profile/media-appearances/order",
+			r.URL.Path == "/sites/7/profile/mentees", r.URL.Path == "/sites/7/profile/mentees/order",
 			r.URL.Path == "/sites/7/talks", r.URL.Path == "/sites/7/courses/3/lessons/5":
 			fmt.Fprint(w, `{"data":{"id":5,"title":"Echo"}}`)
 		case strings.HasPrefix(r.URL.Path, "/sites/7/section-order/"):
@@ -503,6 +504,33 @@ func TestProfileMediaAppearances(t *testing.T) {
 	}
 	if r := run(t, "", "schema", "profile-media-appearances", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--title"`) || !strings.Contains(r.stdout, `"required": true`) {
 		t.Errorf("schema profile-media-appearances create: code %d, stdout %s", r.code, r.stdout)
+	}
+}
+
+func TestProfileMentees(t *testing.T) {
+	f := setup(t)
+
+	r := run(t, "", "profile-mentees", "create", "--name", "Priya Halvorsen", "--level", "phd", "--role", "primary_advisor", "--start-year", "2016", "--end-year", "2021", "--show-name=false")
+	var body map[string]any
+	_ = json.Unmarshal(f.last().Body, &body)
+	if r.code != 0 || f.last().Method != "POST" || f.last().Path != "/sites/7/profile/mentees" {
+		t.Fatalf("mentee create: code %d, %+v, stderr %q", r.code, f.last(), r.stderr)
+	}
+	if body["name"] != "Priya Halvorsen" || body["level"] != "phd" || body["role"] != "primary_advisor" || fmt.Sprint(body["start_year"]) != "2016" || fmt.Sprint(body["end_year"]) != "2021" || body["show_name"] != false {
+		t.Fatalf("mentee create body: %s", f.last().Body)
+	}
+
+	if r := run(t, "", "profile-mentees", "update", "4", "--next-position", "Assistant Professor, Westmere University", "--dry-run", "--json"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/profile/mentees/4") || !strings.Contains(r.stdout, "PATCH") {
+		t.Errorf("mentee update: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "profile-mentees", "reorder", "--ids", "4,2"); r.code != 0 || string(f.last().Body) != `{"ids":[4,2]}` {
+		t.Errorf("mentee reorder: code %d, body %s, stderr %q", r.code, f.last().Body, r.stderr)
+	}
+	if r := run(t, "", "profile-mentees", "delete", "4", "--yes", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "DELETE") {
+		t.Errorf("mentee delete: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "schema", "profile-mentees", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--name"`) || !strings.Contains(r.stdout, `"required": true`) {
+		t.Errorf("schema profile-mentees create: code %d, stdout %s", r.code, r.stdout)
 	}
 }
 
