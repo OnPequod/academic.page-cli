@@ -670,7 +670,6 @@
                             "name": "Early Career Investigator Award",
                             "organization": "Society for Clinical Trials",
                             "year": 2024,
-                            "end_year": null,
                             "description": null,
                             "url": null,
                             "display": "2024"
@@ -6451,7 +6450,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "List profile honors in display order. Personal sites only. The first honor added also puts an Honors link in the header menu, under Professional.",
+        "summary": "List profile honors in display order. Personal sites only. Honors show on the About page, after Education, and on the Honors page.",
         "operationId": "manageListProfileHonors",
         "parameters": [
           {
@@ -11449,12 +11448,6 @@
                     "null"
                   ]
                 },
-                "end_year": {
-                  "type": [
-                    "integer",
-                    "null"
-                  ]
-                },
                 "description": {
                   "type": [
                     "string",
@@ -11472,7 +11465,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "The years as the site shows them, such as 2019 or 2015 — 2018."
+                  "description": "The year as the site shows it, such as 2019."
                 }
               }
             }
@@ -11677,7 +11670,6 @@
                 "name": "Early Career Investigator Award",
                 "organization": "Society for Clinical Trials",
                 "year": 2024,
-                "end_year": null,
                 "description": null,
                 "url": null,
                 "display": "2024"
@@ -17511,7 +17503,6 @@
           "name",
           "organization",
           "year",
-          "end_year",
           "description",
           "url",
           "order",
@@ -17536,14 +17527,8 @@
             "type": [
               "integer",
               "null"
-            ]
-          },
-          "end_year": {
-            "type": [
-              "integer",
-              "null"
             ],
-            "description": "The last year of an honor held over several years, such as a fellowship."
+            "description": "The year it was awarded."
           },
           "description": {
             "type": [
@@ -17605,14 +17590,9 @@
               "integer",
               "null"
             ],
-            "description": "The year received, or the first year of a fellowship."
-          },
-          "end_year": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "description": "The last year of an honor held over several years, such as a fellowship."
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "The year it was awarded. An honor has one year; a fellowship takes the year it was awarded."
           },
           "description": {
             "type": [

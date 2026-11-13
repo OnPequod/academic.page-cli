@@ -396,13 +396,13 @@ func TestNewResources(t *testing.T) {
 func TestProfileHonors(t *testing.T) {
 	f := setup(t)
 
-	r := run(t, "", "profile-honors", "create", "--name", "Early Career Award", "--organization", "Society for Clinical Trials", "--year", "2016", "--end-year", "2018", "--url", "https://example.org/award")
+	r := run(t, "", "profile-honors", "create", "--name", "Early Career Award", "--organization", "Society for Clinical Trials", "--year", "2016", "--url", "https://example.org/award")
 	var body map[string]any
 	_ = json.Unmarshal(f.last().Body, &body)
 	if r.code != 0 || f.last().Method != "POST" || f.last().Path != "/sites/7/profile/honors" {
 		t.Fatalf("honor create: code %d, %+v, stderr %q", r.code, f.last(), r.stderr)
 	}
-	if body["name"] != "Early Career Award" || body["organization"] != "Society for Clinical Trials" || fmt.Sprint(body["year"]) != "2016" || fmt.Sprint(body["end_year"]) != "2018" || body["url"] != "https://example.org/award" {
+	if body["name"] != "Early Career Award" || body["organization"] != "Society for Clinical Trials" || fmt.Sprint(body["year"]) != "2016" || body["url"] != "https://example.org/award" {
 		t.Fatalf("honor create body: %s", f.last().Body)
 	}
 
