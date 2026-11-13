@@ -176,6 +176,7 @@ var Groups = []Group{
 	{"profile-links", "Links on the profile"},
 	{"profile-honors", "Honors and awards on the profile"},
 	{"profile-service", "Service on the profile: editorial roles, reviewing, committees"},
+	{"profile-memberships", "Professional memberships on the profile"},
 	{"navigation", "The header and footer menus"},
 	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
@@ -249,6 +250,13 @@ var table = []entry{
 	{group: "profile-service", name: "update", short: "Update a service role", op: "manageUpdateProfileServiceRole", kind: KindWrite},
 	{group: "profile-service", name: "delete", short: "Delete a service role", op: "manageDeleteProfileServiceRole", kind: KindDelete},
 	{group: "profile-service", name: "reorder", short: "Set the order of the service roles", op: "manageReorderProfileServiceRoles", kind: KindWrite},
+
+	{group: "profile-memberships", name: "list", short: "List memberships", op: "manageListProfileMemberships"},
+	{group: "profile-memberships", name: "get", short: "Show a membership", op: "manageGetProfileMembership"},
+	{group: "profile-memberships", name: "create", short: "Add a membership (a society the owner belongs to; shown on the About page)", op: "manageCreateProfileMembership", kind: KindWrite},
+	{group: "profile-memberships", name: "update", short: "Update a membership", op: "manageUpdateProfileMembership", kind: KindWrite},
+	{group: "profile-memberships", name: "delete", short: "Delete a membership", op: "manageDeleteProfileMembership", kind: KindDelete},
+	{group: "profile-memberships", name: "reorder", short: "Set the order of the memberships", op: "manageReorderProfileMemberships", kind: KindWrite},
 
 	{group: "profile-links", name: "list", short: "List links", op: "manageListProfileLinks"},
 	{group: "profile-links", name: "get", short: "Show a link", op: "manageGetProfileLink"},

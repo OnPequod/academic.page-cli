@@ -81,6 +81,7 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 		case r.URL.Path == "/sites/7/publications/import", r.URL.Path == "/sites/7/profile/degrees/order",
 			r.URL.Path == "/sites/7/profile/honors", r.URL.Path == "/sites/7/profile/honors/order",
 			r.URL.Path == "/sites/7/profile/service", r.URL.Path == "/sites/7/profile/service/order",
+			r.URL.Path == "/sites/7/profile/memberships", r.URL.Path == "/sites/7/profile/memberships/order",
 			r.URL.Path == "/sites/7/talks", r.URL.Path == "/sites/7/courses/3/lessons/5":
 			fmt.Fprint(w, `{"data":{"id":5,"title":"Echo"}}`)
 		case strings.HasPrefix(r.URL.Path, "/sites/7/section-order/"):
@@ -419,6 +420,33 @@ func TestProfileHonors(t *testing.T) {
 	// The API refuses a create with no name; the schema tells an agent so first.
 	if r := run(t, "", "schema", "profile-honors", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--name"`) || !strings.Contains(r.stdout, `"required": true`) {
 		t.Errorf("schema profile-honors create: code %d, stdout %s", r.code, r.stdout)
+	}
+}
+
+func TestProfileMemberships(t *testing.T) {
+	f := setup(t)
+
+	r := run(t, "", "profile-memberships", "create", "--organization", "American Statistical Association", "--membership-type", "Member", "--start-year", "2012", "--current")
+	var body map[string]any
+	_ = json.Unmarshal(f.last().Body, &body)
+	if r.code != 0 || f.last().Method != "POST" || f.last().Path != "/sites/7/profile/memberships" {
+		t.Fatalf("membership create: code %d, %+v, stderr %q", r.code, f.last(), r.stderr)
+	}
+	if body["organization"] != "American Statistical Association" || body["membership_type"] != "Member" || fmt.Sprint(body["start_year"]) != "2012" || body["current"] != true {
+		t.Fatalf("membership create body: %s", f.last().Body)
+	}
+
+	if r := run(t, "", "profile-memberships", "update", "4", "--end-year", "2023", "--dry-run", "--json"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/profile/memberships/4") || !strings.Contains(r.stdout, "PATCH") {
+		t.Errorf("membership update: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "profile-memberships", "reorder", "--ids", "4,2"); r.code != 0 || string(f.last().Body) != `{"ids":[4,2]}` {
+		t.Errorf("membership reorder: code %d, body %s, stderr %q", r.code, f.last().Body, r.stderr)
+	}
+	if r := run(t, "", "profile-memberships", "delete", "4", "--yes", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "DELETE") {
+		t.Errorf("membership delete: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "schema", "profile-memberships", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--organization"`) || !strings.Contains(r.stdout, `"required": true`) {
+		t.Errorf("schema profile-memberships create: code %d, stdout %s", r.code, r.stdout)
 	}
 }
 

@@ -621,7 +621,8 @@
                           "credentials": "Education",
                           "positions": "Positions",
                           "honors": "Honors and Awards",
-                          "service": "Service"
+                          "service": "Service",
+                          "memberships": "Professional Memberships"
                         },
                         "location": "Baltimore, MD",
                         "email": null,
@@ -689,6 +690,18 @@
                             "description": null,
                             "url": null,
                             "display": "2021 — present"
+                          }
+                        ],
+                        "memberships": [
+                          {
+                            "id": 4,
+                            "organization": "American Statistical Association",
+                            "membership_type": "Member",
+                            "start_year": 2012,
+                            "end_year": null,
+                            "current": true,
+                            "url": null,
+                            "display": "2012 — present"
                           }
                         ],
                         "positions": [
@@ -7109,6 +7122,330 @@
         }
       }
     },
+    "/sites/{site}/profile/memberships": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile memberships in display order. Personal sites only. Memberships show on the About page, after Service, and on the Memberships page. An office held in a society is a service role.",
+        "operationId": "manageListProfileMemberships",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileMembership"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile membership, placed where the admin would place it",
+        "operationId": "manageCreateProfileMembership",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMembership"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileMembershipInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/memberships/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile membership in the order given",
+        "operationId": "manageReorderProfileMemberships",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileMembership"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/memberships/{membershipId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile membership",
+        "operationId": "manageGetProfileMembership",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/membershipId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMembership"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile membership",
+        "operationId": "manageUpdateProfileMembership",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/membershipId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileMembership"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileMembershipInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile membership",
+        "operationId": "manageDeleteProfileMembership",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/membershipId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/sites/{site}/talks": {
       "get": {
         "tags": [
@@ -10675,6 +11012,16 @@
           "minimum": 1
         }
       },
+      "membershipId": {
+        "name": "membershipId",
+        "in": "path",
+        "required": true,
+        "description": "A profile membership ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "talkId": {
         "name": "talkId",
         "in": "path",
@@ -11590,6 +11937,7 @@
           "credentials",
           "honors",
           "service",
+          "memberships",
           "positions",
           "links",
           "updated_at"
@@ -11670,6 +12018,12 @@
                 ]
               },
               "service": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "memberships": {
                 "type": [
                   "string",
                   "null"
@@ -11896,6 +12250,55 @@
               }
             }
           },
+          "memberships": {
+            "type": "array",
+            "description": "Professional memberships, in the owner's order. Empty on sites without memberships.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "organization": {
+                  "type": "string"
+                },
+                "membership_type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "start_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "end_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "current": {
+                  "type": "boolean"
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The years as the site shows them, such as 2012 — present."
+                }
+              }
+            }
+          },
           "positions": {
             "type": "array",
             "items": {
@@ -12047,7 +12450,8 @@
               "credentials": "Education",
               "positions": "Positions",
               "honors": "Honors and Awards",
-              "service": "Service"
+              "service": "Service",
+              "memberships": "Professional Memberships"
             },
             "location": "Baltimore, MD",
             "email": null,
@@ -12115,6 +12519,18 @@
                 "description": null,
                 "url": null,
                 "display": "2021 — present"
+              }
+            ],
+            "memberships": [
+              {
+                "id": 4,
+                "organization": "American Statistical Association",
+                "membership_type": "Member",
+                "start_year": 2012,
+                "end_year": null,
+                "current": true,
+                "url": null,
+                "display": "2012 — present"
               }
             ],
             "positions": [
@@ -16818,7 +17234,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -16894,7 +17310,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -16958,7 +17374,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
@@ -17009,7 +17425,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
@@ -18214,6 +18630,139 @@
               "null"
             ],
             "maxLength": 500
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileMembership": {
+        "type": "object",
+        "description": "A professional membership: a society the owner belongs to (Memberships).",
+        "required": [
+          "id",
+          "organization",
+          "membership_type",
+          "start_year",
+          "end_year",
+          "current",
+          "url",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "membership_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Null while the membership is current."
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileMembershipInput": {
+        "type": "object",
+        "description": "A create needs organization. A PATCH changes only the fields sent. A new membership is placed newest first, a current one at the top.",
+        "required": [
+          "organization"
+        ],
+        "properties": {
+          "organization": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The society or association."
+          },
+          "membership_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "The kind of membership when the CV gives one, such as Member, Fellow, or Life Member. An office held in a society is a service role, not a membership."
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "Ignored and cleared when current is true."
+          },
+          "current": {
+            "type": "boolean",
+            "description": "A member now; the site shows the years as 2012 — present."
           },
           "url": {
             "type": [
