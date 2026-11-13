@@ -622,7 +622,8 @@
                           "positions": "Positions",
                           "honors": "Honors and Awards",
                           "service": "Service",
-                          "memberships": "Professional Memberships"
+                          "memberships": "Professional Memberships",
+                          "grants": "Grants"
                         },
                         "location": "Baltimore, MD",
                         "email": null,
@@ -690,6 +691,24 @@
                             "description": null,
                             "url": null,
                             "display": "2021 — present"
+                          }
+                        ],
+                        "grants": [
+                          {
+                            "id": 6,
+                            "title": "Methods for Missing Data in Pragmatic Trials",
+                            "funder": "National Institutes of Health",
+                            "award_number": "R01 AG012345",
+                            "role": "pi",
+                            "role_label": "Principal Investigator",
+                            "status": "active",
+                            "start_year": 2022,
+                            "end_year": 2027,
+                            "amount": null,
+                            "currency": null,
+                            "project_path": "/projects/missing-data-methods",
+                            "url": null,
+                            "display": "2022 — 2027"
                           }
                         ],
                         "memberships": [
@@ -7446,6 +7465,330 @@
         }
       }
     },
+    "/sites/{site}/profile/grants": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List profile grants in display order. Personal sites only. Grants show on the Grants page, Current then Completed, and nowhere else. A pending grant is never shown, and an amount shows only when show_amount is true. These endpoints return every grant to the owner.",
+        "operationId": "manageListProfileGrants",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileGrant"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Add a profile grant, placed where the admin would place it",
+        "operationId": "manageCreateProfileGrant",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileGrant"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileGrantInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/grants/order": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Put every profile grant in the order given",
+        "operationId": "manageReorderProfileGrants",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProfileGrant"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/profile/grants/{grantId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a profile grant",
+        "operationId": "manageGetProfileGrant",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/grantId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileGrant"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a profile grant",
+        "operationId": "manageUpdateProfileGrant",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/grantId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ProfileGrant"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileGrantInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove a profile grant",
+        "operationId": "manageDeleteProfileGrant",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/grantId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/sites/{site}/talks": {
       "get": {
         "tags": [
@@ -11022,6 +11365,16 @@
           "minimum": 1
         }
       },
+      "grantId": {
+        "name": "grantId",
+        "in": "path",
+        "required": true,
+        "description": "A profile grant ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "talkId": {
         "name": "talkId",
         "in": "path",
@@ -11937,6 +12290,7 @@
           "credentials",
           "honors",
           "service",
+          "grants",
           "memberships",
           "positions",
           "links",
@@ -12024,6 +12378,12 @@
                 ]
               },
               "memberships": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "grants": {
                 "type": [
                   "string",
                   "null"
@@ -12250,6 +12610,96 @@
               }
             }
           },
+          "grants": {
+            "type": "array",
+            "description": "Grants as the Grants page shows them, in the owner's order: never a pending grant, and amount and currency only when the owner shows the amount. Empty on sites without grants.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "funder": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "award_number": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "pi",
+                    "co_pi",
+                    "co_investigator",
+                    "other"
+                  ]
+                },
+                "role_label": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "completed"
+                  ]
+                },
+                "start_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "end_year": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "amount": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "currency": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "project_path": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Path on the site of the published project the grant funds."
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The years as the site shows them, such as 2021 — present."
+                }
+              }
+            }
+          },
           "memberships": {
             "type": "array",
             "description": "Professional memberships, in the owner's order. Empty on sites without memberships.",
@@ -12451,7 +12901,8 @@
               "positions": "Positions",
               "honors": "Honors and Awards",
               "service": "Service",
-              "memberships": "Professional Memberships"
+              "memberships": "Professional Memberships",
+              "grants": "Grants"
             },
             "location": "Baltimore, MD",
             "email": null,
@@ -12519,6 +12970,24 @@
                 "description": null,
                 "url": null,
                 "display": "2021 — present"
+              }
+            ],
+            "grants": [
+              {
+                "id": 6,
+                "title": "Methods for Missing Data in Pragmatic Trials",
+                "funder": "National Institutes of Health",
+                "award_number": "R01 AG012345",
+                "role": "pi",
+                "role_label": "Principal Investigator",
+                "status": "active",
+                "start_year": 2022,
+                "end_year": 2027,
+                "amount": null,
+                "currency": null,
+                "project_path": "/projects/missing-data-methods",
+                "url": null,
+                "display": "2022 — 2027"
               }
             ],
             "memberships": [
@@ -17234,7 +17703,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -17310,7 +17779,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -17374,7 +17843,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
@@ -17425,7 +17894,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
@@ -18770,6 +19239,234 @@
               "null"
             ],
             "description": "An http or https address."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileGrant": {
+        "type": "object",
+        "description": "A grant or other research funding (Grants). Includes pending grants and amounts the site does not show.",
+        "required": [
+          "id",
+          "title",
+          "funder",
+          "award_number",
+          "role",
+          "status",
+          "start_year",
+          "end_year",
+          "amount",
+          "currency",
+          "show_amount",
+          "project_id",
+          "url",
+          "order",
+          "edit_version",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "funder": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "award_number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "pi",
+              "co_pi",
+              "co_investigator",
+              "other"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed",
+              "pending"
+            ]
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "amount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Whole units of currency."
+          },
+          "currency": {
+            "type": "string"
+          },
+          "show_amount": {
+            "type": "boolean"
+          },
+          "project_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The project on this site the grant funds."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileGrantInput": {
+        "type": "object",
+        "description": "A create needs title. A PATCH changes only the fields sent. A new grant is placed newest first, a current one with no end year at the top.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The grant or project title as the award names it."
+          },
+          "funder": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "The agency, foundation, or university that funds it."
+          },
+          "award_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100,
+            "description": "The grant number, such as R01 AG012345."
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "pi",
+              "co_pi",
+              "co_investigator",
+              "other"
+            ],
+            "description": "The owner's role: pi (Principal Investigator), co_pi, co_investigator, or other. Defaults to pi."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed",
+              "pending"
+            ],
+            "description": "active (shown as Current), completed, or pending (submitted or under review; never shown on the site). Defaults to active."
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "An active grant with no end year shows as 2021 — present."
+          },
+          "amount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Whole units of currency. Shown on the site only when show_amount is true."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Za-z]{3}$",
+            "description": "A three-letter code, such as USD or EUR. Defaults to USD."
+          },
+          "show_amount": {
+            "type": "boolean",
+            "description": "Show the amount on the site. Defaults to false."
+          },
+          "project_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A project on this site. The grant links to it, and the project page lists the grant."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address, used when no published project is linked."
           },
           "edit_version": {
             "type": [

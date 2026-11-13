@@ -82,6 +82,7 @@ func newFakeAPI(t *testing.T) *fakeAPI {
 			r.URL.Path == "/sites/7/profile/honors", r.URL.Path == "/sites/7/profile/honors/order",
 			r.URL.Path == "/sites/7/profile/service", r.URL.Path == "/sites/7/profile/service/order",
 			r.URL.Path == "/sites/7/profile/memberships", r.URL.Path == "/sites/7/profile/memberships/order",
+			r.URL.Path == "/sites/7/profile/grants", r.URL.Path == "/sites/7/profile/grants/order",
 			r.URL.Path == "/sites/7/talks", r.URL.Path == "/sites/7/courses/3/lessons/5":
 			fmt.Fprint(w, `{"data":{"id":5,"title":"Echo"}}`)
 		case strings.HasPrefix(r.URL.Path, "/sites/7/section-order/"):
@@ -447,6 +448,33 @@ func TestProfileMemberships(t *testing.T) {
 	}
 	if r := run(t, "", "schema", "profile-memberships", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--organization"`) || !strings.Contains(r.stdout, `"required": true`) {
 		t.Errorf("schema profile-memberships create: code %d, stdout %s", r.code, r.stdout)
+	}
+}
+
+func TestProfileGrants(t *testing.T) {
+	f := setup(t)
+
+	r := run(t, "", "profile-grants", "create", "--title", "Methods for Missing Data", "--funder", "National Institutes of Health", "--award-number", "R01 AG012345", "--role", "co_pi", "--status", "pending", "--amount", "250000", "--currency", "USD", "--show-amount", "--project-id", "12")
+	var body map[string]any
+	_ = json.Unmarshal(f.last().Body, &body)
+	if r.code != 0 || f.last().Method != "POST" || f.last().Path != "/sites/7/profile/grants" {
+		t.Fatalf("grant create: code %d, %+v, stderr %q", r.code, f.last(), r.stderr)
+	}
+	if body["title"] != "Methods for Missing Data" || body["award_number"] != "R01 AG012345" || body["role"] != "co_pi" || body["status"] != "pending" || fmt.Sprint(body["amount"]) != "250000" || body["show_amount"] != true || fmt.Sprint(body["project_id"]) != "12" {
+		t.Fatalf("grant create body: %s", f.last().Body)
+	}
+
+	if r := run(t, "", "profile-grants", "update", "4", "--status", "completed", "--dry-run", "--json"); r.code != 0 || !strings.Contains(r.stdout, "/sites/7/profile/grants/4") || !strings.Contains(r.stdout, "PATCH") {
+		t.Errorf("grant update: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "profile-grants", "reorder", "--ids", "4,2"); r.code != 0 || string(f.last().Body) != `{"ids":[4,2]}` {
+		t.Errorf("grant reorder: code %d, body %s, stderr %q", r.code, f.last().Body, r.stderr)
+	}
+	if r := run(t, "", "profile-grants", "delete", "4", "--yes", "--dry-run"); r.code != 0 || !strings.Contains(r.stdout, "DELETE") {
+		t.Errorf("grant delete: code %d, stdout %q, stderr %q", r.code, r.stdout, r.stderr)
+	}
+	if r := run(t, "", "schema", "profile-grants", "create"); r.code != 0 || !strings.Contains(r.stdout, `"--title"`) || !strings.Contains(r.stdout, `"required": true`) {
+		t.Errorf("schema profile-grants create: code %d, stdout %s", r.code, r.stdout)
 	}
 }
 

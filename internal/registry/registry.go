@@ -177,6 +177,7 @@ var Groups = []Group{
 	{"profile-honors", "Honors and awards on the profile"},
 	{"profile-service", "Service on the profile: editorial roles, reviewing, committees"},
 	{"profile-memberships", "Professional memberships on the profile"},
+	{"profile-grants", "Grants and research funding (the Grants page)"},
 	{"navigation", "The header and footer menus"},
 	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
@@ -257,6 +258,13 @@ var table = []entry{
 	{group: "profile-memberships", name: "update", short: "Update a membership", op: "manageUpdateProfileMembership", kind: KindWrite},
 	{group: "profile-memberships", name: "delete", short: "Delete a membership", op: "manageDeleteProfileMembership", kind: KindDelete},
 	{group: "profile-memberships", name: "reorder", short: "Set the order of the memberships", op: "manageReorderProfileMemberships", kind: KindWrite},
+
+	{group: "profile-grants", name: "list", short: "List grants, pending ones included", op: "manageListProfileGrants"},
+	{group: "profile-grants", name: "get", short: "Show a grant", op: "manageGetProfileGrant"},
+	{group: "profile-grants", name: "create", short: "Add a grant (shown on the Grants page unless pending; the amount only with --show-amount)", op: "manageCreateProfileGrant", kind: KindWrite},
+	{group: "profile-grants", name: "update", short: "Update a grant", op: "manageUpdateProfileGrant", kind: KindWrite},
+	{group: "profile-grants", name: "delete", short: "Delete a grant", op: "manageDeleteProfileGrant", kind: KindDelete},
+	{group: "profile-grants", name: "reorder", short: "Set the order of the grants", op: "manageReorderProfileGrants", kind: KindWrite},
 
 	{group: "profile-links", name: "list", short: "List links", op: "manageListProfileLinks"},
 	{group: "profile-links", name: "get", short: "Show a link", op: "manageGetProfileLink"},
