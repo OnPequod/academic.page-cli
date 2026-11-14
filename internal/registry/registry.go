@@ -198,6 +198,8 @@ var Groups = []Group{
 	{"tags", "Tags"},
 	{"imports", "CV and syllabus imports: what each found, and where it had trouble"},
 	{"media", "Media library files"},
+	{"search", "Search a site's content, drafts included, and the public search button"},
+	{"email", "Which optional emails your account gets: setup reminders and product updates"},
 }
 
 var (
@@ -207,6 +209,9 @@ var (
 
 var table = []entry{
 	{group: "key", name: "show", short: "Show this key's abilities, site scope, Pro status and expiry", op: "getMe"},
+
+	{group: "email", name: "show", short: "Show whether setup reminders and product updates are on", op: "getEmailPreferences"},
+	{group: "email", name: "update", short: "Turn setup reminders or product updates on or off", op: "updateEmailPreferences", kind: KindWrite},
 
 	{group: "sites", name: "list", short: "List the sites this key can read", op: "listSites"},
 	{group: "sites", name: "get", short: "Show a site's settings, domains, sections and navigation", op: "getSite"},
@@ -302,6 +307,10 @@ var table = []entry{
 
 	{group: "post-settings", name: "get", short: "Show the settings for all posts, such as whether the RSS feed is on", op: "manageGetPostSettings"},
 	{group: "post-settings", name: "update", short: "Change the settings for all posts, such as turning the RSS feed on or off", op: "manageUpdatePostSettings", kind: KindWrite},
+
+	{group: "search", name: "run", short: "Search the site's content, drafts included, as the admin's search does", op: "manageSearch"},
+	{group: "search", name: "settings", short: "Show whether the public site shows its search button", op: "manageGetSearchSettings"},
+	{group: "search", name: "update-settings", short: "Show or hide the public site's search button", op: "manageUpdateSearchSettings", kind: KindWrite},
 
 	{group: "pages", name: "list", short: "List pages", op: "listPages", draftsOp: "manageListPages"},
 	{group: "pages", name: "get", short: "Show a page", op: "getPage", draftsOp: "manageGetPage"},

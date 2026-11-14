@@ -74,6 +74,10 @@ academic-page nested-address update --slug ai-powered-coding-and-data-analysis
 academic-page courses update 4 --level graduate --class-size "10–20 students"
 academic-page courses update 4 --course-site-id 12        # link a course on a Teaching page to its course site
 academic-page posts delete 12 --yes
+academic-page search run --q "bayes mod"     # the site's content, drafts included, best match first
+academic-page search update-settings --enabled=false   # hide the public search button
+academic-page email show                    # whether setup reminders and product updates are on
+academic-page email update --reminders=false   # stop setup reminders; product updates stay as they are
 ```
 
 Content is written as Markdown, and the API converts it to the editor's format. Only the formatting both the editor and the public site support is used: headings (levels 1–3), paragraphs, lists, block quotes, code blocks, rules, and bold, italic, strikethrough, code, and links. Images become links until image embedding is supported. Every rich-text field works this way: `--content-markdown`, `--abstract-file`, `--bio-markdown`, and so on. If you need exact control, you can send the editor's Tiptap JSON in `--data` instead; the API checks it either way.

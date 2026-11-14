@@ -141,6 +141,100 @@
         }
       }
     },
+    "/me/email-preferences": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "The key owner's optional emails",
+        "operationId": "getEmailPreferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/EmailPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Whether the owner gets setup reminders and product updates, as the Email settings page shows them. Account emails, such as sign-in links, are always sent and are not listed. Management keys only."
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Turn the owner's optional emails on or off",
+        "operationId": "updateEmailPreferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/EmailPreferences"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send either field or both. Fields left out keep their value. Read-only keys answer 403.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailPreferencesInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites": {
       "post": {
         "tags": [
@@ -623,7 +717,7 @@
                           "honors": "Honors and Awards",
                           "service": "Service",
                           "memberships": "Professional Memberships",
-                          "grants": "Grants",
+                          "grants": "Grants and Funding",
                           "media_appearances": "In the Media",
                           "mentoring": "Mentoring"
                         },
@@ -5554,6 +5648,174 @@
         }
       }
     },
+    "/sites/{site}/search": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Search the site's content, drafts included, as the admin's search does",
+        "operationId": "manageSearch",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "description": "The words to find. Each word matches the start of a word, so \"bayes mod\" finds \"Bayesian models\". Titles rank above excerpts, venues, and authors, which rank above body text."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "description": "The most results to return."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagementSearchResults"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Searches pages, posts, projects, publications, talks, courses, and lab or study team members, as far as the site has each section. Results come best match first."
+      }
+    },
+    "/sites/{site}/search/settings": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get whether the public site shows its search button",
+        "operationId": "manageGetSearchSettings",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementSearchSettings"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Show or hide the public site's search button, as the switch in Site Settings does",
+        "operationId": "manageUpdateSearchSettings",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementSearchSettings"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send only what changes. Hiding the button also takes the /search page down.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementSearchSettingsInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/profile/degrees": {
       "get": {
         "tags": [
@@ -7503,7 +7765,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "List profile grants in display order. Personal sites only. Grants show on the Grants page, Current then Completed, and nowhere else. A pending grant is never shown, and an amount shows only when show_amount is true. These endpoints return every grant to the owner.",
+        "summary": "List profile grants in display order. Personal sites only. Grants show on the Grants and Funding page, Current then Completed, and nowhere else. A pending grant is never shown, and an amount shows only when show_amount is true. These endpoints return every grant to the owner.",
         "operationId": "manageListProfileGrants",
         "parameters": [
           {
@@ -13329,7 +13591,7 @@
           },
           "grants": {
             "type": "array",
-            "description": "Grants as the Grants page shows them, in the owner's order: never a pending grant, and amount and currency only when the owner shows the amount. Empty on sites without grants.",
+            "description": "Grants as the Grants and Funding page shows them, in the owner's order: never a pending grant, and amount and currency only when the owner shows the amount. Empty on sites without grants.",
             "items": {
               "type": "object",
               "properties": {
@@ -13762,7 +14024,7 @@
               "honors": "Honors and Awards",
               "service": "Service",
               "memberships": "Professional Memberships",
-              "grants": "Grants",
+              "grants": "Grants and Funding",
               "media_appearances": "In the Media",
               "mentoring": "Mentoring"
             },
@@ -18124,6 +18386,36 @@
           }
         ]
       },
+      "EmailPreferences": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reminders",
+          "product_updates"
+        ],
+        "properties": {
+          "reminders": {
+            "type": "boolean",
+            "description": "One email if the owner starts setting up a site and leaves before it is published. Never more than one about the same thing."
+          },
+          "product_updates": {
+            "type": "boolean",
+            "description": "Occasional emails about new features and changes to Academic.page."
+          }
+        }
+      },
+      "EmailPreferencesInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reminders": {
+            "type": "boolean"
+          },
+          "product_updates": {
+            "type": "boolean"
+          }
+        }
+      },
       "SiteCreateInput": {
         "type": "object",
         "required": [
@@ -19124,6 +19416,130 @@
           "feed_enabled": {
             "type": "boolean",
             "description": "Publish an RSS feed of the site's published posts at /feed.xml."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementSearchResults": {
+        "type": "object",
+        "description": "What matched, best first.",
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagementSearchResult"
+            }
+          }
+        }
+      },
+      "ManagementSearchResult": {
+        "type": "object",
+        "description": "One record that matched.",
+        "required": [
+          "type",
+          "id",
+          "title",
+          "summary",
+          "snippet",
+          "status",
+          "url",
+          "admin_url",
+          "updated_at"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "page",
+              "post",
+              "project",
+              "publication",
+              "talk",
+              "course",
+              "lab_member"
+            ],
+            "description": "Fetch the record itself from its own endpoint with id."
+          },
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A line about the record: a post's date, a publication's venue and year, a talk's meeting and year, a course's instructor, or a member's role."
+          },
+          "snippet": {
+            "type": "string",
+            "description": "The passage that matched, as plain text. Empty when only the title matched and the record has no other text."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "published",
+              "scheduled",
+              "draft"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The public page. Null unless the record is published."
+          },
+          "admin_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The record's editor in the admin."
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "ManagementSearchSettings": {
+        "type": "object",
+        "description": "Whether the public site shows its search button.",
+        "required": [
+          "enabled",
+          "search_url"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether a search button shows at the top right of every page. On by default. The search finds only what the site shows visitors."
+          },
+          "search_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "The search page, such as https://jane.biostatistician.page/search. Null when the button is off."
+          }
+        }
+      },
+      "ManagementSearchSettingsInput": {
+        "type": "object",
+        "description": "The search settings to change. Send only what changes.",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Show the search button at the top right of every page, and the search page it opens."
           }
         },
         "additionalProperties": false
