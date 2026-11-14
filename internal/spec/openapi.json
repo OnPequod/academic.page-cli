@@ -701,6 +701,7 @@
                             "title": "Methods for Missing Data in Pragmatic Trials",
                             "funder": "National Institutes of Health",
                             "award_number": "R01 AG012345",
+                            "description": "Develops methods for trials in which many patients leave before the end.",
                             "role": "pi",
                             "role_label": "Principal Investigator",
                             "status": "active",
@@ -720,6 +721,7 @@
                             "kind_label": "Interview",
                             "title": "Why missing data can mislead a trial",
                             "outlet": "Baltimore Public Radio",
+                            "description": "On what a trial can and cannot say when a third of its patients drop out.",
                             "date": "2024-05",
                             "url": "https://example.org/interview",
                             "display": "May 2024"
@@ -13268,9 +13270,11 @@
                   "enum": [
                     "editorial",
                     "reviewing",
-                    "committee",
+                    "institutional",
                     "society",
                     "conference",
+                    "advisory",
+                    "community",
                     "other"
                   ]
                 },
@@ -13347,12 +13351,21 @@
                     "null"
                   ]
                 },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "role": {
                   "type": "string",
                   "enum": [
                     "pi",
                     "co_pi",
                     "co_investigator",
+                    "collaborator",
+                    "consultant",
+                    "staff",
                     "other"
                   ]
                 },
@@ -13440,6 +13453,12 @@
                   "type": "string"
                 },
                 "outlet": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
                   "type": [
                     "string",
                     "null"
@@ -13821,6 +13840,7 @@
                 "title": "Methods for Missing Data in Pragmatic Trials",
                 "funder": "National Institutes of Health",
                 "award_number": "R01 AG012345",
+                "description": "Develops methods for trials in which many patients leave before the end.",
                 "role": "pi",
                 "role_label": "Principal Investigator",
                 "status": "active",
@@ -13840,6 +13860,7 @@
                 "kind_label": "Interview",
                 "title": "Why missing data can mislead a trial",
                 "outlet": "Baltimore Public Radio",
+                "description": "On what a trial can and cannot say when a third of its patients drop out.",
                 "date": "2024-05",
                 "url": "https://example.org/interview",
                 "display": "May 2024"
@@ -19820,7 +19841,7 @@
       },
       "ProfileServiceRole": {
         "type": "object",
-        "description": "A service role: an editorial role, reviewing for a journal or panel, a committee, a society office, or a conference organized (Service).",
+        "description": "A service role: an editorial role, reviewing for a journal or panel, an institutional role or committee, a society office, a conference organized, an advisory panel, or community service (Service).",
         "required": [
           "id",
           "kind",
@@ -19845,9 +19866,11 @@
             "enum": [
               "editorial",
               "reviewing",
-              "committee",
+              "institutional",
               "society",
               "conference",
+              "advisory",
+              "community",
               "other"
             ]
           },
@@ -19924,12 +19947,14 @@
             "enum": [
               "editorial",
               "reviewing",
-              "committee",
+              "institutional",
               "society",
               "conference",
+              "advisory",
+              "community",
               "other"
             ],
-            "description": "editorial (an editorial board or editor role), reviewing (reviewing for one journal or grant panel), committee, society (an office in a professional society), conference (organizing a conference or session), or other. The About page groups roles by kind in this order."
+            "description": "editorial (an editorial board or editor role), reviewing (peer review for one journal, publisher, or grant panel, or an external promotion or tenure review), institutional (a role or committee at the owner's own department, school, or university, such as Director of Graduate Studies or faculty senator), society (an office or committee in a professional society), conference (organizing, chairing, or presiding at a conference or session), advisory (an advisory board, expert panel, or national committee), community (service to the public, such as outreach), or other. The About page groups roles by kind in this order."
           },
           "title": {
             "type": "string",
@@ -20131,6 +20156,7 @@
           "title",
           "funder",
           "award_number",
+          "description",
           "role",
           "status",
           "start_year",
@@ -20164,12 +20190,21 @@
               "null"
             ]
           },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "role": {
             "type": "string",
             "enum": [
               "pi",
               "co_pi",
               "co_investigator",
+              "collaborator",
+              "consultant",
+              "staff",
               "other"
             ]
           },
@@ -20270,15 +20305,26 @@
             "maxLength": 100,
             "description": "The grant number, such as R01 AG012345."
           },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "A sentence or two on what the grant funds. The page shows it under the line. A full abstract belongs on the linked project."
+          },
           "role": {
             "type": "string",
             "enum": [
               "pi",
               "co_pi",
               "co_investigator",
+              "collaborator",
+              "consultant",
+              "staff",
               "other"
             ],
-            "description": "The owner's role: pi (Principal Investigator), co_pi, co_investigator, or other. Defaults to pi."
+            "description": "The owner's role: pi (Principal Investigator), co_pi, co_investigator, collaborator, consultant, staff (study staff, such as an analyst or coordinator), or other. Defaults to pi."
           },
           "status": {
             "type": "string",
@@ -20359,6 +20405,7 @@
           "kind",
           "title",
           "outlet",
+          "description",
           "date",
           "url",
           "order",
@@ -20385,6 +20432,12 @@
             "type": "string"
           },
           "outlet": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
             "type": [
               "string",
               "null"
@@ -20457,6 +20510,14 @@
             ],
             "maxLength": 255,
             "description": "The newspaper, magazine, show, or channel."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "A sentence or two on what the piece was about or what the owner said in it. The page shows it under the line."
           },
           "date": {
             "type": [
