@@ -78,6 +78,8 @@ academic-page search run --q "bayes mod"     # the site's content, drafts includ
 academic-page search update-settings --enabled=false   # hide the public search button
 academic-page email show                    # whether setup reminders and product updates are on
 academic-page email update --reminders=false   # stop setup reminders; product updates stay as they are
+academic-page people invite --email riley@example.edu --role editor   # an assistant who edits every site
+academic-page people list                   # the owner, admins, editors, and open invitations
 ```
 
 Content is written as Markdown, and the API converts it to the editor's format. Only the formatting both the editor and the public site support is used: headings (levels 1–3), paragraphs, lists, block quotes, code blocks, rules, and bold, italic, strikethrough, code, and links. Images become links until image embedding is supported. Every rich-text field works this way: `--content-markdown`, `--abstract-file`, `--bio-markdown`, and so on. If you need exact control, you can send the editor's Tiptap JSON in `--data` instead; the API checks it either way.

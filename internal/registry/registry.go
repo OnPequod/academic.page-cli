@@ -200,6 +200,7 @@ var Groups = []Group{
 	{"media", "Media library files"},
 	{"search", "Search a site's content, drafts included, and the public search button"},
 	{"email", "Which optional emails your account gets: setup reminders and product updates"},
+	{"people", "People who work on your account's sites: admins, editors, and invitations"},
 }
 
 var (
@@ -212,6 +213,12 @@ var table = []entry{
 
 	{group: "email", name: "show", short: "Show whether setup reminders and product updates are on", op: "getEmailPreferences"},
 	{group: "email", name: "update", short: "Turn setup reminders or product updates on or off", op: "updateEmailPreferences", kind: KindWrite},
+
+	{group: "people", name: "list", short: "List the people on your account and the invitations waiting for an answer", op: "listTeamPeople"},
+	{group: "people", name: "invite", short: "Invite someone by email to edit your sites", op: "createTeamInvitation", kind: KindWrite},
+	{group: "people", name: "withdraw", short: "Withdraw an invitation", op: "deleteTeamInvitation", kind: KindDelete},
+	{group: "people", name: "update", short: "Change someone's role or the sites they edit", op: "updateTeamMember", kind: KindWrite},
+	{group: "people", name: "remove", short: "Remove someone from your account", op: "deleteTeamMember", kind: KindDelete},
 
 	{group: "sites", name: "list", short: "List the sites this key can read", op: "listSites"},
 	{group: "sites", name: "get", short: "Show a site's settings, domains, sections and navigation", op: "getSite"},

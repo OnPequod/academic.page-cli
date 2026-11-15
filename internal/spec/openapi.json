@@ -235,6 +235,227 @@
         }
       }
     },
+    "/team/people": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "The people on the key owner's account",
+        "operationId": "listTeamPeople",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TeamPeople"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "The owner, admins, and editors of the key owner's own account, and the invitations waiting for an answer, as Account Settings > People shows them. Admins and editors sign in with their own accounts and work on this account's sites. Needs a key for the whole account or an AI app connected with Full access; other keys answer 403 `key_cannot_manage_people`."
+      }
+    },
+    "/team/invitations": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Invite someone to work on the account's sites",
+        "operationId": "createTeamInvitation",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TeamInvitation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Emails a link to the address. They accept by signing in, or by creating a free account, with that address. A second invitation to the same address replaces the first. Needs a plan that includes other people (Pro and Pro+); without it the answer is 422 `validation_failed`. Only the owner may invite an admin; an admin inviting one answers 403 `team_role_insufficient`. An account holds at most 20 people and open invitations besides its owner.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamInvitationInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/team/invitations/{invitationId}": {
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Withdraw an invitation",
+        "operationId": "deleteTeamInvitation",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invitationId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "The link stops working. An invitation that was accepted or withdrawn already answers 404 `invitation_not_found`."
+      }
+    },
+    "/team/members/{memberId}": {
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Change what someone on the account may do",
+        "operationId": "updateTeamMember",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/memberId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/TeamMember"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Sets their role, and for an editor, every site or the sites listed. The owner cannot be changed. Only the owner changes an admin or makes someone one.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMemberInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Remove someone from the account",
+        "operationId": "deleteTeamMember",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/memberId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "They can no longer open the account's sites, and their keys and AI app connections stop reaching them at once. Their own account and sites are not affected. The owner cannot be removed."
+      }
+    },
     "/sites": {
       "post": {
         "tags": [
@@ -12196,6 +12417,26 @@
           "minimum": 1
         }
       },
+      "invitationId": {
+        "name": "invitationId",
+        "in": "path",
+        "required": true,
+        "description": "An invitation ID, from GET /team/people.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "memberId": {
+        "name": "memberId",
+        "in": "path",
+        "required": true,
+        "description": "A lab or study team member ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "menu": {
         "name": "menu",
         "in": "path",
@@ -12363,16 +12604,6 @@
         "in": "path",
         "required": true,
         "description": "A lesson ID.",
-        "schema": {
-          "type": "integer",
-          "minimum": 1
-        }
-      },
-      "memberId": {
-        "name": "memberId",
-        "in": "path",
-        "required": true,
-        "description": "A lab or study team member ID.",
         "schema": {
           "type": "integer",
           "minimum": 1
@@ -18385,6 +18616,206 @@
             "api_access": true
           }
         ]
+      },
+      "TeamPeople": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "team_id",
+          "owner_name",
+          "members_allowed",
+          "max_members",
+          "members",
+          "invitations"
+        ],
+        "properties": {
+          "team_id": {
+            "type": "integer"
+          },
+          "owner_name": {
+            "type": "string"
+          },
+          "members_allowed": {
+            "type": "boolean",
+            "description": "Whether the plan includes other people. When it does not, admins and editors keep their place but cannot open the account's sites until it does."
+          },
+          "max_members": {
+            "type": "integer",
+            "description": "The most people and open invitations the account may have besides its owner."
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamMember"
+            }
+          },
+          "invitations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamInvitation"
+            }
+          }
+        }
+      },
+      "TeamMember": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "all_sites",
+          "site_ids",
+          "joined_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "editor"
+            ],
+            "description": "owner: pays for the account and manages everything. admin: every site, adding and deleting sites, and the people on the account; never billing. editor: content, settings, and design on every site or the sites listed."
+          },
+          "all_sites": {
+            "type": "boolean",
+            "description": "True for the owner and admins, and for an editor of every site, including sites added later."
+          },
+          "site_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The sites an editor without all_sites works on. Empty otherwise."
+          },
+          "joined_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "TeamInvitation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "email",
+          "role",
+          "all_sites",
+          "site_ids",
+          "expires_at",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "editor"
+            ]
+          },
+          "all_sites": {
+            "type": "boolean"
+          },
+          "site_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the link stops working."
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "TeamInvitationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "role"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "editor"
+            ],
+            "description": "editor or admin. Only the owner may invite an admin."
+          },
+          "all_sites": {
+            "type": "boolean",
+            "description": "For an editor: true for every site, including sites added later (the default); false for the sites in site_ids. Admins always have every site."
+          },
+          "site_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The account's sites an editor works on when all_sites is false. At least one."
+          }
+        }
+      },
+      "TeamMemberInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "editor"
+            ]
+          },
+          "all_sites": {
+            "type": "boolean",
+            "description": "For an editor: true for every site (the default), false for the sites in site_ids."
+          },
+          "site_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
       },
       "EmailPreferences": {
         "type": "object",
