@@ -76,6 +76,7 @@ academic-page courses update 4 --course-site-id 12        # link a course on a T
 academic-page posts delete 12 --yes
 academic-page search run --q "bayes mod"     # the site's content, drafts included, best match first
 academic-page search update-settings --enabled=false   # hide the public search button
+academic-page docs search --q "custom domain"   # sections of the User Manual and API docs, with links
 academic-page email show                    # whether setup reminders and product updates are on
 academic-page email update --reminders=false   # stop setup reminders; product updates stay as they are
 academic-page people invite --email riley@example.edu --role editor   # an assistant who edits every site

@@ -201,6 +201,7 @@ var Groups = []Group{
 	{"search", "Search a site's content, drafts included, and the public search button"},
 	{"email", "Which optional emails your account gets: setup reminders and product updates"},
 	{"people", "People who work on your account's sites: admins, editors, and invitations"},
+	{"docs", "Academic.page's own User Manual and API docs"},
 }
 
 var (
@@ -318,6 +319,8 @@ var table = []entry{
 	{group: "search", name: "run", short: "Search the site's content, drafts included, as the admin's search does", op: "manageSearch"},
 	{group: "search", name: "settings", short: "Show whether the public site shows its search button", op: "manageGetSearchSettings"},
 	{group: "search", name: "update-settings", short: "Show or hide the public site's search button", op: "manageUpdateSearchSettings", kind: KindWrite},
+
+	{group: "docs", name: "search", short: "Search the User Manual and the API docs, best match first", op: "manageSearchDocs"},
 
 	{group: "pages", name: "list", short: "List pages", op: "listPages", draftsOp: "manageListPages"},
 	{group: "pages", name: "get", short: "Show a page", op: "getPage", draftsOp: "manageGetPage"},

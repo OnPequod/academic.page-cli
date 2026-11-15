@@ -456,6 +456,79 @@
         "description": "They can no longer open the account's sites, and their keys and AI app connections stop reaching them at once. Their own account and sites are not affected. The owner cannot be removed."
       }
     },
+    "/docs/search": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Search the User Manual and the API docs",
+        "operationId": "manageSearchDocs",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "What to look for, such as \"custom domain\" or \"webhook signature\". Every word must start a word in the section; the start of a word is enough.",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "collection",
+            "in": "query",
+            "required": false,
+            "description": "Only the User Manual (user-manual) or only the API docs (api). Both when left out.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user-manual",
+                "api"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "How many sections to return, 1 to 30. 10 when left out.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocsSearchResults"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Finds the sections of Academic.page's own documentation that match, best match first, at most three from one page. Use it to answer how-to questions about Academic.page and its API. Not tied to a site; works with any key."
+      }
+    },
     "/sites": {
       "post": {
         "tags": [
@@ -18824,6 +18897,62 @@
             "items": {
               "type": "integer"
             }
+          }
+        }
+      },
+      "DocsSearchResults": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocsSearchResult"
+            }
+          }
+        }
+      },
+      "DocsSearchResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "collection",
+          "page",
+          "section",
+          "url",
+          "snippet"
+        ],
+        "properties": {
+          "collection": {
+            "type": "string",
+            "enum": [
+              "user-manual",
+              "api"
+            ],
+            "description": "user-manual for the User Manual, api for the API docs."
+          },
+          "page": {
+            "type": "string",
+            "description": "The page's title, such as \"Custom Domains\"."
+          },
+          "section": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The heading of the section that matched, after the heading above it when there is one, such as \"Connect your domain › 2. Add DNS records\". Null for the top of the page."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The section on its page, such as https://academic.page/manual/features/custom-domains#2-add-dns-records."
+          },
+          "snippet": {
+            "type": "string",
+            "description": "Plain text from the section around the first match, up to about 200 characters, with an ellipsis where it was cut."
           }
         }
       },
