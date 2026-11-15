@@ -375,7 +375,7 @@
         "operationId": "updateTeamMember",
         "parameters": [
           {
-            "$ref": "#/components/parameters/memberId"
+            "$ref": "#/components/parameters/teamMemberId"
           }
         ],
         "responses": {
@@ -430,7 +430,7 @@
         "operationId": "deleteTeamMember",
         "parameters": [
           {
-            "$ref": "#/components/parameters/memberId"
+            "$ref": "#/components/parameters/teamMemberId"
           }
         ],
         "responses": {
@@ -12427,11 +12427,11 @@
           "minimum": 1
         }
       },
-      "memberId": {
+      "teamMemberId": {
         "name": "memberId",
         "in": "path",
         "required": true,
-        "description": "A lab or study team member ID.",
+        "description": "The account ID of someone on the account, from GET /team/people.",
         "schema": {
           "type": "integer",
           "minimum": 1
@@ -12604,6 +12604,16 @@
         "in": "path",
         "required": true,
         "description": "A lesson ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "memberId": {
+        "name": "memberId",
+        "in": "path",
+        "required": true,
+        "description": "A lab or study team member ID.",
         "schema": {
           "type": "integer",
           "minimum": 1
