@@ -32,6 +32,20 @@ func TestEveryOperationIsMapped(t *testing.T) {
 	}
 }
 
+// Every group in the table must be listed in Groups, or its commands never
+// reach the command tree.
+func TestEveryTableGroupIsListed(t *testing.T) {
+	listed := map[string]bool{}
+	for _, g := range Groups {
+		listed[g.Name] = true
+	}
+	for _, e := range table {
+		if !listed[e.group] {
+			t.Errorf("group %q is in the table but not in Groups", e.group)
+		}
+	}
+}
+
 func TestToolNamesAreUniqueAndValid(t *testing.T) {
 	valid := regexp.MustCompile(`^[a-z][a-z0-9_]{0,63}$`)
 	seen := map[string]bool{}

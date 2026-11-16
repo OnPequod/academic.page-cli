@@ -169,6 +169,8 @@ func RichPrefix(field string) string {
 var Groups = []Group{
 	{"key", "The API key in use"},
 	{"sites", "Sites you can reach with this key"},
+	{"nested-address", "The address of a site nested under another site"},
+	{"bluesky-handle", "The site's address as your Bluesky handle"},
 	{"profile", "The site owner's profile"},
 	{"profile-cv", "The CV file on the profile"},
 	{"profile-degrees", "Degrees on the profile"},

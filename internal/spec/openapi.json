@@ -3,7 +3,7 @@
   "info": {
     "title": "Academic.page API",
     "version": "1.0.0",
-    "description": "Read the content of your Academic.page sites, and manage posts, pages, projects, and media.\n\nThe content endpoints (`/content/...`) return exactly what each public site shows: published records only, never drafts, scheduled items before their time, deleted records, autosaves, revisions, or private notes. They need a content key and Pro.\n\nThe management endpoints (`/sites/{site}/...`) show drafts and accept writes. They need a management key and Pro.\n\nWhich sections answer `404 section_not_enabled`: the content endpoints follow the public site, so a section the public site does not show answers it. The management endpoints follow what the admin lets the owner edit for that site type, so they answer it only for a section the site cannot have, such as projects on a course site or lessons on a personal site. A section the admin edits is managed here even while the public site does not show it."
+    "description": "Read the public content of your Academic.page sites, and manage every part of your sites and account.\n\nThe content endpoints (`/content/...`) return published content as the public site shows it. Drafts, scheduled items before their publish time, deleted records, autosaves, revisions, private notes, pending grants, hidden grant amounts, and private CVs are omitted. They need a content key and Pro.\n\nThe management endpoints (`/sites/{site}/...`, `/sites`, `/me/...`, `/team/...`, and `/docs/search`) show drafts and accept writes. They need a management key and Pro.\n\nSection availability (`404 section_not_enabled`): the content and management endpoints both follow the sections the site has, which come from its site type. A section the site does not have answers `404 section_not_enabled`, such as projects on a course site. Lessons, materials, assignments, and texts and resources are on course sites only, and the content API's profile is not on course sites. Hiding a section from the site's menu does not change either answer."
   },
   "servers": [
     {
@@ -181,7 +181,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Whether the owner gets setup reminders and product updates, as the Email settings page shows them. Account emails, such as sign-in links, are always sent and are not listed. Management keys only."
+        "description": "Setup reminder and product update preferences for the key owner, matching Account Settings > Email. Account emails, such as sign-in links, are always sent and are omitted here. Management keys only."
       },
       "patch": {
         "tags": [
@@ -371,7 +371,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "Change what someone on the account may do",
+        "summary": "Update a person's role and site access on the account",
         "operationId": "updateTeamMember",
         "parameters": [
           {
@@ -453,7 +453,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "They can no longer open the account's sites, and their keys and AI app connections stop reaching them at once. Their own account and sites are not affected. The owner cannot be removed."
+        "description": "They can no longer open the account's sites, and their keys and AI app connections stop reaching them at once. Their own account and sites are unaffected. The owner cannot be removed."
       }
     },
     "/docs/search": {
@@ -468,7 +468,7 @@
             "name": "q",
             "in": "query",
             "required": true,
-            "description": "What to look for, such as \"custom domain\" or \"webhook signature\". Every word must start a word in the section; the start of a word is enough.",
+            "description": "Search terms, such as \"custom domain\" or \"webhook signature\". Every word must match the start of a word in the section.",
             "schema": {
               "type": "string",
               "maxLength": 200
@@ -491,7 +491,7 @@
             "name": "limit",
             "in": "query",
             "required": false,
-            "description": "How many sections to return, 1 to 30. 10 when left out.",
+            "description": "Maximum sections to return, from 1 to 30. Defaults to 10.",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -526,7 +526,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Finds the sections of Academic.page's own documentation that match, best match first, at most three from one page. Use it to answer how-to questions about Academic.page and its API. Not tied to a site; works with any key."
+        "description": "Finds matching sections in the Academic.page documentation, best match first, at most three from one page. Covers both the User Manual and the API docs. Works with any key."
       }
     },
     "/sites": {
@@ -586,7 +586,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Creates a site at its own address on the domain, as the Create Site page does, with the same checks. A site nested under another site's address (such as /courses/...) is made on that page instead. An account at its plan's site limit answers 422 `site_limit_reached`. A lab, study, or course site on a free account, a domain the plan does not offer, or an address that is taken answers 422 `validation_failed` with the field named. A key for the whole account creates the site in that account and reaches it at once. A key for one site cannot create sites and answers 403 `site_key_cannot_create_sites`. An AI app's connection creates it in the owner's current account; one limited to chosen sites has the new site added to them. Read-only keys answer 403. Sites cannot be deleted through the API.",
+        "description": "Creates a site at its own address on the domain, matching the Create Site page and its checks. Sites nested under another site's address (such as /courses/...) are created on the Create Site page in Academic.page. An account at its plan's site limit answers 422 `site_limit_reached`. A lab, study, or course site on a free account, a domain the plan does not offer, or an address that is taken answers 422 `validation_failed` with the field named. A key for the whole account creates the site in that account and reaches it at once. A key for one site cannot create sites and answers 403 `site_key_cannot_create_sites`. An AI app's connection creates it in the owner's current account; one limited to chosen sites has the new site added to them. Read-only keys answer 403. Sites are deleted in Site Settings.",
         "requestBody": {
           "required": true,
           "content": {
@@ -626,7 +626,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -701,7 +701,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -874,7 +874,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -920,7 +920,7 @@
           "Content"
         ],
         "summary": "The site's profile",
-        "description": "Bio, photo, CV, credentials, positions, and links, following the site's visibility switches. Course sites have no profile and answer 404 section_not_enabled.",
+        "description": "Bio, photo, CV, credentials, positions, honors, service, memberships, grants, media appearances, mentees, and links, following the site's visibility switches. Course sites have no profile and answer 404 section_not_enabled.",
         "operationId": "getProfile",
         "parameters": [
           {
@@ -938,7 +938,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1217,7 +1217,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1281,7 +1281,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1341,7 +1341,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1410,7 +1410,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1557,7 +1557,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1633,7 +1633,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1711,7 +1711,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1787,7 +1787,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1865,7 +1865,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -1950,7 +1950,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2028,7 +2028,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2113,7 +2113,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2191,7 +2191,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2343,7 +2343,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2421,7 +2421,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2670,7 +2670,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2748,7 +2748,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2873,7 +2873,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -2951,7 +2951,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -3011,9 +3011,6 @@
           },
           {
             "$ref": "#/components/parameters/updated_since"
-          },
-          {
-            "$ref": "#/components/parameters/slug"
           }
         ],
         "responses": {
@@ -3027,7 +3024,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -3105,7 +3102,7 @@
                 }
               },
               "Last-Modified": {
-                "description": "When the site's public content last changed. Send back as If-Modified-Since.",
+                "description": "Timestamp of the latest public content change. Send back as If-Modified-Since.",
                 "schema": {
                   "type": "string"
                 }
@@ -3160,7 +3157,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -3359,7 +3356,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementPostInput"
+                "$ref": "#/components/schemas/ManagementPostUpdateInput"
               }
             }
           }
@@ -3416,7 +3413,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -3681,7 +3678,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementPageInput"
+                "$ref": "#/components/schemas/ManagementPageUpdateInput"
               }
             }
           }
@@ -3738,7 +3735,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -4003,7 +4000,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementProjectInput"
+                "$ref": "#/components/schemas/ManagementProjectUpdateInput"
               }
             }
           }
@@ -4060,7 +4057,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           },
           {
             "name": "search",
@@ -4143,7 +4140,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "required": false,
-            "description": "Any unique string of up to 255 characters, such as a UUID, chosen by the client for this upload. A repeat of the request with the same key within 24 hours answers 201 with the record the first request stored, and the header `Idempotent-Replayed: true`, instead of storing the file again. Send it to retry safely after a lost response.",
+            "description": "Any unique string of up to 255 characters, such as a UUID, chosen by the client for this upload. A repeat of the request with the same key within 24 hours answers 201 with the record the first request stored and the header `Idempotent-Replayed: true` without storing a second copy. Send it to retry safely after a lost response.",
             "schema": {
               "type": "string",
               "maxLength": 255
@@ -4556,7 +4553,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           },
           {
             "name": "type",
@@ -4996,7 +4993,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Only the fields you send change; a citation field sent as null is removed. The change is written as your own edit, like the publication form. A new or changed DOI is checked against its record, and differences become a suggestion rather than being written.",
+        "description": "Only the fields you send change; a citation field sent as null is removed. The change is written as your own edit, like the publication form. A new or changed DOI is checked against its record, and any differences are saved as a suggestion for review.",
         "requestBody": {
           "required": true,
           "content": {
@@ -5049,7 +5046,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "How publications are ordered within each year",
+        "summary": "Get the within-year sort order for publications",
         "operationId": "manageGetPublicationsOrder",
         "parameters": [
           {
@@ -5674,7 +5671,8 @@
           "422": {
             "$ref": "#/components/responses/Error"
           }
-        }
+        },
+        "description": "A site that is not nested under another site's address answers 403 `site_not_nested`."
       },
       "patch": {
         "tags": [
@@ -5722,6 +5720,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
+        "description": "A site that is not nested under another site's address answers 403 `site_not_nested`, and a disabled site 403 `site_disabled`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -6011,7 +6010,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "Get whether the public site shows its search button",
+        "summary": "Get the public site search button setting",
         "operationId": "manageGetSearchSettings",
         "parameters": [
           {
@@ -6125,7 +6124,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -6392,7 +6391,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileDegreeInput"
+                "$ref": "#/components/schemas/ProfileDegreeUpdateInput"
               }
             }
           }
@@ -6449,7 +6448,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -6716,7 +6715,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfilePositionInput"
+                "$ref": "#/components/schemas/ProfilePositionUpdateInput"
               }
             }
           }
@@ -6773,7 +6772,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -7097,7 +7096,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -7364,7 +7363,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileHonorInput"
+                "$ref": "#/components/schemas/ProfileHonorUpdateInput"
               }
             }
           }
@@ -7421,7 +7420,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -7688,7 +7687,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileServiceRoleInput"
+                "$ref": "#/components/schemas/ProfileServiceRoleUpdateInput"
               }
             }
           }
@@ -7745,7 +7744,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -8012,7 +8011,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileMembershipInput"
+                "$ref": "#/components/schemas/ProfileMembershipUpdateInput"
               }
             }
           }
@@ -8069,7 +8068,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -8336,7 +8335,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileGrantInput"
+                "$ref": "#/components/schemas/ProfileGrantUpdateInput"
               }
             }
           }
@@ -8393,7 +8392,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -8660,7 +8659,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileMediaAppearanceInput"
+                "$ref": "#/components/schemas/ProfileMediaAppearanceUpdateInput"
               }
             }
           }
@@ -8717,7 +8716,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -8984,7 +8983,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileMenteeInput"
+                "$ref": "#/components/schemas/ProfileMenteeUpdateInput"
               }
             }
           }
@@ -9041,7 +9040,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -9300,7 +9299,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -9405,7 +9404,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "Put published courses in the order given, or sort them by when each was last taught",
+        "summary": "Put published courses in the order given, or sort them by last taught date",
         "operationId": "manageReorderCourses",
         "parameters": [
           {
@@ -9453,7 +9452,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Send every published course's ID once, in the order the Courses page should show them. Drafts have no place in the order and are refused, as are IDs that are not courses on this site; nothing changes then. Or send sort: last_taught instead of ids to put the most recently taught course first, as the Courses page's Sort by most recently taught button does. The response lists the published courses in their new order. A course published later goes to the end.",
+        "description": "Send every published course's ID once, in the order the Courses page should show them. Drafts have no place in the order and are refused, as are IDs that are not courses on this site; nothing changes then. You can also send sort: last_taught alone to put the most recently taught course first, matching the Sort by most recently taught button on the Courses page. The response lists the published courses in their new order. A course published later goes to the end.",
         "requestBody": {
           "required": true,
           "content": {
@@ -9516,7 +9515,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Visitors see a course's offerings in the order of its instances, and new offerings added in the admin go first. This sorts them latest first, as the course editors' Sort by date button does: by start date when two offerings both have one, else by year and then term. Academic quarters follow the school year, so Q3 2026 comes before Summer 2026. Offerings without a year go last, and ties keep their order. To set your own order, send instances in that order with PATCH instead.",
+        "description": "Visitors see a course's offerings in the order of its instances, and new offerings added in the admin go first. This sorts them latest first, matching the Sort by date button in the course editor: by start date when two offerings both have one, otherwise by year and then term. Academic quarters follow the school year, so Q3 2026 comes before Summer 2026. Offerings without a year go last, and ties keep their order. Send instances in your chosen order with PATCH to set a custom order.",
         "requestBody": {
           "required": true,
           "content": {
@@ -9688,7 +9687,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -9956,7 +9955,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementLabMemberInput"
+                "$ref": "#/components/schemas/ManagementLabMemberUpdateInput"
               }
             }
           }
@@ -10013,7 +10012,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           },
           {
             "name": "search",
@@ -10223,7 +10222,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementTagInput"
+                "$ref": "#/components/schemas/ManagementTagUpdateInput"
               }
             }
           }
@@ -10273,7 +10272,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "How talks are ordered within each year. Sites that use talks.",
+        "summary": "Get the within-year sort order for talks. Sites that use talks.",
         "operationId": "manageGetTalksOrder",
         "parameters": [
           {
@@ -10443,7 +10442,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -10722,7 +10721,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementCourseLessonInput"
+                "$ref": "#/components/schemas/ManagementCourseLessonUpdateInput"
               }
             }
           }
@@ -10961,7 +10960,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Takes a PDF or Word file (doc, docx) of at most 10 MB, as the CV page does. The file leaves the media library: a PDF is moved into place, and a Word file is converted to PDF and the original deleted. The CV it replaces is deleted.\n\nA CV starts private: saved, but not on the site. Send public: true to show it at /cv, or public: false to take it off the site. public can be sent alone, without file_media_id, to change only that. Replacing a CV keeps it public or private as it was.\n\nAnswers 422 validation_failed when the file is another type, too large, attached elsewhere, or cannot be converted. Personal sites only; other sites answer 404 section_not_enabled.",
+        "description": "Takes a PDF or Word file (doc, docx) of at most 10 MB, as the CV page does. The file leaves the media library: a PDF is moved into place, and a Word file is converted to PDF and the original deleted. The CV it replaces is deleted.\n\nA CV starts private: saved in your account and hidden from the public site. Send public: true to show it at /cv, or public: false to hide it from the site. Send public alone, without file_media_id, to change visibility only. Replacing a CV keeps its current visibility.\n\nAnswers 422 validation_failed when the file is another type, too large, attached elsewhere, or cannot be converted. Personal sites only; other sites answer 404 section_not_enabled.",
         "requestBody": {
           "required": true,
           "content": {
@@ -11034,7 +11033,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -11086,7 +11085,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "Get one import: what it found, and where it had trouble",
+        "summary": "Get one import report, including findings and trouble spots",
         "operationId": "manageGetImport",
         "parameters": [
           {
@@ -11128,7 +11127,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "sections says what each part of the site the import read found. not_double_checked lists suggestions the import could not double-check against the document; holes lists the parts of the document (by page and section heading) that could not be read, or that hold suggestions it could not double-check.\n\nUse it to fill the gaps: read those parts of the person's document yourself and add what is missing with the other tools, after checking with the person. Never invent what the document does not say."
+        "description": "sections lists the findings for each part of the site the import read. not_double_checked lists suggestions the import could not double-check against the document. holes lists parts of the document (by page and section heading) that could not be read or hold unchecked suggestions.\n\nRead those parts of the person's document directly and add missing items with the other tools after checking with the person. Only enter facts stated in the document."
       }
     },
     "/sites/{site}/courses/{courseId}/lessons/{lessonId}/materials": {
@@ -11152,7 +11151,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -11444,7 +11443,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementCourseMaterialInput"
+                "$ref": "#/components/schemas/ManagementCourseMaterialUpdateInput"
               }
             }
           }
@@ -11510,7 +11509,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -11790,7 +11789,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementCourseAssignmentInput"
+                "$ref": "#/components/schemas/ManagementCourseAssignmentUpdateInput"
               }
             }
           }
@@ -11853,7 +11852,7 @@
             "$ref": "#/components/parameters/page"
           },
           {
-            "$ref": "#/components/parameters/per_page"
+            "$ref": "#/components/parameters/managementPerPage"
           }
         ],
         "responses": {
@@ -12132,7 +12131,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManagementCourseReferenceInput"
+                "$ref": "#/components/schemas/ManagementCourseReferenceUpdateInput"
               }
             }
           }
@@ -12514,7 +12513,7 @@
         "name": "menu",
         "in": "path",
         "required": true,
-        "description": "Which menu: header or footer.",
+        "description": "Menu location: header or footer.",
         "schema": {
           "type": "string",
           "enum": [
@@ -12541,6 +12540,18 @@
           "minimum": 1,
           "maximum": 100,
           "default": 50
+        }
+      },
+      "managementPerPage": {
+        "name": "per_page",
+        "in": "query",
+        "required": false,
+        "description": "Records per page.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
         }
       },
       "updated_since": {
@@ -12807,7 +12818,7 @@
           },
           "code": {
             "type": "string",
-            "description": "section_not_enabled (404) means the site does not have the section: on the content endpoints, the public site does not show it; on the management endpoints, the admin does not let this site type edit it. One of: missing_api_token, api_key_invalid, account_suspended, missing_ability, unknown_field, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, media_processing_failed, media_upload_failed, idempotency_key_conflict, multipart_upload_not_found, multipart_upload_invalid_parts, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
+            "description": "section_not_enabled (404) means the site does not have the section, on the content and management endpoints alike. One of: missing_api_token, api_key_invalid, account_suspended, missing_ability, unknown_field, api_scope_mismatch, site_not_found, site_disabled, api_access_requires_pro, upload_too_large, storage_quota_exceeded, bucket_quota_exceeded, media_processing_failed, media_upload_failed, idempotency_key_conflict, multipart_upload_not_found, multipart_upload_invalid_parts, section_not_enabled, not_found, invalid_parameter, validation_failed, and the management codes."
           },
           "errors": {
             "type": "object",
@@ -13064,7 +13075,7 @@
           },
           "is_published": {
             "type": "boolean",
-            "description": "Whether the public site is live. A key can read an unpublished site's published records."
+            "description": "True when the public site is live. A key can read an unpublished site's published records."
           },
           "published_at": {
             "type": [
@@ -13174,7 +13185,7 @@
           },
           "is_published": {
             "type": "boolean",
-            "description": "Whether the public site is live. A key can read an unpublished site's published records."
+            "description": "True when the public site is live. A key can read an unpublished site's published records."
           },
           "published_at": {
             "type": [
@@ -13905,7 +13916,7 @@
           },
           "grants": {
             "type": "array",
-            "description": "Grants as the Grants and Funding page shows them, in the owner's order: never a pending grant, and amount and currency only when the owner shows the amount. Empty on sites without grants.",
+            "description": "Grants as the Grants and Funding page shows them, in the owner's order. Pending grants are omitted, and amount and currency appear only when show_amount is true. Empty on sites without grants.",
             "items": {
               "type": "object",
               "properties": {
@@ -14274,7 +14285,7 @@
                 },
                 "show_in_top_bar": {
                   "type": "boolean",
-                  "description": "Whether the owner shows this link as an icon at the top right of every page."
+                  "description": "True when the owner shows this link as an icon at the top right of every page."
                 }
               }
             }
@@ -15126,7 +15137,7 @@
               "day",
               null
             ],
-            "description": "How much of talk_date is known: year, month, or day. talk_date is the first day of the year or month when less is known."
+            "description": "Known precision of talk_date: year, month, or day. talk_date is the first day of the year or month when less is known."
           },
           "talk_date_display": {
             "type": [
@@ -16032,7 +16043,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Where the material opens: its external URL, or the page for its file."
+            "description": "The address the material opens: its external URL, or the page for its file."
           },
           "file": {
             "oneOf": [
@@ -16070,7 +16081,7 @@
               "string",
               "null"
             ],
-            "description": "Which pages or parts to read."
+            "description": "Specific pages or parts to read."
           },
           "sort_order": {
             "type": [
@@ -16897,6 +16908,9 @@
       },
       "ManagementPostInput": {
         "type": "object",
+        "required": [
+          "title"
+        ],
         "properties": {
           "title": {
             "type": "string"
@@ -16917,7 +16931,7 @@
           },
           "content_structured": {
             "type": "object",
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
           },
           "content_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -16925,7 +16939,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -17088,6 +17102,9 @@
       },
       "ManagementPageInput": {
         "type": "object",
+        "required": [
+          "title"
+        ],
         "properties": {
           "parent_page_id": {
             "type": [
@@ -17113,7 +17130,7 @@
           },
           "content_structured": {
             "type": "object",
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
           },
           "content_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -17121,7 +17138,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -17312,6 +17329,9 @@
       },
       "ManagementProjectInput": {
         "type": "object",
+        "required": [
+          "title"
+        ],
         "properties": {
           "title": {
             "type": "string"
@@ -17332,7 +17352,7 @@
           },
           "content_structured": {
             "type": "object",
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
           },
           "content_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -17340,7 +17360,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "links": {
             "type": "array",
@@ -17541,11 +17561,11 @@
               "string",
               "null"
             ],
-            "description": "Where it came from: manual, bibtex, doi, pubmed, cv, api, and so on."
+            "description": "Origin of the entry: manual, bibtex, doi, pubmed, cv, api, and so on."
           },
           "doi_check": {
             "type": "object",
-            "description": "Where checking the DOI against its record stands.",
+            "description": "Status of the DOI check against its registry record.",
             "properties": {
               "status": {
                 "type": [
@@ -17817,7 +17837,7 @@
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown. Send either description or description_markdown."
           },
           "description_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -17825,7 +17845,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set description: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "official_url": {
             "type": [
@@ -18025,7 +18045,7 @@
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown. Send either description or description_markdown."
           },
           "description_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -18033,7 +18053,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set description: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "official_url": {
             "type": [
@@ -18128,7 +18148,7 @@
               "string",
               "null"
             ],
-            "description": "What matched, such as doi or title."
+            "description": "Matched field, such as doi or title."
           },
           "publication_id": {
             "type": [
@@ -18147,7 +18167,7 @@
             "items": {
               "type": "string"
             },
-            "description": "What the entry would change, in words."
+            "description": "Summary of fields the entry would change."
           }
         }
       },
@@ -18324,7 +18344,7 @@
           },
           "checks_doi": {
             "type": "boolean",
-            "description": "Existing with a DOI: importing it checks its DOI record instead of taking anything from the entry."
+            "description": "Existing with a DOI: importing it checks its DOI record and ignores the BibTeX fields."
           },
           "changes": {
             "type": "array",
@@ -18684,7 +18704,7 @@
           },
           "api_access": {
             "type": "boolean",
-            "description": "Whether the site's plan includes the API (Pro). Without it, calls for the site answer 403 api_access_requires_pro."
+            "description": "True when the site's plan includes the API (Pro). Without Pro, calls for the site answer 403 api_access_requires_pro."
           }
         },
         "examples": [
@@ -18720,7 +18740,7 @@
           },
           "members_allowed": {
             "type": "boolean",
-            "description": "Whether the plan includes other people. When it does not, admins and editors keep their place but cannot open the account's sites until it does."
+            "description": "True when the plan includes other people. On a Free plan, admins and editors keep their place and regain access once the account upgrades."
           },
           "max_members": {
             "type": "integer",
@@ -18769,7 +18789,7 @@
               "admin",
               "editor"
             ],
-            "description": "owner: pays for the account and manages everything. admin: every site, adding and deleting sites, and the people on the account; never billing. editor: content, settings, and design on every site or the sites listed."
+            "description": "owner: pays for the account and manages everything. admin: edits every site, adds and deletes sites, and manages editors. Billing stays with the owner. editor: edits content, settings, and design on every site or the sites listed."
           },
           "all_sites": {
             "type": "boolean",
@@ -18829,7 +18849,7 @@
           "expires_at": {
             "type": "string",
             "format": "date-time",
-            "description": "When the link stops working."
+            "description": "Expiration time of the invitation link."
           },
           "created_at": {
             "type": [
@@ -18890,13 +18910,14 @@
           },
           "all_sites": {
             "type": "boolean",
-            "description": "For an editor: true for every site (the default), false for the sites in site_ids."
+            "description": "For an editor: true for every site, false for the sites in site_ids. Left out, the person keeps the site access they have."
           },
           "site_ids": {
             "type": "array",
             "items": {
               "type": "integer"
-            }
+            },
+            "description": "The sites an editor works on when all_sites is false. Left out, the current list stays."
           }
         }
       },
@@ -19083,7 +19104,7 @@
           },
           "metadata": {
             "type": "object",
-            "description": "What was read from the file when it was stored. Always an object; empty for audio and other files.",
+            "description": "Properties read from the file when it was stored. Always an object; empty for audio and other files.",
             "properties": {
               "width": {
                 "type": [
@@ -19458,7 +19479,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                  "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -19480,7 +19501,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "Why the public site does not show the item right now, such as a section with nothing published. Null when it shows."
+                  "description": "Reason the public site hides the item right now, such as a section with nothing published. Null when it shows."
                 },
                 "separator": {
                   "type": "boolean",
@@ -19497,7 +19518,7 @@
                     "chosen",
                     null
                   ],
-                  "description": "What the link's dropdown holds. none: the link alone. recent: the dropdown_limit most recent projects (by publication) or courses (by when each was last taught, from its offerings) of the section it links to. chosen: its children. Null for a group, whose children are always its submenu. A header link to projects or courses that was never set reads recent, and the public site shows that dropdown once the section has two items. A link to publications, posts, or talks always reads none and cannot be given a dropdown or children: those lists are too long for one."
+                  "description": "Dropdown mode for the link. none: the link alone. recent: the dropdown_limit most recent projects (by publication) or courses (by last taught date from offerings) of the linked section. chosen: its children. Null for a group, whose children are always its submenu. Unset header links to projects or courses read recent, and the public site shows that dropdown once the section has two items. Links to publications, posts, or talks always read none and take no dropdown or children."
                 },
                 "dropdown_limit": {
                   "type": [
@@ -19506,7 +19527,7 @@
                   ],
                   "minimum": 1,
                   "maximum": 50,
-                  "description": "How many recent items a recent dropdown shows. 6 unless set. Null for a group."
+                  "description": "Number of recent items a recent dropdown shows. 6 unless set. Null for a group."
                 },
                 "children": {
                   "type": "array",
@@ -19534,7 +19555,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                        "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -19556,7 +19577,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "Why the public site does not show the item right now, such as a section with nothing published. Null when it shows."
+                        "description": "Reason the public site hides the item right now, such as a section with nothing published. Null when it shows."
                       },
                       "separator": {
                         "type": "boolean",
@@ -19598,14 +19619,14 @@
                     "string",
                     "null"
                   ],
-                  "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                  "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
                     "string",
                     "null"
                   ],
-                  "description": "Another website, such as https://github.com/jane. Send target or url, not both."
+                  "description": "Another website, such as https://github.com/jane. Send either target or url."
                 },
                 "dropdown": {
                   "type": [
@@ -19627,7 +19648,7 @@
                   ],
                   "minimum": 1,
                   "maximum": 50,
-                  "description": "How many items a recent dropdown shows. 6 when left out."
+                  "description": "Number of items a recent dropdown shows. 6 when left out."
                 },
                 "children": {
                   "type": "array",
@@ -19649,14 +19670,14 @@
                           "string",
                           "null"
                         ],
-                        "description": "What the item goes to: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                        "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
                           "string",
                           "null"
                         ],
-                        "description": "Another website, such as https://github.com/jane. Send target or url, not both."
+                        "description": "Another website, such as https://github.com/jane. Send either target or url."
                       },
                       "separator": {
                         "type": "boolean",
@@ -19673,7 +19694,7 @@
       },
       "ManagementAppearance": {
         "type": "object",
-        "description": "How the site looks, and what it can choose from.",
+        "description": "Current appearance settings and available theme and color choices.",
         "required": [
           "theme",
           "accent_color",
@@ -19700,7 +19721,7 @@
               "list",
               null
             ],
-            "description": "How lists such as projects and posts first appear. Null on a course site."
+            "description": "Default layout for lists such as projects and posts. Null on a course site."
           },
           "footer": {
             "type": "object",
@@ -19716,11 +19737,11 @@
             "properties": {
               "show_navigation": {
                 "type": "boolean",
-                "description": "Whether the footer menu shows."
+                "description": "True when the footer menu shows."
               },
               "show_text": {
                 "type": "boolean",
-                "description": "Whether the line at the bottom of the footer shows."
+                "description": "True when the line at the bottom of the footer shows."
               },
               "text": {
                 "type": [
@@ -19738,14 +19759,14 @@
               },
               "show_links": {
                 "type": "boolean",
-                "description": "Whether the footer shows icons for the profile links that have one: GitHub, ORCID, Google Scholar, LinkedIn, Bluesky, and the like."
+                "description": "True when the footer shows icons for profile links with an icon, such as GitHub, ORCID, Google Scholar, LinkedIn, and Bluesky."
               },
               "show_platform_credit": {
                 "type": [
                   "boolean",
                   "null"
                 ],
-                "description": "Whether the Academic.page credit shows. Null where the plan always shows it."
+                "description": "True when the Academic.page credit shows. Null where the plan always shows it."
               }
             }
           },
@@ -19851,7 +19872,7 @@
           },
           "show_footer_links": {
             "type": "boolean",
-            "description": "Whether the footer shows icons for the profile links that have one."
+            "description": "Show footer icons for profile links that have an icon."
           },
           "show_platform_credit": {
             "type": "boolean",
@@ -19967,7 +19988,7 @@
         "properties": {
           "feed_enabled": {
             "type": "boolean",
-            "description": "Whether the site publishes an RSS feed of its published posts. Off by default. When on, every page links to the feed with an RSS icon at the top right."
+            "description": "True when the site publishes an RSS feed of its published posts. Off by default. When on, every page links to the feed with an RSS icon at the top right."
           },
           "feed_url": {
             "type": [
@@ -19992,7 +20013,7 @@
       },
       "ManagementSearchResults": {
         "type": "object",
-        "description": "What matched, best first.",
+        "description": "Matching records, best match first.",
         "additionalProperties": false,
         "required": [
           "data"
@@ -20083,7 +20104,7 @@
       },
       "ManagementSearchSettings": {
         "type": "object",
-        "description": "Whether the public site shows its search button.",
+        "description": "Public site search button setting.",
         "required": [
           "enabled",
           "search_url"
@@ -20091,7 +20112,7 @@
         "properties": {
           "enabled": {
             "type": "boolean",
-            "description": "Whether a search button shows at the top right of every page. On by default. The search finds only what the site shows visitors."
+            "description": "True when a search button shows at the top right of every page. On by default. The search finds only published content visible to visitors."
           },
           "search_url": {
             "type": [
@@ -20116,7 +20137,7 @@
       },
       "ManagementSectionOrder": {
         "type": "object",
-        "description": "How a section orders items within each year. Years always come from the date, newest first.",
+        "description": "Within-year sort order for a section. Years always come from the date, newest first.",
         "required": [
           "section",
           "order"
@@ -20245,7 +20266,7 @@
       },
       "CourseOfferingsSortInput": {
         "type": "object",
-        "description": "How to sort the offerings.",
+        "description": "Sort mode for the offerings.",
         "required": [
           "sort"
         ],
@@ -20365,7 +20386,7 @@
               "integer",
               "null"
             ],
-            "description": "The photo's library file ID."
+            "description": "The photo's library file ID: the person's photo, or the lab's or study's image or logo."
           },
           "photo_url": {
             "type": [
@@ -20384,25 +20405,25 @@
               "x",
               "y"
             ],
-            "description": "Where the photo sits in the square or circle the themes show it in. Null shows the middle of the photo at full size. Personal sites only. The uploaded photo is kept as it is; themes show a copy cut to this square.",
+            "description": "Position and zoom of the photo within the square or circular frame themes display. Null shows the middle of the photo at full size. Personal sites only. The uploaded photo is kept intact; themes show a copy cut to this square.",
             "properties": {
               "x": {
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1,
-                "description": "The centre of the square across the photo, from 0 (left edge) to 1 (right edge)."
+                "description": "The center of the square across the photo, from 0 (left edge) to 1 (right edge)."
               },
               "y": {
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1,
-                "description": "The centre of the square down the photo, from 0 (top) to 1 (bottom)."
+                "description": "The center of the square down the photo, from 0 (top) to 1 (bottom)."
               },
               "zoom": {
                 "type": "number",
                 "minimum": 1,
                 "maximum": 4,
-                "description": "How far the square zooms in. 1 is the largest square the photo holds. Defaults to 1."
+                "description": "Zoom level of the square. 1 is the largest square the photo holds. Defaults to 1."
               }
             }
           },
@@ -20506,25 +20527,25 @@
               "x",
               "y"
             ],
-            "description": "Where the photo sits in the square or circle the themes show it in. Null shows the middle of the photo at full size. Personal sites only. The uploaded photo is kept as it is; themes show a copy cut to this square.",
+            "description": "Position and zoom of the photo within the square or circular frame themes display. Null shows the middle of the photo at full size. Personal sites only. The uploaded photo is kept intact; themes show a copy cut to this square.",
             "properties": {
               "x": {
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1,
-                "description": "The centre of the square across the photo, from 0 (left edge) to 1 (right edge)."
+                "description": "The center of the square across the photo, from 0 (left edge) to 1 (right edge)."
               },
               "y": {
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1,
-                "description": "The centre of the square down the photo, from 0 (top) to 1 (bottom)."
+                "description": "The center of the square down the photo, from 0 (top) to 1 (bottom)."
               },
               "zoom": {
                 "type": "number",
                 "minimum": 1,
                 "maximum": 4,
-                "description": "How far the square zooms in. 1 is the largest square the photo holds. Defaults to 1."
+                "description": "Zoom level of the square. 1 is the largest square the photo holds. Defaults to 1."
               }
             }
           },
@@ -20533,7 +20554,7 @@
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send summary_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send summary_markdown. Send either summary or summary_markdown."
           },
           "summary_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -20541,14 +20562,14 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set summary: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send summary_markdown or summary, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for summary: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send summary_markdown or summary, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "body": {
             "type": [
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send body_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send body_markdown. Send either body or body_markdown."
           },
           "body_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -20556,7 +20577,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set body: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send body_markdown or body, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for body: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send body_markdown or body, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "edit_version": {
             "type": [
@@ -20789,7 +20810,7 @@
               "null"
             ],
             "maxLength": 255,
-            "description": "Who gave it: a society, university, or foundation."
+            "description": "Granting organization, such as a society, university, or foundation."
           },
           "year": {
             "type": [
@@ -21093,7 +21114,7 @@
               "null"
             ],
             "maxLength": 255,
-            "description": "The kind of membership when the CV gives one, such as Member, Fellow, or Life Member. An office held in a society is a service role, not a membership."
+            "description": "The kind of membership when the CV gives one, such as Member, Fellow, or Life Member. Record offices held in a society as service roles."
           },
           "start_year": {
             "type": [
@@ -21711,7 +21732,7 @@
               "null"
             ],
             "maxLength": 255,
-            "description": "Where the mentee went next, such as Assistant Professor, Westmere University."
+            "description": "Position after mentoring, such as Assistant Professor, Westmere University."
           },
           "edit_version": {
             "type": [
@@ -21901,14 +21922,14 @@
               "string",
               "null"
             ],
-            "description": "Where the link goes, built from the handle when there is no URL."
+            "description": "Destination address, built from the handle when there is no URL."
           },
           "open_in_new_tab": {
             "type": "boolean"
           },
           "show_in_top_bar": {
             "type": "boolean",
-            "description": "Whether the link shows as an icon at the top right of every page."
+            "description": "True when the link shows as an icon at the top right of every page."
           },
           "order": {
             "type": "integer"
@@ -22127,7 +22148,7 @@
               "day",
               null
             ],
-            "description": "How much of talk_date is known: year, month, or day. talk_date is the first day of the year or month when less is known."
+            "description": "Known precision of talk_date: year, month, or day. talk_date is the first day of the year or month when less is known."
           },
           "talk_date_display": {
             "type": [
@@ -22196,7 +22217,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Where visitors download the slides file."
+            "description": "The download address for the slides file."
           },
           "paper_media_id": {
             "type": [
@@ -22211,7 +22232,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Where visitors download the paper file."
+            "description": "The download address for the paper file."
           },
           "is_featured": {
             "type": "boolean"
@@ -22304,7 +22325,7 @@
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send abstract_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send abstract_markdown. Send either abstract_structured or abstract_markdown."
           },
           "abstract_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -22312,7 +22333,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set abstract_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send abstract_markdown or abstract_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for abstract_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send abstract_markdown or abstract_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "speaker_name": {
             "type": [
@@ -22604,7 +22625,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Where visitors' Course website link goes: the course site's address while it is published, otherwise website_url. Null when visitors see no link."
+            "description": "Destination of the public Course website link: the course site's address while it is published, otherwise website_url. Null when visitors see no link."
           },
           "primary_institution": {
             "type": [
@@ -22622,7 +22643,7 @@
               "weeks",
               "units"
             ],
-            "description": "What the course calls its lessons. Themes and the admin show it in place of Lessons (Modules, Sessions, Weeks, or Units) and its singular for one item."
+            "description": "Label used for lessons in themes and the admin: Lessons, Modules, Sessions, Weeks, or Units (and the matching singular for one item)."
           },
           "description_heading": {
             "type": "string",
@@ -22630,7 +22651,7 @@
           },
           "show_qr_code": {
             "type": "boolean",
-            "description": "Whether a course site's homepage shows a QR code at the top, linking to the site, which visitors can open full screen for a class to scan from a projector. The Homepage layout page's QR code setting. Only a course site's own course shows it."
+            "description": "True when a course site's homepage shows a QR code at the top linking to the site, which visitors can open full screen for a class to scan from a projector. Matches the QR code setting on Homepage layout. Only a course site's own course shows it."
           },
           "slug": {
             "type": [
@@ -22678,7 +22699,7 @@
             "items": {
               "$ref": "#/components/schemas/CourseOffering"
             },
-            "description": "When and where the course was taught."
+            "description": "Terms and institutions for each offering of the course."
           },
           "featured_media_id": {
             "type": [
@@ -22715,7 +22736,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Where visitors download the syllabus file."
+            "description": "The download address for the syllabus file."
           },
           "syllabus_pdf_status": {
             "type": [
@@ -22943,7 +22964,7 @@
               "weeks",
               "units"
             ],
-            "description": "What the course calls its lessons: lessons (the default), modules, sessions, weeks, or units. The course homepage's lesson list heading follows it while that heading is still the old name."
+            "description": "Label for the course's lessons: lessons (the default), modules, sessions, weeks, or units. The course homepage's lesson list heading follows it while that heading is still the old name."
           },
           "description_heading": {
             "type": [
@@ -22970,7 +22991,7 @@
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
           },
           "content_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -22978,7 +22999,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "instances": {
             "type": [
@@ -23341,7 +23362,7 @@
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send bio_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send bio_markdown. Send either bio_structured or bio_markdown."
           },
           "bio_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -23349,7 +23370,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set bio_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "email": {
             "type": [
@@ -23661,7 +23682,7 @@
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send description_markdown. Send either description or description_markdown."
           },
           "description_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -23669,7 +23690,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set description: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "study_type": {
             "type": [
@@ -23761,7 +23782,7 @@
       },
       "ManagementImport": {
         "type": "object",
-        "description": "An import, in brief.",
+        "description": "An import summary.",
         "required": [
           "id",
           "source",
@@ -23795,7 +23816,7 @@
           "review_url": {
             "type": "string",
             "format": "uri",
-            "description": "Where the person reviews the suggestions in Academic.page."
+            "description": "The review page for these suggestions in Academic.page."
           },
           "created_at": {
             "type": [
@@ -23815,7 +23836,7 @@
       },
       "ManagementImportReport": {
         "type": "object",
-        "description": "An import: what it found, and where it had trouble.",
+        "description": "An import report with findings and trouble spots.",
         "required": [
           "id",
           "source",
@@ -23852,7 +23873,7 @@
           "review_url": {
             "type": "string",
             "format": "uri",
-            "description": "Where the person reviews the suggestions in Academic.page."
+            "description": "The review page for these suggestions in Academic.page."
           },
           "created_at": {
             "type": [
@@ -23993,7 +24014,7 @@
           },
           "public": {
             "type": "boolean",
-            "description": "Whether visitors can see the CV. False until its owner makes it public: a private CV is not at /cv, and menu links to /cv are hidden."
+            "description": "True when visitors can see the CV. False until its owner makes it public: a private CV is hidden from /cv, and menu links to /cv are hidden."
           },
           "url": {
             "type": [
@@ -24013,7 +24034,7 @@
           },
           "in_navigation": {
             "type": "boolean",
-            "description": "Whether the site menu links to /cv."
+            "description": "True when the site menu links to /cv."
           },
           "edit_version": {
             "type": "integer",
@@ -24030,7 +24051,7 @@
       },
       "ManagementCvInput": {
         "type": "object",
-        "description": "A library file to make the CV, whether visitors can see it, or both.",
+        "description": "A library file to set as the CV, its public visibility, or both.",
         "properties": {
           "file_media_id": {
             "type": "integer",
@@ -24137,7 +24158,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Where the material opens: its external URL, or the page for its file."
+            "description": "The address the material opens: its external URL, or the page for its file."
           },
           "file_url": {
             "type": [
@@ -24145,7 +24166,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Where visitors download the file."
+            "description": "The download address for the file."
           },
           "sort_order": {
             "type": [
@@ -24379,7 +24400,7 @@
               "object",
               "null"
             ],
-            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown instead. Send one of the two, not both."
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
           },
           "content_markdown": {
             "$ref": "#/components/schemas/MarkdownInput",
@@ -24387,7 +24408,7 @@
               "string",
               "null"
             ],
-            "description": "The normal way to set content_structured: Markdown, converted on the server and saved as if the document had been sent. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "lesson_id": {
             "type": [
@@ -24517,7 +24538,7 @@
               "null"
             ],
             "format": "uri",
-            "description": "Where visitors download the file."
+            "description": "The download address for the file."
           },
           "sort_order": {
             "type": [
@@ -24625,7 +24646,7 @@
           "null"
         ],
         "maxLength": 1000000,
-        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's media library. Tables become one paragraph per row. Raw HTML is kept as plain text, never as HTML. Null clears the field."
+        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Null clears the field."
       },
       "WebhookContentUpdated": {
         "type": "object",
@@ -24650,7 +24671,7 @@
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "description": "When this attempt was sent, in UTC."
+            "description": "Timestamp of this attempt, in UTC."
           },
           "data": {
             "type": "object",
@@ -24700,7 +24721,7 @@
                   "null"
                 ],
                 "format": "date-time",
-                "description": "When the public content last changed."
+                "description": "Timestamp of the latest public content change."
               }
             }
           }
@@ -24746,7 +24767,7 @@
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "description": "When this attempt was sent, in UTC."
+            "description": "Timestamp of this attempt, in UTC."
           },
           "data": {
             "type": "object",
@@ -24795,6 +24816,1141 @@
             }
           }
         ]
+      },
+      "ManagementPostUpdateInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+            "description": "Unique on this site, including deleted records. Generated from the title when publishing without a slug."
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object",
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
+          },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "description": "Tag IDs from this site, replacing the record's tags. Leave out to keep them; send [] to remove them all."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementPageUpdateInput": {
+        "type": "object",
+        "properties": {
+          "parent_page_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Made from the title, unique on the site, when the page is published without one. Another page with the same parent cannot use the same slug."
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object",
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementProjectUpdateInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+            "description": "Unique on this site, including deleted records. Generated from the title when publishing without a slug."
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_structured": {
+            "type": "object",
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectLink"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in-progress",
+              "completed",
+              "archived"
+            ]
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. When the record has been saved since, the write is refused with 409 and the code edit_conflict, and nothing changes. Leave it out, or send null, to write regardless."
+          },
+          "tag_ids": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "integer"
+            },
+            "description": "Tag IDs from this site, replacing the record's tags. Leave out to keep them; send [] to remove them all."
+          },
+          "featured_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileDegreeUpdateInput": {
+        "type": "object",
+        "description": "A create needs degree and institution. A PATCH changes only the fields sent.",
+        "properties": {
+          "degree": {
+            "type": "string"
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "honors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "institution": {
+            "type": "string"
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "in_progress": {
+            "type": "boolean"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfilePositionUpdateInput": {
+        "type": "object",
+        "description": "A create needs title and employer. A PATCH changes only the fields sent.",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "employer": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currently_held": {
+            "type": "boolean"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileHonorUpdateInput": {
+        "type": "object",
+        "description": "A create needs name. A PATCH changes only the fields sent. A new honor is placed newest first by year.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The honor itself, such as Early Career Award. Degree honors such as magna cum laude belong on the degree."
+          },
+          "organization": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Granting organization, such as a society, university, or foundation."
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "The year it was awarded. An honor has one year; a fellowship takes the year it was awarded."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileServiceRoleUpdateInput": {
+        "type": "object",
+        "description": "A create needs kind and title. A PATCH changes only the fields sent. A new role is placed newest first, a current one at the top.",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "editorial",
+              "reviewing",
+              "institutional",
+              "society",
+              "conference",
+              "advisory",
+              "community",
+              "other"
+            ],
+            "description": "editorial (an editorial board or editor role), reviewing (peer review for one journal, publisher, or grant panel, or an external promotion or tenure review), institutional (a role or committee at the owner's own department, school, or university, such as Director of Graduate Studies or faculty senator), society (an office or committee in a professional society), conference (organizing, chairing, or presiding at a conference or session), advisory (an advisory board, expert panel, or national committee), community (service to the public, such as outreach), or other. The About page groups roles by kind in this order."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The role, such as Associate Editor, Reviewer, or Member, Graduate Admissions Committee."
+          },
+          "organization": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "The journal, committee's institution, society, or conference. For reviewing, one journal or panel per role."
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "Ignored and cleared when current is true."
+          },
+          "current": {
+            "type": "boolean",
+            "description": "Held now; the site shows the years as 2019 — present."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileMembershipUpdateInput": {
+        "type": "object",
+        "description": "A create needs organization. A PATCH changes only the fields sent. A new membership is placed newest first, a current one at the top.",
+        "properties": {
+          "organization": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The society or association."
+          },
+          "membership_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "The kind of membership when the CV gives one, such as Member, Fellow, or Life Member. Record offices held in a society as service roles."
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "Ignored and cleared when current is true."
+          },
+          "current": {
+            "type": "boolean",
+            "description": "A member now; the site shows the years as 2012 — present."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileGrantUpdateInput": {
+        "type": "object",
+        "description": "A create needs title. A PATCH changes only the fields sent. A new grant is placed newest first, a current one with no end year at the top.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The grant or project title as the award names it."
+          },
+          "funder": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "The agency, foundation, or university that funds it."
+          },
+          "award_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 100,
+            "description": "The grant number, such as R01 AG012345."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "A sentence or two on what the grant funds. The page shows it under the line. A full abstract belongs on the linked project."
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "pi",
+              "co_pi",
+              "co_investigator",
+              "collaborator",
+              "consultant",
+              "staff",
+              "other"
+            ],
+            "description": "The owner's role: pi (Principal Investigator), co_pi, co_investigator, collaborator, consultant, staff (study staff, such as an analyst or coordinator), or other. Defaults to pi."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed",
+              "pending"
+            ],
+            "description": "active (shown as Current), completed, or pending (submitted or under review; never shown on the site). Defaults to active."
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "An active grant with no end year shows as 2021 — present."
+          },
+          "amount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Whole units of currency. Shown on the site only when show_amount is true."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Za-z]{3}$",
+            "description": "A three-letter code, such as USD or EUR. Defaults to USD."
+          },
+          "show_amount": {
+            "type": "boolean",
+            "description": "Show the amount on the site. Defaults to false."
+          },
+          "project_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A project on this site. The grant links to it, and the project page lists the grant."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address, used when no published project is linked."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileMediaAppearanceUpdateInput": {
+        "type": "object",
+        "description": "A create needs title. A PATCH changes only the fields sent. A new item is placed newest first by date.",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "interview",
+              "podcast",
+              "op_ed",
+              "coverage",
+              "video",
+              "other"
+            ],
+            "description": "interview, podcast, op_ed, coverage (the owner is quoted or featured), video, or other. Defaults to other."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The piece's headline or episode title."
+          },
+          "outlet": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "The newspaper, magazine, show, or channel."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "A sentence or two on what the piece was about or what the owner said in it. The page shows it under the line."
+          },
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}(-\\d{2}(-\\d{2})?)?$",
+            "description": "A year (2024), a year and month (2024-05), or a date (2024-05-14). Kept at that precision."
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An http or https address of the piece. The page links the title to it."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileMenteeUpdateInput": {
+        "type": "object",
+        "description": "A create needs name. A PATCH changes only the fields sent. A new mentee is placed newest first, a current one at the top.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "The student's or trainee's name."
+          },
+          "show_name": {
+            "type": "boolean",
+            "description": "Show the name on the site. Defaults to true. False lists the mentee by level only, such as PhD student."
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "postdoc",
+              "phd",
+              "masters",
+              "undergraduate",
+              "other"
+            ],
+            "description": "postdoc, phd, masters, undergraduate, or other. Defaults to phd."
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "primary_advisor",
+              "co_advisor",
+              "committee_member",
+              "mentor",
+              null
+            ],
+            "description": "The owner's role: primary_advisor, co_advisor, committee_member, or mentor."
+          },
+          "start_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100
+          },
+          "end_year": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1900,
+            "maximum": 2100,
+            "description": "Ignored and cleared when current is true."
+          },
+          "current": {
+            "type": "boolean",
+            "description": "Advising now; the site shows the years as 2021 — present."
+          },
+          "thesis_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "The dissertation, thesis, or project title."
+          },
+          "next_position": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Position after mentoring, such as Assistant Professor, Westmere University."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementLabMemberUpdateInput": {
+        "type": "object",
+        "description": "A create needs a name. A PATCH changes only the fields sent. A new person goes after everyone else.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "member_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bio_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send bio_markdown. Send either bio_structured or bio_markdown."
+          },
+          "bio_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "website_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "research_interests": {
+            "type": [
+              "array",
+              "string",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "maxItems": 50,
+            "description": "A list of short topics, replacing the stored list. One string is also taken and split on commas, semicolons, and line breaks. Null or [] removes them all."
+          },
+          "is_alumni": {
+            "type": "boolean"
+          },
+          "joined_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "left_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "photo_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's ID from the media endpoints. Null removes the file. Assigning moves the file into this place, as the admin's picker does."
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementTagUpdateInput": {
+        "type": "object",
+        "description": "A name, unique on the site whatever its case. Renaming keeps the slug.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementCourseLessonUpdateInput": {
+        "type": "object",
+        "description": "A create needs a title. A PATCH changes only the fields sent.",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "overview": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementCourseMaterialUpdateInput": {
+        "type": "object",
+        "description": "A create needs a title, and a file or an external URL unless the type is external_link (a URL, no file) or no_file (neither). A PATCH changes only the fields sent; a file replaces the URL and a URL replaces the file.",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "reading",
+              "slides",
+              "data_set",
+              "code_file",
+              "external_link",
+              "resource",
+              "no_file",
+              "other"
+            ],
+            "default": "reading"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "external_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID, of any type within the plan's per-file limit. The file moves out of the library into the material; a Word file (doc, docx) is converted to PDF and the original deleted. Null removes the file."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementCourseAssignmentUpdateInput": {
+        "type": "object",
+        "description": "A create needs a title. A PATCH changes only the fields sent. Each save records a revision.",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+          },
+          "lesson_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A lesson of this course."
+          },
+          "due_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID to attach: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, csv, html, htm, within the plan's per-file limit. The file moves out of the library into the assignment; the file it replaces is deleted. Null removes the file."
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementCourseReferenceUpdateInput": {
+        "type": "object",
+        "description": "A create needs a kind and a title. A PATCH changes only the fields sent.",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "textbook",
+              "book",
+              "purchased_resource",
+              "reference_site",
+              "data_set",
+              "file_archive",
+              "other"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "authors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "details": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "info_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "purchase_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "file_media_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A library file's site media ID. Required for data_set and file_archive, and dropped for other kinds. The file stays in the library, as on the Texts and Resources page."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
       }
     }
   }
