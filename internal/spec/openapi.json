@@ -5941,6 +5941,329 @@
         }
       }
     },
+    "/sites/{site}/posts/series": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List series of posts, drafts included, newest first",
+        "operationId": "manageListPostSeries",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/managementPerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementPostSeries"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "A series groups posts that belong together, such as a multi-part tutorial, on a page of its own at /posts/series/<slug>: its introduction, then its published posts in order. Each post in a published series links to it. Sites without a posts section answer 404 section_not_enabled."
+      },
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Create a series of posts",
+        "operationId": "manageCreatePostSeries",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPostSeries"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Add posts to it with PUT /posts/series/{seriesId}/posts, or by setting post_series_id on a post.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPostSeriesInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{site}/posts/series/{seriesId}": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Get a series of posts",
+        "operationId": "manageGetPostSeries",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/seriesId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPostSeries"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Update a series's title, address, summary, introduction, or publish time",
+        "operationId": "manageUpdatePostSeries",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/seriesId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPostSeries"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send only what changes. Which posts are in the series is set with PUT /posts/series/{seriesId}/posts.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagementPostSeriesUpdateInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Delete a series of posts; its posts are kept",
+        "operationId": "manageDeletePostSeries",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/seriesId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done."
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "The series goes to the trash, as in the admin. Its posts stay published and show no series while it is there."
+      }
+    },
+    "/sites/{site}/posts/series/{seriesId}/posts": {
+      "put": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Set which posts are in a series, in order",
+        "operationId": "manageSetPostSeriesPosts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/seriesId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementPostSeries"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Send every post the series should hold, once each, in the order the series page shows them, drafts included. Posts listed join the series and leave any other series; posts in the series that are not listed leave it and are kept. An empty list empties the series. An ID that is not a post on this site is refused and nothing changes. Drafts keep their place in the series. The public site leaves them out and numbers only the published posts.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostSeriesPostsInput"
+              }
+            }
+          }
+        }
+      }
+    },
     "/sites/{site}/search": {
       "get": {
         "tags": [
@@ -12713,6 +13036,16 @@
           "minimum": 1
         }
       },
+      "seriesId": {
+        "name": "seriesId",
+        "in": "path",
+        "required": true,
+        "description": "A series of posts ID.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
       "materialId": {
         "name": "materialId",
         "in": "path",
@@ -12925,14 +13258,14 @@
               "object",
               "null"
             ],
-            "description": "The editor's ProseMirror (Tiptap) document."
+            "description": "The editor's ProseMirror (Tiptap) document. An image node's attrs include src, alt, data-caption, data-credit (creator or source), data-href (link target), data-size (small, text, or wide), and data-crop ({\"x\", \"y\", \"w\", \"h\"}: the part of the picture that shows, as fractions of its width and height; null shows all of it). The file itself is never cropped. An equation is an inlineMath node (in a line of text) or a blockMath node (on its own line). Its attrs.latex holds the LaTeX without dollar signs. A Framework artifact is an embed node with attrs provider (framework), url, embedUrl, document (the framework.embed/v1 JSON string), fetchedAt, and label."
           },
           "markdown": {
             "type": [
               "string",
               "null"
             ],
-            "description": "The document as Markdown, for tools that take Markdown, such as static site generators. Images are Markdown images with their URL."
+            "description": "The document as Markdown for tools that take Markdown, such as static site generators. Images are Markdown images with their URL. Equations are $…$ and $$…$$."
           }
         }
       },
@@ -16903,6 +17236,32 @@
               "null"
             ],
             "format": "uri"
+          },
+          "preview_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "A signed link that shows the draft or scheduled record as the site will show it, with a preview bar. Anyone who has it can open it for 24 hours. Each read returns a fresh link. Null once the record is published."
+          },
+          "post_series_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The series the post is part of. Null for none."
+          },
+          "series_position": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The post's place in its series, counting drafts. Null outside a series. Set the order with PUT /posts/series/{seriesId}/posts."
+          },
+          "show_in_posts_list": {
+            "type": "boolean",
+            "description": "False keeps the post off the posts page, the homepage's recent posts, and the RSS feed. It stays public, in its series, on its tag pages, and in search."
           }
         }
       },
@@ -16939,7 +17298,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -16984,6 +17343,17 @@
               "null"
             ],
             "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
+          },
+          "post_series_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A series on this site to put the post in, at its end. Null takes it out of its series. A post already in that series keeps its place."
+          },
+          "show_in_posts_list": {
+            "type": "boolean",
+            "description": "False keeps the post off the posts page, the homepage's recent posts, and the RSS feed, while it stays public. True when left out of a new post."
           }
         },
         "additionalProperties": false
@@ -17097,6 +17467,14 @@
               "null"
             ],
             "format": "uri"
+          },
+          "preview_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "A signed link that shows the draft or scheduled record as the site will show it, with a preview bar. Anyone who has it can open it for 24 hours. Each read returns a fresh link. Null once the record is published."
           }
         }
       },
@@ -17138,7 +17516,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -17360,7 +17738,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "links": {
             "type": "array",
@@ -17845,7 +18223,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "official_url": {
             "type": [
@@ -18053,7 +18431,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "official_url": {
             "type": [
@@ -19479,7 +19857,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                  "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, series (a series of posts), project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                 },
                 "url": {
                   "type": [
@@ -19555,7 +19933,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
+                        "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, series (a series of posts), project, talk, or course, or a publication, such as project:12. Null for a group or a link to another website."
                       },
                       "url": {
                         "type": [
@@ -19619,7 +19997,7 @@
                     "string",
                     "null"
                   ],
-                  "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                  "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, series (a series of posts), project, talk, or course, or a publication, such as project:12."
                 },
                 "url": {
                   "type": [
@@ -19670,7 +20048,7 @@
                           "string",
                           "null"
                         ],
-                        "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, project, talk, or course, or a publication, such as project:12."
+                        "description": "Internal destination: home, section:<name> (bio, posts, projects, talks, publications, lab_members, courses, honors, service, memberships, grants, media_appearances), or <kind>:<id> for a published page, post, series (a series of posts), project, talk, or course, or a publication, such as project:12."
                       },
                       "url": {
                         "type": [
@@ -19974,6 +20352,214 @@
             ],
             "maxLength": 2048,
             "description": "The DID Bluesky shows under \"That contains the following\", starting with did:plc: or did:web:. Null removes the file. Required while the site has none."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementPostSeries": {
+        "type": "object",
+        "description": "A series of posts, draft or published.",
+        "required": [
+          "id",
+          "site_id",
+          "title",
+          "slug",
+          "uri",
+          "excerpt",
+          "content_structured",
+          "meta_title",
+          "meta_description",
+          "post_ids",
+          "published_at",
+          "created_at",
+          "updated_at",
+          "edit_version",
+          "content_markdown"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "site_id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uri": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The series page's path, /posts/series/<slug>. Null until it has a slug."
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A short summary, shown where the series is featured, such as on the homepage."
+          },
+          "content_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Advanced: the editor's Tiptap (ProseMirror) document, schema version 1. content_markdown has the same content as Markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/Markdown",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "content_structured as Markdown. Images are written as Markdown images with their URL."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "post_ids": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "The IDs of the posts in the series, in order, drafts included."
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "edit_version": {
+            "type": "integer",
+            "description": "Counts saves. Send it back with a PATCH to have a newer save refused with 409 edit_conflict."
+          }
+        }
+      },
+      "ManagementPostSeriesInput": {
+        "type": "object",
+        "description": "A series of posts. On PATCH, send only what changes.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+            "description": "The address after /posts/series/. Unique among the site's series. Made from the title when the series is published without one."
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "A short summary, shown where the series is featured."
+          },
+          "content_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
+          }
+        },
+        "additionalProperties": false
+      },
+      "PostSeriesPostsInput": {
+        "type": "object",
+        "description": "The posts a series holds, in order.",
+        "required": [
+          "post_ids"
+        ],
+        "properties": {
+          "post_ids": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "integer"
+            },
+            "description": "Post IDs from this site, once each, in order. An empty list empties the series."
           }
         },
         "additionalProperties": false
@@ -20562,7 +21148,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for summary: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send summary_markdown or summary, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for summary: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send summary_markdown or summary, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "body": {
             "type": [
@@ -20577,7 +21163,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for body: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send body_markdown or body, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for body: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send body_markdown or body, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "edit_version": {
             "type": [
@@ -22333,7 +22919,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for abstract_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send abstract_markdown or abstract_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for abstract_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send abstract_markdown or abstract_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "speaker_name": {
             "type": [
@@ -22999,7 +23585,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "instances": {
             "type": [
@@ -23370,7 +23956,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "email": {
             "type": [
@@ -23690,7 +24276,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "study_type": {
             "type": [
@@ -24408,7 +24994,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "lesson_id": {
             "type": [
@@ -24646,7 +25232,7 @@
           "null"
         ],
         "maxLength": 1000000,
-        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Null clears the field."
+        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Null clears the field."
       },
       "WebhookContentUpdated": {
         "type": "object",
@@ -24847,7 +25433,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -24892,6 +25478,17 @@
               "null"
             ],
             "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
+          },
+          "post_series_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "A series on this site to put the post in, at its end. Null takes it out of its series. A post already in that series keeps its place."
+          },
+          "show_in_posts_list": {
+            "type": "boolean",
+            "description": "False keeps the post off the posts page, the homepage's recent posts, and the RSS feed, while it stays public. True when left out of a new post."
           }
         },
         "additionalProperties": false
@@ -24931,7 +25528,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -25000,7 +25597,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "links": {
             "type": "array",
@@ -25069,6 +25666,79 @@
               "null"
             ],
             "description": "An image's library file ID from the media endpoints. Null removes the image. Assigning moves the file into this place, as the editor's picker does."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ManagementPostSeriesUpdateInput": {
+        "type": "object",
+        "description": "A series of posts. On PATCH, send only what changes.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+            "description": "The address after /posts/series/. Unique among the site's series. Made from the title when the series is published without one."
+          },
+          "excerpt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "A short summary, shown where the series is featured."
+          },
+          "content_structured": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Advanced: a Tiptap (ProseMirror) document, schema version 1, {\"type\": \"doc\", \"content\": [...]}, for exact control. Most clients send content_markdown. Send either content_structured or content_markdown."
+          },
+          "content_markdown": {
+            "$ref": "#/components/schemas/MarkdownInput",
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Null keeps or makes it a draft. A time in the past publishes it; in the future, schedules it."
+          },
+          "edit_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "The edit_version you read. A newer save answers 409 edit_conflict and writes nothing. Leave it out, or send null, to save regardless."
           }
         },
         "additionalProperties": false
@@ -25651,7 +26321,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "email": {
             "type": [
@@ -25847,7 +26517,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. Images become links to the image, because a document image must be a file in the site's Media Library. Tables become one paragraph per row. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "lesson_id": {
             "type": [

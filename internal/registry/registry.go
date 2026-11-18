@@ -185,6 +185,7 @@ var Groups = []Group{
 	{"navigation", "The header and footer menus"},
 	{"appearance", "The theme, accent color, list view, and footer"},
 	{"posts", "Blog posts"},
+	{"post-series", "Series: posts grouped on a page of their own, with an introduction and the posts in order"},
 	{"post-settings", "Settings for all posts, such as the RSS feed"},
 	{"pages", "Pages"},
 	{"projects", "Projects"},
@@ -309,6 +310,13 @@ var table = []entry{
 	{group: "posts", name: "create", short: "Create a post (a draft unless --publish)", op: "manageCreatePost", kind: KindWrite},
 	{group: "posts", name: "update", short: "Update a post", op: "manageUpdatePost", kind: KindWrite},
 	{group: "posts", name: "delete", short: "Delete a post", op: "manageDeletePost", kind: KindDelete},
+
+	{group: "post-series", name: "list", short: "List series, drafts included", op: "manageListPostSeries"},
+	{group: "post-series", name: "get", short: "Show a series and its posts in order", op: "manageGetPostSeries"},
+	{group: "post-series", name: "create", short: "Create a series (a draft unless --publish)", op: "manageCreatePostSeries", kind: KindWrite},
+	{group: "post-series", name: "update", short: "Update a series' title, address, introduction, or summary", op: "manageUpdatePostSeries", kind: KindWrite},
+	{group: "post-series", name: "delete", short: "Delete a series (its posts are kept and leave the series)", op: "manageDeletePostSeries", kind: KindDelete},
+	{group: "post-series", name: "set-posts", short: "Set a series' posts in order (posts left out leave the series)", op: "manageSetPostSeriesPosts", kind: KindWrite},
 
 	{group: "nested-address", name: "get", short: "Show the nested site slug and public URL", op: "manageGetNestedAddress"},
 	{group: "nested-address", name: "update", short: "Change the nested site slug", op: "manageUpdateNestedAddress", kind: KindWrite},
