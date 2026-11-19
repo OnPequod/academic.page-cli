@@ -6251,7 +6251,7 @@
             "$ref": "#/components/responses/Error"
           }
         },
-        "description": "Send every post the series should hold, once each, in the order the series page shows them, drafts included. Posts listed join the series and leave any other series; posts in the series that are not listed leave it and are kept. An empty list empties the series. An ID that is not a post on this site is refused and nothing changes. Drafts keep their place in the series. The public site leaves them out and numbers only the published posts.",
+        "description": "Send every post the series should hold, once each, in the order the series page shows them, drafts included: post_ids for posts outside any section, and sections for the rest. Posts listed join the series and leave any other series; posts in the series that are not listed leave it and are kept. An empty list empties the series. An ID that is not a post on this site is refused and nothing changes. Drafts keep their place in the series. The public site leaves them out and numbers only the published posts.",
         "requestBody": {
           "required": true,
           "content": {
@@ -13258,7 +13258,7 @@
               "object",
               "null"
             ],
-            "description": "The editor's ProseMirror (Tiptap) document. An image node's attrs include src, alt, data-caption, data-credit (creator or source), data-href (link target), data-size (small, text, or wide), and data-crop ({\"x\", \"y\", \"w\", \"h\"}: the part of the picture that shows, as fractions of its width and height; null shows all of it). The file itself is never cropped. An equation is an inlineMath node (in a line of text) or a blockMath node (on its own line). Its attrs.latex holds the LaTeX without dollar signs. A Framework artifact is an embed node with attrs provider (framework), url, embedUrl, document (the framework.embed/v1 JSON string), fetchedAt, and label."
+            "description": "The editor's ProseMirror (Tiptap) document. An image node's attrs include src, alt, data-caption, data-credit (creator or source), data-href (link target), data-size (small, text, or wide), and data-crop ({\"x\", \"y\", \"w\", \"h\"}: the part of the picture that shows, as fractions of its width and height; null shows all of it). The file itself is never cropped. An equation is an inlineMath node (in a line of text) or a blockMath node (on its own line). Its attrs.latex holds the LaTeX without dollar signs. A Framework artifact is an embed node with attrs provider (framework), url, embedUrl, document (the framework.embed/v1 JSON string), fetchedAt, and label. A tabset node holds tabPanel nodes and sits only at the top level of a document. Its attrs.sync (default true) means picking a tab switches other tabsets with a tab of the same name; false turns that off. Each tabPanel has attrs.label (the tab's name, such as Python) and holds blocks."
           },
           "markdown": {
             "type": [
@@ -17259,6 +17259,13 @@
             ],
             "description": "The post's place in its series, counting drafts. Null outside a series. Set the order with PUT /posts/series/{seriesId}/posts."
           },
+          "series_section_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "The section of its series the post is in, from the series' sections. Null outside any section or any series. Set it with PUT /posts/series/{seriesId}/posts."
+          },
           "show_in_posts_list": {
             "type": "boolean",
             "description": "False keeps the post off the posts page, the homepage's recent posts, and the RSS feed. It stays public, in its series, on its tag pages, and in search."
@@ -17298,7 +17305,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -17349,7 +17356,7 @@
               "integer",
               "null"
             ],
-            "description": "A series on this site to put the post in, at its end. Null takes it out of its series. A post already in that series keeps its place."
+            "description": "A series on this site to put the post in, at its end (in its last section, when it has sections). Null takes it out of its series. A post already in that series keeps its place."
           },
           "show_in_posts_list": {
             "type": "boolean",
@@ -17516,7 +17523,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -17738,7 +17745,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "links": {
             "type": "array",
@@ -18223,7 +18230,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "official_url": {
             "type": [
@@ -18431,7 +18438,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "official_url": {
             "type": [
@@ -20370,7 +20377,9 @@
           "meta_title",
           "meta_description",
           "post_ids",
+          "sections",
           "published_at",
+          "preview_url",
           "created_at",
           "updated_at",
           "edit_version",
@@ -20441,7 +20450,47 @@
             "items": {
               "type": "integer"
             },
-            "description": "The IDs of the posts in the series, in order, drafts included."
+            "description": "The IDs of the posts in the series, in reading order, drafts included: posts outside any section first, then each section's posts."
+          },
+          "sections": {
+            "type": "array",
+            "description": "The series' sections in order: titled groups of its posts, such as one section per topic. Posts outside any section come before the first section. On the site, posts are numbered within their section (\"2 of 4 in Linear Gaussian Models\"), and a section with no published posts is not shown.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "title",
+                "description",
+                "post_ids"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "title": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The section's heading. An untitled section shows as \"Section 2\"."
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "A sentence or two shown under the heading on the series page."
+                },
+                "post_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "description": "The section's posts, in order, drafts included."
+                }
+              }
+            }
           },
           "published_at": {
             "type": [
@@ -20449,6 +20498,14 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "preview_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "A signed link that shows the draft series as the site will show it, with a preview bar. It lists only the series' published posts, as the public page will. Anyone who has it can open it for 24 hours. Each read returns a fresh link. Null once the series is published."
           },
           "created_at": {
             "type": [
@@ -20511,7 +20568,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -20548,7 +20605,7 @@
       },
       "PostSeriesPostsInput": {
         "type": "object",
-        "description": "The posts a series holds, in order.",
+        "description": "The posts a series holds, in order, and its sections.",
         "required": [
           "post_ids"
         ],
@@ -20559,7 +20616,50 @@
             "items": {
               "type": "integer"
             },
-            "description": "Post IDs from this site, once each, in order. An empty list empties the series."
+            "description": "Post IDs from this site, in order: the posts outside any section, which come first. For a series without sections, every post. Each post is listed once, here or in one section. An empty list with no sections empties the series."
+          },
+          "sections": {
+            "type": "array",
+            "maxItems": 100,
+            "description": "The series' sections, in order, each with its posts. Send it whenever the series has sections, or the request is refused: it replaces them all. A section with an id keeps it; a section without one is added; sections left out are removed (their posts stay only if listed elsewhere). An empty list removes every section. Leave it out for a series without sections.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "post_ids"
+              ],
+              "properties": {
+                "id": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "description": "An existing section's ID, from the series' sections. Leave it out to add a section."
+                },
+                "title": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 255
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 1000
+                },
+                "post_ids": {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "integer"
+                  },
+                  "description": "The section's posts, in order."
+                }
+              }
+            }
           }
         },
         "additionalProperties": false
@@ -21148,7 +21248,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for summary: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send summary_markdown or summary, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for summary: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send summary_markdown or summary, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "body": {
             "type": [
@@ -21163,7 +21263,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for body: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send body_markdown or body, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for body: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send body_markdown or body, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "edit_version": {
             "type": [
@@ -22919,7 +23019,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for abstract_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send abstract_markdown or abstract_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for abstract_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send abstract_markdown or abstract_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "speaker_name": {
             "type": [
@@ -23585,7 +23685,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "instances": {
             "type": [
@@ -23956,7 +24056,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "email": {
             "type": [
@@ -24276,7 +24376,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for description: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send description_markdown or description, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "study_type": {
             "type": [
@@ -24994,7 +25094,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "lesson_id": {
             "type": [
@@ -25232,7 +25332,7 @@
           "null"
         ],
         "maxLength": 1000000,
-        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Null clears the field."
+        "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Null clears the field."
       },
       "WebhookContentUpdated": {
         "type": "object",
@@ -25433,7 +25533,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -25484,7 +25584,7 @@
               "integer",
               "null"
             ],
-            "description": "A series on this site to put the post in, at its end. Null takes it out of its series. A post already in that series keeps its place."
+            "description": "A series on this site to put the post in, at its end (in its last section, when it has sections). Null takes it out of its series. A post already in that series keeps its place."
           },
           "show_in_posts_list": {
             "type": "boolean",
@@ -25528,7 +25628,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -25597,7 +25697,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "links": {
             "type": "array",
@@ -25708,7 +25808,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "meta_title": {
             "type": [
@@ -26321,7 +26421,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for bio_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send bio_markdown or bio_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "email": {
             "type": [
@@ -26517,7 +26617,7 @@
               "string",
               "null"
             ],
-            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
+            "description": "Standard input for content_structured: Markdown, converted on the server and saved as a structured document. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Send content_markdown or content_structured, not both: a request with both is refused with 422 and the code validation_failed."
           },
           "lesson_id": {
             "type": [

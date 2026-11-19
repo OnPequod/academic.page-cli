@@ -316,7 +316,7 @@ var table = []entry{
 	{group: "post-series", name: "create", short: "Create a series (a draft unless --publish)", op: "manageCreatePostSeries", kind: KindWrite},
 	{group: "post-series", name: "update", short: "Update a series' title, address, introduction, or summary", op: "manageUpdatePostSeries", kind: KindWrite},
 	{group: "post-series", name: "delete", short: "Delete a series (its posts are kept and leave the series)", op: "manageDeletePostSeries", kind: KindDelete},
-	{group: "post-series", name: "set-posts", short: "Set a series' posts in order (posts left out leave the series)", op: "manageSetPostSeriesPosts", kind: KindWrite},
+	{group: "post-series", name: "set-posts", short: "Set a series' posts and sections in order (posts left out leave the series)", op: "manageSetPostSeriesPosts", kind: KindWrite},
 
 	{group: "nested-address", name: "get", short: "Show the nested site slug and public URL", op: "manageGetNestedAddress"},
 	{group: "nested-address", name: "update", short: "Change the nested site slug", op: "manageUpdateNestedAddress", kind: KindWrite},
