@@ -9963,7 +9963,7 @@
         "tags": [
           "Management"
         ],
-        "summary": "Delete a course",
+        "summary": "Delete a course (409 site_course for a course site's own course, which goes only with its site)",
         "operationId": "manageDeleteCourse",
         "parameters": [
           {
@@ -9990,6 +9990,9 @@
             "$ref": "#/components/responses/Error"
           },
           "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
             "$ref": "#/components/responses/Error"
           }
         }
@@ -12498,6 +12501,158 @@
           }
         }
       }
+    },
+    "/sites/{site}/trash": {
+      "get": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "List what the site deleted in the last 30 days, newest first",
+        "operationId": "manageListTrash",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "Only this kind of record.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "posts",
+                "post_series",
+                "pages",
+                "projects",
+                "publications",
+                "talks",
+                "courses",
+                "lessons",
+                "materials",
+                "assignments",
+                "references",
+                "lab_members",
+                "degrees",
+                "positions",
+                "honors",
+                "service",
+                "memberships",
+                "grants",
+                "media_appearances",
+                "mentees",
+                "links",
+                "tags",
+                "files"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/managementPerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ManagementTrashItem"
+                      }
+                    },
+                    "links": {
+                      "$ref": "#/components/schemas/PaginationLinks"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Deleting a record moves it to the trash. It stays there for 30 days with its files, tags, and history, and is then deleted for good.\n\nA lesson's materials deleted with the lesson are not listed. They come back when the lesson is restored."
+      }
+    },
+    "/sites/{site}/trash/{trashType}/{trashId}/restore": {
+      "post": {
+        "tags": [
+          "Management"
+        ],
+        "summary": "Restore a deleted record",
+        "operationId": "manageRestoreTrashItem",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/site"
+          },
+          {
+            "$ref": "#/components/parameters/trashType"
+          },
+          {
+            "$ref": "#/components/parameters/trashId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ManagementRestoredItem"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "description": "Puts the record back where it was, as it was when deleted: published records are published again.\n\nAnswers 409 parent_in_trash when the record belongs to something that is also in the trash, such as a lesson whose course was deleted. Restore that first. Answers 409 name_taken for a tag whose name another tag now has, and 409 already_in_library for a file that is back in the media library."
+      }
     }
   },
   "webhooks": {
@@ -13081,6 +13236,50 @@
         "in": "path",
         "required": true,
         "description": "An import ID, from imports_list.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "trashType": {
+        "name": "trashType",
+        "in": "path",
+        "required": true,
+        "description": "The kind of record, as trash_list gives it.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "posts",
+            "post_series",
+            "pages",
+            "projects",
+            "publications",
+            "talks",
+            "courses",
+            "lessons",
+            "materials",
+            "assignments",
+            "references",
+            "lab_members",
+            "degrees",
+            "positions",
+            "honors",
+            "service",
+            "memberships",
+            "grants",
+            "media_appearances",
+            "mentees",
+            "links",
+            "tags",
+            "files"
+          ]
+        }
+      },
+      "trashId": {
+        "name": "trashId",
+        "in": "path",
+        "required": true,
+        "description": "The record's ID, as trash_list gives it.",
         "schema": {
           "type": "integer",
           "minimum": 1
@@ -25333,6 +25532,122 @@
         ],
         "maxLength": 1000000,
         "description": "Rich text as Markdown, converted to the editor's document on the server. Supported: CommonMark with GFM strikethrough and tables: paragraphs, headings (levels 4 to 6 become 3), bold, italic, strikethrough, inline code, links (http, https, and mailto only; other links keep only their text), bulleted and numbered lists (nested, with a start number), quotes, fenced and indented code with a language, horizontal rules, and hard line breaks. GFM tables use the first row as the header. A Markdown image for a file in the site's Media Library (by address or as media:ID, such as ![A chart](media:123)) becomes an image. Wrapped in a link, the image links there. Any other image becomes a link to its address because a document only shows files from the site's Media Library. A URL alone on a line for a public or unlisted Framework model, table, test, figure, or chart becomes that artifact. The server fetches it from Framework once and stores it. Equations use $…$ in a line of text and $$…$$ on their own line or lines for LaTeX (\\$ writes a dollar sign). Tabs use Quarto's syntax: a ::: {.panel-tabset} line, a heading for each tab followed by its content, and a closing ::: line. Each heading at the level of the first heading starts a tab and is its label. When a reader picks a tab, other tabsets with a tab of the same name switch to it; ::: {.panel-tabset sync=\"false\"} turns that off for one tabset. Tabsets sit at the top level of a document. Raw HTML is kept as plain text. Null clears the field."
+      },
+      "ManagementTrashItem": {
+        "type": "object",
+        "description": "A deleted record in the trash.",
+        "required": [
+          "type",
+          "id",
+          "title",
+          "deleted_at",
+          "purge_at",
+          "can_restore",
+          "blocked_reason"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "posts",
+              "post_series",
+              "pages",
+              "projects",
+              "publications",
+              "talks",
+              "courses",
+              "lessons",
+              "materials",
+              "assignments",
+              "references",
+              "lab_members",
+              "degrees",
+              "positions",
+              "honors",
+              "service",
+              "memberships",
+              "grants",
+              "media_appearances",
+              "mentees",
+              "links",
+              "tags",
+              "files"
+            ],
+            "description": "The kind of record."
+          },
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string",
+            "description": "Its title or name."
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "purge_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is deleted for good, at the latest."
+          },
+          "can_restore": {
+            "type": "boolean"
+          },
+          "blocked_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why it cannot be restored yet, such as its course being in the trash too."
+          }
+        }
+      },
+      "ManagementRestoredItem": {
+        "type": "object",
+        "description": "The record that was restored.",
+        "required": [
+          "type",
+          "id",
+          "title"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "posts",
+              "post_series",
+              "pages",
+              "projects",
+              "publications",
+              "talks",
+              "courses",
+              "lessons",
+              "materials",
+              "assignments",
+              "references",
+              "lab_members",
+              "degrees",
+              "positions",
+              "honors",
+              "service",
+              "memberships",
+              "grants",
+              "media_appearances",
+              "mentees",
+              "links",
+              "tags",
+              "files"
+            ],
+            "description": "The kind of record."
+          },
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
       },
       "WebhookContentUpdated": {
         "type": "object",

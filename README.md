@@ -72,6 +72,8 @@ academic-page pages create --title "Teaching" --content-markdown "I teach **stat
 academic-page media upload headshot.jpg --alt-text "Portrait"   # up to 1 GB
 academic-page imports list                  # CV and syllabus imports, newest first
 academic-page imports get 3                 # what an import found, and where it had trouble
+academic-page trash list --type posts       # deleted posts, kept for 30 days
+academic-page trash restore posts 12        # put a deleted post back
 academic-page courses update 4 --instructor-name "Ada Lovelace" --primary-institution "Example University"
 academic-page nested-address update --slug ai-powered-coding-and-data-analysis
 academic-page courses update 4 --level graduate --class-size "10–20 students"

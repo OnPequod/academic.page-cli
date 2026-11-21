@@ -200,6 +200,7 @@ var Groups = []Group{
 	{"study", "Study details"},
 	{"tags", "Tags"},
 	{"imports", "CV and syllabus imports: what each found, and where it had trouble"},
+	{"trash", "Deleted content, kept for 30 days: list it and restore it"},
 	{"media", "Media library files"},
 	{"search", "Search a site's content, drafts included, and the public search button"},
 	{"email", "Which optional emails your account gets: setup reminders and product updates"},
@@ -423,6 +424,9 @@ var table = []entry{
 
 	{group: "imports", name: "list", short: "List the site's imports, newest first", op: "manageListImports"},
 	{group: "imports", name: "get", short: "Show one import: what it found, which suggestions it could not check, and where it had trouble", op: "manageGetImport"},
+
+	{group: "trash", name: "list", short: "List what the site deleted in the last 30 days, newest first", op: "manageListTrash", emptyHint: "The trash is empty."},
+	{group: "trash", name: "restore", short: "Restore a deleted record, as it was when deleted", op: "manageRestoreTrashItem", kind: KindWrite, parents: []string{"type"}},
 
 	{group: "media", name: "list", short: "List media files", op: "listMedia", draftsOp: "manageListMedia"},
 	{group: "media", name: "get", short: "Show a media file", op: "getMediaItem", draftsOp: "manageGetMedia"},
